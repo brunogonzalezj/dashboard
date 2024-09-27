@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 export default function LoginPage() {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
+    const [username, setUsername] = useState('')
+    const [password, setPassword] = useState('')
+    const [error, setError] = useState('')
+    const navigate = useNavigate()
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
+        e.preventDefault()
+        setError('')
 
         try {
             const response = await fetch('http://localhost:3001/login', {
@@ -18,20 +18,24 @@ export default function LoginPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ username, password }),
-                credentials: 'include', // This is important for including cookies in the request
-            });
+                credentials: 'include',
+            })
 
             if (response.ok) {
-                // Si el login es exitoso, navegamos a la página de bienvenida
-                navigate('/welcome');
+                const data = await response.json()
+                if (data.role === 'admin') {
+                    navigate('/')
+                } else {
+                    setError('Access denied. Admin only.')
+                }
             } else {
-                const data = await response.json();
-                setError(data.error || 'Error al iniciar sesión');
+                const data = await response.json()
+                setError(data.error || 'Error al iniciar sesión')
             }
         } catch (error) {
-            setError((error as Error).message);
+            setError('Error al conectar con el servidor')
         }
-    };
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -42,12 +46,8 @@ export default function LoginPage() {
                     </h2>
                 </div>
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    <input type="hidden" name="remember" value="true" />
                     <div className="rounded-md shadow-sm -space-y-px">
                         <div>
-                            <label htmlFor="username" className="sr-only">
-                                Nombre de usuario
-                            </label>
                             <input
                                 id="username"
                                 name="username"
@@ -60,9 +60,6 @@ export default function LoginPage() {
                             />
                         </div>
                         <div>
-                            <label htmlFor="password" className="sr-only">
-                                Contraseña
-                            </label>
                             <input
                                 id="password"
                                 name="password"
@@ -89,12 +86,7 @@ export default function LoginPage() {
                         </button>
                     </div>
                 </form>
-                <div className="text-sm mt-3 text-center">
-                    <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
-                        ¿No tienes una cuenta? Regístrate
-                    </Link>
-                </div>
             </div>
         </div>
-    );
+    )
 }
