@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Home, Users, FileSpreadsheet, LogOut } from 'lucide-react'
 
@@ -9,6 +9,29 @@ type LayoutProps = {
 export default function Layout({ children }: LayoutProps) {
     const location = useLocation()
     const navigate = useNavigate()
+    const [userRole, setUserRole] = useState<string | null>(null)
+
+    useEffect(() => {
+        // Fetch user role from the server
+        const fetchUserRole = async () => {
+            try {
+                const response = await fetch('http://localhost:3001/user-role', {
+                    credentials: 'include',
+                })
+                if (response.ok) {
+                    const data = await response.json()
+                    setUserRole(data.role)
+                } else {
+                    navigate('/login')
+                }
+            } catch (error) {
+                console.error('Error fetching user role:', error)
+                navigate('/login')
+            }
+        }
+
+        fetchUserRole()
+    }, [navigate])
 
     const isActive = (path: string) => location.pathname === path
 
@@ -25,25 +48,29 @@ export default function Layout({ children }: LayoutProps) {
     };
 
     return (
-        <div className="flex h-screen bg-gray-100">
-            <aside className="w-64 bg-white shadow-md">
+        <div className="flex h-screen bg-gradient-to-r from-purple-500 to-indigo-600">
+            <aside className="w-64 bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg">
                 <div className="p-4">
-                    <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
+                    <h1 className="text-2xl font-semibold text-white">Dashboard</h1>
                 </div>
                 <nav className="mt-6">
-                    <Link to="/" className={`flex items-center px-4 py-2 ${isActive('/') ? 'bg-gray-200' : ''}`}>
+                    <Link to="/" className={`flex items-center px-4 py-2 text-white ${isActive('/') ? 'bg-white bg-opacity-20' : ''}`}>
                         <Home className="mr-3" size={20} />
                         <span>Dashboard</span>
                     </Link>
-                    <Link to="/users" className={`flex items-center px-4 py-2 ${isActive('/users') ? 'bg-gray-200' : ''}`}>
-                        <Users className="mr-3" size={20} />
-                        <span>Users</span>
-                    </Link>
-                    <Link to="/csv-upload" className={`flex items-center px-4 py-2 ${isActive('/csv-upload') ? 'bg-gray-200' : ''}`}>
-                        <FileSpreadsheet className="mr-3" size={20} />
-                        <span>CSV Upload</span>
-                    </Link>
-                    <button onClick={handleLogout} className="flex items-center px-4 py-2 w-full text-left">
+                    {userRole === 'admin' && (
+                        <>
+                            <Link to="/users" className={`flex items-center px-4 py-2 text-white ${isActive('/users') ? 'bg-white bg-opacity-20' : ''}`}>
+                                <Users className="mr-3" size={20} />
+                                <span>Users</span>
+                            </Link>
+                            <Link to="/csv-upload" className={`flex items-center px-4 py-2 text-white ${isActive('/csv-upload') ? 'bg-white bg-opacity-20' : ''}`}>
+                                <FileSpreadsheet className="mr-3" size={20} />
+                                <span>CSV Upload</span>
+                            </Link>
+                        </>
+                    )}
+                    <button onClick={handleLogout} className="flex items-center px-4 py-2 w-full text-left text-white">
                         <LogOut className="mr-3" size={20} />
                         <span>Logout</span>
                     </button>

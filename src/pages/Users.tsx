@@ -4,17 +4,21 @@ import Layout from '../components/Layout'
 type User = {
     id: number
     username: string
-    email: string
+    password: string
     role: string
+    company: string
 }
 
 export default function Users() {
     const [users, setUsers] = useState<User[]>([])
-    const [newUser, setNewUser] = useState({ username: '', email: '', password: '', role: '' })
+    const [newUser, setNewUser] = useState({ username: '', company: '' })
     const [error, setError] = useState('')
+    const [csvColumns, setCsvColumns] = useState<string[]>([])
+    const [selectedColumn, setSelectedColumn] = useState('')
 
     useEffect(() => {
         fetchUsers()
+        fetchCsvColumns()
     }, [])
 
     const fetchUsers = async () => {
@@ -33,6 +37,25 @@ export default function Users() {
         }
     }
 
+    const fetchCsvColumns = async () => {
+        try {
+            const response = await fetch('http://localhost:3001/csv-columns', {
+                credentials: 'include',
+            })
+            if (response.ok) {
+                const data = await response.json()
+                setCsvColumns(data)
+                if (data.length > 0) {
+                    setSelectedColumn(data[0])
+                }
+            } else {
+                throw new Error('Failed to fetch CSV columns')
+            }
+        } catch (error) {
+            setError('Error fetching CSV columns')
+        }
+    }
+
     const createUser = async () => {
         try {
             const response = await fetch('http://localhost:3001/users', {
@@ -40,11 +63,11 @@ export default function Users() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(newUser),
+                body: JSON.stringify({ ...newUser, column: selectedColumn }),
                 credentials: 'include',
             })
             if (response.ok) {
-                setNewUser({ username: '', email: '', password: '', role: '' })
+                setNewUser({ username: '', company: '' })
                 fetchUsers()
             } else {
                 throw new Error('Failed to create user')
@@ -56,59 +79,61 @@ export default function Users() {
 
     return (
         <Layout>
-            <h1 className="text-3xl font-bold mb-6">User Management</h1>
-            <div className="mb-6 space-y-4">
-                <input
-                    className="w-full p-2 border rounded"
-                    placeholder="Username"
-                    value={newUser.username}
-                    onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                />
-                <input
-                    className="w-full p-2 border rounded"
-                    placeholder="Email"
-                    value={newUser.email}
-                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                />
-                <input
-                    className="w-full p-2 border rounded"
-                    placeholder="Password"
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                />
-                <input
-                    className="w-full p-2 border rounded"
-                    placeholder="Role"
-                    value={newUser.role}
-                    onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                />
-                <button
-                    className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    onClick={createUser}
-                >
-                    Create User
-                </button>
-            </div>
-            {error && <p className="text-red-500 mb-4">{error}</p>}
-            <table className="w-full">
-                <thead>
-                <tr className="bg-gray-200">
-                    <th className="p-2 text-left">Username</th>
-                    <th className="p-2 text-left">Email</th>
-                    <th className="p-2 text-left">Role</th>
-                </tr>
-                </thead>
-                <tbody>
-                {users.map((user) => (
-                    <tr key={user.id} className="border-b">
-                        <td className="p-2">{user.username}</td>
-                        <td className="p-2">{user.email}</td>
-                        <td className="p-2">{user.role}</td>
+            <div className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-xl p-8">
+                <h1 className="text-3xl font-bold mb-6 text-white">User Management</h1>
+                <div className="mb-6 space-y-4">
+                    <input
+                        className="w-full p-2 border rounded bg-white bg-opacity-20 text-white placeholder-gray-300"
+                        placeholder="Username"
+                        value={newUser.username}
+                        onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                    />
+                    <select
+                        className="w-full p-2 border rounded bg-white bg-opacity-20 text-white"
+                        value={selectedColumn}
+                        onChange={(e) => setSelectedColumn(e.target.value)}
+                    >
+                        {csvColumns.map((column) => (
+                            <option key={column} value={column}>
+                                {column}
+                            </option>
+                        ))}
+                    </select>
+                    <input
+                        className="w-full p-2 border rounded bg-white bg-opacity-20 text-white placeholder-gray-300"
+                        placeholder="Company"
+                        value={newUser.company}
+                        onChange={(e) => setNewUser({ ...newUser, company: e.target.value })}
+                    />
+                    <button
+                        className="w-full p-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition duration-150 ease-in-out"
+                        onClick={createUser}
+                    >
+                        Create User
+                    </button>
+                </div>
+                {error && <p className="text-red-500 mb-4">{error}</p>}
+                <table className="w-full text-white">
+                    <thead>
+                    <tr className="bg-white bg-opacity-20">
+                        <th className="p-2 text-left">Username</th>
+                        <th className="p-2 text-left">Password</th>
+                        <th className="p-2 text-left">Role</th>
+                        <th className="p-2 text-left">Company</th>
                     </tr>
-                ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    {users.map((user) => (
+                        <tr key={user.id} className="border-b border-white border-opacity-20">
+                            <td className="p-2">{user.username}</td>
+                            <td className="p-2">{user.password}</td>
+                            <td className="p-2">{user.role}</td>
+                            <td className="p-2">{user.company}</td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            </div>
         </Layout>
     )
 }
