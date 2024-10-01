@@ -1,83 +1,41 @@
-import { useState, useEffect } from 'react'
-import Layout from '../components/Layout'
+import { useAuth } from '../contexts/AuthContext';
 
-type DashboardData = {
-    [key: string]: string
-}
+const Dashboard: React.FC = () => {
+    const { userRole } = useAuth();
 
-export default function Dashboard() {
-    const [data, setData] = useState<DashboardData[]>([])
-
-    useEffect(() => {
-        fetchDashboardData()
-    }, [])
-
-    const fetchDashboardData = async () => {
-        try {
-            const response = await fetch('http://localhost:3001/dashboard-data', {
-                credentials: 'include',
-            })
-            if (response.ok) {
-                const data = await response.json()
-                setData(data)
-            } else {
-                throw new Error('Failed to fetch dashboard data')
-            }
-        } catch (error) {
-            console.error('Error fetching dashboard data:', error)
-        }
-    }
 
     return (
-        <Layout>
-            <div className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-xl p-8">
-                <h1 className="text-3xl font-bold mb-6 text-white">Dashboard</h1>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="bg-white bg-opacity-20 p-6 rounded-lg shadow-md">
-                        <h2 className="text-xl font-semibold mb-4 text-white">Regional Footprint</h2>
-                        {/* Add visualization for regional data */}
-                    </div>
-                    <div className="bg-white bg-opacity-20 p-6 rounded-lg shadow-md">
-                        <h2 className="text-xl font-semibold mb-4 text-white">Historical Summary</h2>
-                        {/* Add visualization for historical data */}
-                    </div>
-                    <div className="bg-white bg-opacity-20 p-6 rounded-lg shadow-md">
-                        <h2 className="text-xl font-semibold mb-4 text-white">Associations & Companies</h2>
-                        {/* Add list or visualization for associations and companies */}
-                    </div>
-                    <div className="bg-white bg-opacity-20 p-6 rounded-lg shadow-md">
-                        <h2 className="text-xl font-semibold mb-4 text-white">Current Courses Report</h2>
-                        {/* Add report for current courses */}
-                    </div>
-                    <div className="bg-white bg-opacity-20 p-6 rounded-lg shadow-md">
-                        <h2 className="text-xl font-semibold mb-4 text-white">Current Courses Performance</h2>
-                        {/* Add performance data for current courses */}
-                    </div>
-                    <div className="bg-white bg-opacity-20 p-6 rounded-lg shadow-md">
-                        <h2 className="text-xl font-semibold mb-4 text-white">Data Table</h2>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-white">
-                                <thead>
-                                <tr>
-                                    {Object.keys(data[0] || {}).map((key) => (
-                                        <th key={key} className="p-2 text-left">{key}</th>
-                                    ))}
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {data.map((row, index) => (
-                                    <tr key={index}>
-                                        {Object.values(row).map((value, i) => (
-                                            <td key={i} className="p-2">{value}</td>
-                                        ))}
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+        <div className="p-6 bg-white rounded-lg shadow-md">
+            <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+            {userRole === 'admin' ? (
+                <div>
+                    <h2 className="text-xl font-semibold mb-2">Datos de todos los usuarios</h2>
+                    {/* Mostrar datos para admin */}
                 </div>
-            </div>
-        </Layout>
-    )
-}
+            ) : (
+                <div>
+                    <h2 className="text-xl font-semibold mb-2">Tus datos</h2>
+                    {/* Mostrar datos filtrados para cliente */}
+                </div>
+            )}
+            <table className="min-w-full bg-white">
+                <thead>
+                <tr>
+                    <th className="py-2 px-4 border-b">Column 1</th>
+                    <th className="py-2 px-4 border-b">Column 2</th>
+                    <th className="py-2 px-4 border-b">Column 3</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td className="py-2 px-4 border-b">item1</td>
+                        <td className="py-2 px-4 border-b">item2</td>
+                        <td className="py-2 px-4 border-b">item3</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+export default Dashboard;

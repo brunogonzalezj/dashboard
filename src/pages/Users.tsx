@@ -1,139 +1,103 @@
-import { useState, useEffect } from 'react'
-import Layout from '../components/Layout'
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
 
-type User = {
-    id: number
-    username: string
-    password: string
-    role: string
-    company: string
+interface User {
+    id: number;
+    username: string;
+    role: string;
+    company: string;
+    password: string;
 }
 
 export default function Users() {
-    const [users, setUsers] = useState<User[]>([])
-    const [newUser, setNewUser] = useState({ username: '', company: '' })
-    const [error, setError] = useState('')
-    const [csvColumns, setCsvColumns] = useState<string[]>([])
-    const [selectedColumn, setSelectedColumn] = useState('')
+    const [users, setUsers] = useState<User[]>([]);
+    const [newUser, setNewUser] = useState({ username: '', company: '' });
+    const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+    const { userRole } = useAuth();
 
     useEffect(() => {
-        fetchUsers()
-        fetchCsvColumns()
-    }, [])
+        if (userRole === 'admin') {
+            fetchUsers();
+        }
+    }, [userRole]);
 
     const fetchUsers = async () => {
         try {
-            const response = await fetch('http://localhost:3001/users', {
-                credentials: 'include',
-            })
-            if (response.ok) {
-                const data = await response.json()
-                setUsers(data)
-            } else {
-                throw new Error('Failed to fetch users')
-            }
+            const response = await axios.get('http://localhost:3001/users', { withCredentials: true });
+            setUsers(response.data);
         } catch (error) {
-            setError('Error fetching users')
+            console.error('Error fetching users:', error);
+            setError('Error al obtener usuarios');
         }
-    }
-
-    const fetchCsvColumns = async () => {
-        try {
-            const response = await fetch('http://localhost:3001/csv-columns', {
-                credentials: 'include',
-            })
-            if (response.ok) {
-                const data = await response.json()
-                setCsvColumns(data)
-                if (data.length > 0) {
-                    setSelectedColumn(data[0])
-                }
-            } else {
-                throw new Error('Failed to fetch CSV columns')
-            }
-        } catch (error) {
-            setError('Error fetching CSV columns')
-        }
-    }
+    };
 
     const createUser = async () => {
         try {
-            const response = await fetch('http://localhost:3001/users', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ ...newUser, column: selectedColumn }),
-                credentials: 'include',
-            })
-            if (response.ok) {
-                setNewUser({ username: '', company: '' })
-                fetchUsers()
-            } else {
-                throw new Error('Failed to create user')
-            }
+            const response = await axios.post('http://localhost:3001/users', newUser, { withCredentials: true });
+            setNewUser({ username: '', company: '' });
+            setSuccessMessage(`Usuario creado: ${response.data.username}, Contraseña: ${response.data.password}`);
+            fetchUsers();
         } catch (error) {
-            setError('Error creating user')
+            console.error('Error creating user:', error);
+            setError('Error al crear usuario');
         }
+    };
+
+    if (userRole !== 'admin') {
+        return <div className="p-6 bg-white rounded-lg shadow-md">Acceso no autorizado</div>;
     }
 
     return (
-        <Layout>
-            <div className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-xl p-8">
-                <h1 className="text-3xl font-bold mb-6 text-white">User Management</h1>
-                <div className="mb-6 space-y-4">
+        <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-4">Gestión de Usuarios</h2>
+            <div className="space-y-4">
+                <div className="flex space-x-2">
                     <input
-                        className="w-full p-2 border rounded bg-white bg-opacity-20 text-white placeholder-gray-300"
-                        placeholder="Username"
+                        type="text"
+                        placeholder="Nombre de usuario"
                         value={newUser.username}
                         onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                        className="flex-1 p-2 border rounded"
                     />
-                    <select
-                        className="w-full p-2 border rounded bg-white bg-opacity-20 text-white"
-                        value={selectedColumn}
-                        onChange={(e) => setSelectedColumn(e.target.value)}
-                    >
-                        {csvColumns.map((column) => (
-                            <option key={column} value={column}>
-                                {column}
-                            </option>
-                        ))}
-                    </select>
                     <input
-                        className="w-full p-2 border rounded bg-white bg-opacity-20 text-white placeholder-gray-300"
-                        placeholder="Company"
+                        type="text"
+                        placeholder="Compañía"
                         value={newUser.company}
                         onChange={(e) => setNewUser({ ...newUser, company: e.target.value })}
+                        className="flex-1 p-2 border rounded"
                     />
                     <button
-                        className="w-full p-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition duration-150 ease-in-out"
                         onClick={createUser}
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
-                        Create User
+                        Crear Usuario
                     </button>
                 </div>
-                {error && <p className="text-red-500 mb-4">{error}</p>}
-                <table className="w-full text-white">
+                {error && <div className="text-red-500">{error}</div>}
+                {successMessage && <div className="text-green-500">{successMessage}</div>}
+                <table className="min-w-full bg-white">
                     <thead>
-                    <tr className="bg-white bg-opacity-20">
-                        <th className="p-2 text-left">Username</th>
-                        <th className="p-2 text-left">Password</th>
-                        <th className="p-2 text-left">Role</th>
-                        <th className="p-2 text-left">Company</th>
+                    <tr>
+                        <th className="py-2 px-4 border-b">Username</th>
+                        <th className="py-2 px-4 border-b">Role</th>
+                        <th className="py-2 px-4 border-b">Company</th>
+                        <th className="py-2 px-4 border-b">Password</th>
                     </tr>
                     </thead>
                     <tbody>
                     {users.map((user) => (
-                        <tr key={user.id} className="border-b border-white border-opacity-20">
-                            <td className="p-2">{user.username}</td>
-                            <td className="p-2">{user.password}</td>
-                            <td className="p-2">{user.role}</td>
-                            <td className="p-2">{user.company}</td>
+                        <tr key={user.id}>
+                            <td className="py-2 px-4 border-b">{user.username}</td>
+                            <td className="py-2 px-4 border-b">{user.role}</td>
+                            <td className="py-2 px-4 border-b">{user.company}</td>
+                            <td className="py-2 px-4 border-b">{user.password}</td>
                         </tr>
                     ))}
                     </tbody>
                 </table>
             </div>
-        </Layout>
-    )
-}
+        </div>
+    );
+};

@@ -1,36 +1,24 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
-export default function LoginPage() {
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-    const [error, setError] = useState('')
-    const navigate = useNavigate()
+const LoginPage: React.FC = () => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setError('')
-
+        e.preventDefault();
+        setError('');
         try {
-            const response = await fetch('http://localhost:3001/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password }),
-                credentials: 'include',
-            })
-
-            if (response.ok) {
-                navigate('/')
-            } else {
-                const data = await response.json()
-                setError(data.error || 'Error al iniciar sesión')
-            }
+            await login(username, password);
+            navigate('/');
         } catch (error) {
-            setError('Error al conectar con el servidor')
+            setError('Error al iniciar sesión');
         }
-    }
+    };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-500 to-indigo-600">
@@ -83,5 +71,7 @@ export default function LoginPage() {
                 </form>
             </div>
         </div>
-    )
-}
+    );
+};
+
+export default LoginPage;
