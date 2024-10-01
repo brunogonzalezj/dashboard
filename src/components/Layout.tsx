@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, FileSpreadsheet, LogOut } from 'lucide-react';
+import {Home, Users, FileSpreadsheet, LogOut, User2Icon} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 type LayoutProps = {
@@ -9,8 +9,7 @@ type LayoutProps = {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
     const location = useLocation();
-    const { userRole, logout } = useAuth();
-
+    const { userRole, username, logout } = useAuth();
     const isActive = (path: string) => location.pathname === path;
 
     return (
@@ -18,7 +17,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <aside className="w-20 bg-teal-500 text-white flex flex-col items-center py-8">
                 <div className="mb-8">
                     <div className="w-12 h-12 bg-yellow-300 rounded-full flex items-center justify-center text-teal-500 font-bold text-xl">
-                        H
+                        O
                     </div>
                 </div>
                 <nav className="flex flex-col items-center space-y-8">
@@ -42,10 +41,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </aside>
             <main className="flex-1 overflow-y-auto">
                 <header className="bg-white shadow-sm">
-                    <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                    <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-end items-end">
                         <div className="flex items-center space-x-4">
                             <div className="flex items-center space-x-2">
-                                <span className="text-sm font-medium text-gray-700">${}</span>
+                                <span className="text-sm font-medium text-black flex items-center gap-2"><User2Icon/>{username}</span> {/* Line 48 */}
                             </div>
                         </div>
                     </div>
