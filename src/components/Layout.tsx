@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {Home, Users, FileSpreadsheet, LogOut, User2Icon} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
+
 type LayoutProps = {
     children: ReactNode;
 };
@@ -16,31 +17,41 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="flex h-screen bg-gray-100">
             <aside className="w-20 bg-teal-500 text-white flex flex-col items-center py-8">
                 <div className="mb-8">
-                    <div className="w-12 h-12 bg-yellow-300 rounded-full flex items-center justify-center text-teal-500 font-bold text-xl">
+                    <div
+                        className="w-12 h-12 bg-yellow-300 rounded-full flex items-center justify-center text-teal-500 font-bold text-xl">
                         O
                     </div>
                 </div>
                 <nav className="flex flex-col items-center space-y-8">
-                    <Link to="/" className={`p-2 rounded-lg ${isActive('/') ? 'bg-teal-600' : 'hover:bg-teal-600'}`}>
-                        <Home size={24} />
-                    </Link>
+                    <div className={"flex tooltip tooltip-right"} data-tip={"Home"}>
+                        <Link to="/"
+                              className={`p-2 rounded-lg ${isActive('/') ? 'bg-teal-600' : 'hover:bg-teal-600'}`}>
+                            <Home size={24}/>
+                        </Link>
+                    </div>
                     {userRole === 'admin' && (
                         <>
-                            <Link to="/users" className={`p-2 rounded-lg ${isActive('/users') ? 'bg-teal-600' : 'hover:bg-teal-600'}`}>
-                                <Users size={24} />
-                            </Link>
-                            <Link to="/csv-upload" className={`p-2 rounded-lg ${isActive('/csv-upload') ? 'bg-teal-600' : 'hover:bg-teal-600'}`}>
-                                <FileSpreadsheet size={24} />
-                            </Link>
+                            <div className={"flex tooltip tooltip-right"} data-tip={"Users"}>
+                                <Link to="/users"
+                                      className={`p-2 rounded-lg ${isActive('/users') ? 'bg-teal-600' : 'hover:bg-teal-600'}`}>
+                                    <Users size={24}/>
+                                </Link>
+                            </div>
+                            <div className={"flex tooltip tooltip-right"} data-tip={"CSV Upload"}>
+                                <Link to="/csv-upload"
+                                      className={`p-2 rounded-lg ${isActive('/csv-upload') ? 'bg-teal-600' : 'hover:bg-teal-600'}`}>
+                                    <FileSpreadsheet size={24}/>
+                                </Link>
+                            </div>
                         </>
                     )}
                 </nav>
-                <button onClick={logout} className="mt-auto p-2 rounded-lg hover:bg-teal-600">
-                    <LogOut size={24} />
-                </button>
+                    <button onClick={logout} className="tooltip tooltip-right mt-auto p-2 rounded-lg hover:bg-teal-600" data-tip={"Logout"}>
+                        <LogOut size={24}/>
+                    </button>
             </aside>
             <main className="flex-1 overflow-y-auto">
-                <header className="bg-white shadow-sm">
+            <header className="bg-white shadow-sm">
                     <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-end items-end">
                         <div className="flex items-center space-x-4">
                             <div className="flex items-center space-x-2">
