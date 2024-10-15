@@ -6,7 +6,7 @@ const Dashboard: React.FC = () => {
 
     return (
         <div className="p-6 bg-white rounded-lg shadow-md">
-            <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+            <h1 className="text-2xl font-bold mb-4">Datos de Usuarios</h1>
             {userRole === 'admin' ? (
                 <div>
                     <h2 className="text-xl font-semibold mb-2">Datos de todos los usuarios</h2>

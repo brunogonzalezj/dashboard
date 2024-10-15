@@ -23,7 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (response.data.isAuthenticated) {
                     setIsAuthenticated(true);
                     setUserRole(response.data.role);
-                    setUsername(response.data.username); // Asegúrate de establecer el username aquí
+                    setUsername(response.data.username);
                 }
             } catch (error) {
                 console.error('Error checking auth:', error);
@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const response = await axios.post('http://localhost:3001/login', { username, password }, { withCredentials: true });
             setIsAuthenticated(true);
             setUserRole(response.data.role);
-            setUsername(response.data.username); // Asegúrate de establecer el username aquí
+            setUsername(response.data.username);
         } catch (error) {
             throw new Error('Login failed');
         }

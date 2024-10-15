@@ -3,14 +3,9 @@ import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import FileSaver from 'file-saver';
 import {DownloadIcon} from "lucide-react";
+import {User} from "../interfaces/IUsers.ts";
 
-interface User {
-    id: number;
-    username: string;
-    role: string;
-    company: string;
-    password: string;
-}
+
 
 export default function Users() {
     const [users, setUsers] = useState<User[]>([]);
