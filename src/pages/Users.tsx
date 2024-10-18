@@ -36,7 +36,7 @@ const Users: React.FC = () => {
 
     const fetchCompanyOptions = async () => {
         try {
-            const response = await axios.get('http://localhost:3001/company-options', { withCredentials: true });
+            const response = await axios.get('http://localhost:3001/data/company-options', { withCredentials: true });
             setCompanyOptions(response.data);
         } catch (error) {
             console.error('Error fetching company options:', error);

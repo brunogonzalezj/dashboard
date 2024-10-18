@@ -42,7 +42,7 @@ const Dashboard: React.FC = () => {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get('http://localhost:3001/dashboard-data', { withCredentials: true });
+            const response = await axios.get('http://localhost:3001/data/dashboard-data', { withCredentials: true });
             setData(response.data);
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
@@ -75,7 +75,7 @@ const Dashboard: React.FC = () => {
         }, {} as Record<number, number>);
 
         return Object.entries(progressCounts).map(([progress, count]) => ({
-            progress: `${progress}-${parseInt(progress) + 9}%`,
+            progress: `${progress}-${parseInt(progress) + 10}%`,
             count,
         }));
     };
