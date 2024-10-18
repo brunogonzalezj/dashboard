@@ -1,14 +1,12 @@
-import React, { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React from 'react';
+import {Link, Outlet, useLocation} from 'react-router-dom';
 import {Home, Users, FileSpreadsheet, LogOut, User2Icon} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 
-type LayoutProps = {
-    children: ReactNode;
-};
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+
+const Layout: React.FC = () => {
     const location = useLocation();
     const { userRole, username, logout } = useAuth();
     const isActive = (path: string) => location.pathname === path;
@@ -61,7 +59,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </div>
                 </header>
                 <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                    {children}
+                    <Outlet/>
                 </div>
             </main>
         </div>

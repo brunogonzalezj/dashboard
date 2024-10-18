@@ -1,29 +1,33 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import LoginPage from './pages/LoginPage';
+import {BrowserRouter as Router, Route, Routes, Navigate, Outlet} from 'react-router-dom';
+import {AuthProvider, useAuth} from './contexts/AuthContext';
+import Login from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import CsvUpload from './pages/CsvUpload';
-import Layout from './components/Layout';
+import Layout from "./components/Layout.tsx";
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { isAuthenticated } = useAuth();
-    return isAuthenticated ? <Layout>{children}</Layout> : <Navigate to="/login" />;
+const PrivateRoute: React.FC = () => {
+    const {isAuthenticated} = useAuth();
+    return isAuthenticated ? <Outlet/> : <Navigate to="/login"/>;
 };
 
 const App: React.FC = () => {
     return (
-        <AuthProvider>
-            <Router>
+        <Router>
+            <AuthProvider>
                 <Routes>
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                    <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
-                    <Route path="/csv-upload" element={<ProtectedRoute><CsvUpload /></ProtectedRoute>} />
+                    <Route path="/login" element={<Login/>}/>
+                    <Route element={<PrivateRoute/>}>
+                        <Route element={<Layout/>}>
+                            <Route path="/" element={<Dashboard/>}/>
+                            <Route path="/users" element={<Users/>}/>
+                            <Route path="/csv-upload" element={<CsvUpload/>}/>
+                        </Route>
+                    </Route>
                 </Routes>
-            </Router>
-        </AuthProvider>
+            </AuthProvider>
+        </Router>
     );
 };
 

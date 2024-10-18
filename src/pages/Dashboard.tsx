@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-//import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface DataItem {
@@ -32,10 +32,13 @@ interface DataItem {
 
 const Dashboard: React.FC = () => {
     const [data, setData] = useState<DataItem[]>([]);
+    const { isAuthenticated } = useAuth();
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (isAuthenticated) {
+            fetchData();
+        }
+    }, [isAuthenticated]);
 
     const fetchData = async () => {
         try {

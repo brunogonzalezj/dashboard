@@ -1,28 +1,28 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import FileSaver from 'file-saver';
 import { DownloadIcon } from "lucide-react";
-import { User } from "../interfaces/IUsers.ts";
+import { User } from "../interfaces/IUsers";
 
-export default function Users() {
+const Users: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [newUser, setNewUser] = useState({ username: '', companyType: '', company: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
-    const { userRole } = useAuth();
+    const { userRole, isAuthenticated } = useAuth();
     const [companyOptions, setCompanyOptions] = useState<{ businessGroups: string[], associations: string[] }>({
         businessGroups: [],
         associations: []
     });
 
     useEffect(() => {
-        if (userRole === 'admin') {
+        if (isAuthenticated && userRole === 'admin') {
             fetchUsers();
             fetchCompanyOptions();
         }
-    }, [userRole]);
+    }, [isAuthenticated, userRole]);
 
     const fetchUsers = async () => {
         try {
@@ -69,7 +69,7 @@ export default function Users() {
         }
     };
 
-    if (userRole !== 'admin') {
+    if (!isAuthenticated || userRole !== 'admin') {
         return <div className="p-6 bg-white rounded-lg shadow-md">Acceso no autorizado</div>;
     }
 
@@ -160,4 +160,6 @@ export default function Users() {
             </div>
         </div>
     );
-}
+};
+
+export default Users;

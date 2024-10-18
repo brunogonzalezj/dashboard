@@ -27,7 +27,7 @@ const CsvUpload: React.FC = () => {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            setMessage(response.data.message);
+            setMessage(response.data.message || 'Archivo CSV cargado exitosamente');
         } catch (error) {
             console.error('Error uploading CSV:', error);
             setMessage('Error al cargar el archivo CSV');
