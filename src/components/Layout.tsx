@@ -1,64 +1,29 @@
 import React from 'react';
-import {Link, Outlet, useLocation} from 'react-router-dom';
-import {Home, Users, FileSpreadsheet, LogOut, User2Icon} from 'lucide-react';
+import { Outlet } from 'react-router-dom';
+import { User2Icon} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import {Sidebar} from "./Sidebar.tsx";
 
 
 
 
 const Layout: React.FC = () => {
-    const location = useLocation();
-    const { userRole, username, logout } = useAuth();
-    const isActive = (path: string) => location.pathname === path;
+    const { username } = useAuth();
 
     return (
-        <div className="flex h-screen bg-gray-100">
-            <aside className="w-20 bg-teal-500 text-white flex flex-col items-center py-8">
-                <div className="mb-8">
-                    <div
-                        className="w-12 h-12 bg-yellow-300 rounded-full flex items-center justify-center text-teal-500 font-bold text-xl">
-                        O
-                    </div>
-                </div>
-                <nav className="flex flex-col items-center space-y-8">
-                    <div className={"flex tooltip tooltip-right"} data-tip={"Home"}>
-                        <Link to="/"
-                              className={`p-2 rounded-lg ${isActive('/') ? 'bg-teal-600' : 'hover:bg-teal-600'}`}>
-                            <Home size={24}/>
-                        </Link>
-                    </div>
-                    {userRole === 'admin' && (
-                        <>
-                            <div className={"flex tooltip tooltip-right"} data-tip={"Users"}>
-                                <Link to="/users"
-                                      className={`p-2 rounded-lg ${isActive('/users') ? 'bg-teal-600' : 'hover:bg-teal-600'}`}>
-                                    <Users size={24}/>
-                                </Link>
-                            </div>
-                            <div className={"flex tooltip tooltip-right"} data-tip={"CSV Upload"}>
-                                <Link to="/csv-upload"
-                                      className={`p-2 rounded-lg ${isActive('/csv-upload') ? 'bg-teal-600' : 'hover:bg-teal-600'}`}>
-                                    <FileSpreadsheet size={24}/>
-                                </Link>
-                            </div>
-                        </>
-                    )}
-                </nav>
-                    <button onClick={logout} className="tooltip tooltip-right mt-auto p-2 rounded-lg hover:bg-teal-600" data-tip={"Logout"}>
-                        <LogOut size={24}/>
-                    </button>
-            </aside>
-            <main className="flex-1 overflow-y-auto">
-            <header className="bg-white shadow-sm">
-                    <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-end items-end">
+        <div className="flex h-screen bg-gray-100 background-custom -z-50" >
+            <Sidebar />
+            <main className="flex-1 overflow-y-auto ">
+            <header className=" sticky top-0 z-10">
+                    <div className="max-w-7xl mx-auto pt-4 px-4 sm:px-6 lg:px-8 flex justify-end items-end">
                         <div className="flex items-center space-x-4">
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-2 bg-gray-200 opacity-60 rounded-lg p-2">
                                 <span className="text-sm font-medium text-black flex items-center gap-2"><User2Icon/>{username}</span> {/* Line 48 */}
                             </div>
                         </div>
                     </div>
                 </header>
-                <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 overflow-hidden" >
                     <Outlet/>
                 </div>
             </main>
