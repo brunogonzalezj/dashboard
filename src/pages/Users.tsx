@@ -128,13 +128,13 @@ const Users: React.FC = () => {
                     )}
                     <button
                         onClick={createUser}
-                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
                     >
                         Crear Usuario
                     </button>
                 </div>
                 <button onClick={handleUpdatePasswords} disabled={loading}
-                        className="bg-red-500 text-white px-4 py-2 rounded flex items-center gap-2">
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded flex items-center gap-2">
                     <DownloadIcon/>{loading ? 'Actualizando...' : 'Actualizar Contraseñas'}
                 </button>
                 {error && <div className="text-red-500">{error}</div>}
