@@ -57,7 +57,7 @@ const Dashboard: React.FC = () => {
 
     const getCompletionRate = () => {
         if (data.length === 0) return 0;
-        const completedCourses = data.filter(item => item.state === 'Completed').length;
+        const completedCourses = data.filter(item => item.state === 'Completado').length;
         return ((completedCourses / data.length) * 100).toFixed(2);
     };
 

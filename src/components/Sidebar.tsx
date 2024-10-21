@@ -9,37 +9,50 @@ export const Sidebar: React.FC = () => {
     const isActive = (path: string) => location.pathname === path;
 
     return <aside className="w-20   text-white flex flex-col items-center py-8 pl-6 relative z-10">
-                <div className="mb-8">
-                    <img src={"/soy_logo.png"} alt="Soy Logo" className="w-14 h-14"/>
+        <div className="flex-grow flex flex-col gap-2">
+            <div className="mb-8">
+                <img src={"/soy_logo.png"} alt="Soy Logo" className="w-14 h-14"/>
+            </div>
+
+            <nav className="flex flex-col items-center space-y-4 p-1 bg-gray-200/30 backdrop-blur rounded-full">
+                <div className={"flex group tooltip tooltip-right"} data-tip={"Home"}>
+                    <Link to="/"
+                          className={`p-3 rounded-full ${isActive('/') ? 'bg-white/80' : 'group-hover:bg-white/50'}`}>
+                        <Home size={24}
+                              className={`${isActive("/") ? 'text-amber-500' : 'text-white group-hover:text-amber-500'}`}/>
+                    </Link>
                 </div>
-                <nav className="flex flex-col items-center space-y-8 bg-gray-200/30 backdrop-blur p-2 rounded-full">
+                {userRole === 'admin' && (
                     <>
-                    <div className={"flex tooltip tooltip-right"} data-tip={"Home"}>
-                        <Link to="/"
-                              className={`p-2 rounded-full ${isActive('/') ? 'bg-teal-700' : 'hover:bg-teal-700'}`}>
-                            <Home size={24}/>
-                        </Link>
-                    </div>
-                    {userRole === 'admin' && (
-                        <>
-                            <div className={"flex tooltip tooltip-right"} data-tip={"Users"}>
-                                <Link to="/users"
-                                      className={`p-2 rounded-full ${isActive('/users') ? 'bg-teal-600' : 'hover:bg-teal-600'}`}>
-                                    <Users size={24}/>
-                                </Link>
-                            </div>
-                            <div className={"flex tooltip tooltip-right"} data-tip={"CSV Upload"}>
-                                <Link to="/csv-upload"
-                                      className={`p-2 rounded-full ${isActive('/csv-upload') ? 'bg-teal-600' : 'hover:bg-teal-600'}`}>
-                                    <FileSpreadsheet size={24}/>
-                                </Link>
-                            </div>
-                        </>
-                    )}
-                </>
-                </nav>
-                <button onClick={logout} className="tooltip tooltip-right mt-auto p-2 rounded-lg hover:bg-amber-700" data-tip={"Logout"}>
-                    <LogOut size={24}/>
-                </button>
-            </aside>
+                        <div className={"flex group tooltip tooltip-right"} data-tip={"Users"}>
+                            <Link to="/users"
+                                  className={`p-3 rounded-full ${isActive('/users') ? 'bg-white/80' : 'group-hover:bg-white/50'}`}>
+                                <Users size={24}
+                                       className={`${isActive("/users") ? 'text-amber-500' : 'text-white group-hover:text-amber-500'}`}/>
+                            </Link>
+                        </div>
+
+                        <div className={"flex group tooltip tooltip-right"} data-tip={"CSV Upload"}>
+                            <Link to="/csv-upload"
+                                  className={`p-3 rounded-full ${isActive('/csv-upload') ? 'bg-white/80' : 'group-hover:bg-white/50 '}`}>
+                                <FileSpreadsheet size={24}
+                                                 className={`${isActive("/csv-upload") ? 'text-amber-500' : 'text-white group-hover:text-amber-500'}`}/>
+                            </Link>
+                        </div>
+                    </>
+                )}
+
+
+            </nav>
+        </div>
+
+        <footer className={"group"}>
+            <button onClick={logout}
+                    className="tooltip tooltip-right mt-auto p-3 rounded-full bg-gray-200/30 group-hover:bg-white/80"
+                    data-tip={"Logout"}>
+                <LogOut size={24} className={"group-hover:text-amber-500"}/>
+            </button>
+        </footer>
+
+    </aside>
 }
