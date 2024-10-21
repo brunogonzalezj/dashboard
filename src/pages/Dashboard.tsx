@@ -28,17 +28,36 @@ interface DataItem {
     evaluationRange: string;
     material: string;
     evaluations: string;
+    year: string; // Agregado el campo year
 }
 
 const Dashboard: React.FC = () => {
     const [data, setData] = useState<DataItem[]>([]);
+    const [filteredData, setFilteredData] = useState<DataItem[]>([]);
+    const [displayedData, setDisplayedData] = useState<DataItem[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 50;
     const { isAuthenticated } = useAuth();
+
+    // Estados para los filtros
+    const [loginFilter, setLoginFilter] = useState<string>('all');
+    const [courseFilter, setCourseFilter] = useState<string>('all');
+    const [groupFilter, setGroupFilter] = useState<string>('all');
+    const [yearFilter, setYearFilter] = useState<string>('all');
 
     useEffect(() => {
         if (isAuthenticated) {
             fetchData();
         }
     }, [isAuthenticated]);
+
+    useEffect(() => {
+        filterData();
+    }, [data, loginFilter, courseFilter, groupFilter, yearFilter]);
+
+    useEffect(() => {
+        setDisplayedData(filteredData.slice(0, currentPage * itemsPerPage));
+    }, [filteredData, currentPage]);
 
     const fetchData = async () => {
         try {
@@ -49,26 +68,50 @@ const Dashboard: React.FC = () => {
         }
     };
 
+    const filterData = () => {
+        let result = data;
+
+        if (loginFilter !== 'all') {
+            result = result.filter(item => item.login === loginFilter);
+        }
+        if (courseFilter !== 'all') {
+            result = result.filter(item => item.course === courseFilter);
+        }
+        if (groupFilter !== 'all') {
+            result = result.filter(item => item.businessGroup === groupFilter);
+        }
+        if (yearFilter !== 'all') {
+            result = result.filter(item => item.year === yearFilter);
+        }
+
+        setFilteredData(result);
+        setCurrentPage(1);
+    };
+
+    const loadMore = () => {
+        setCurrentPage(prevPage => prevPage + 1);
+    };
+
     const getAverageProgress = () => {
-        if (data.length === 0) return 0;
-        const totalProgress = data.reduce((sum, item) => sum + parseFloat(item.progressPercentage), 0);
-        return (totalProgress / data.length).toFixed(2);
+        if (filteredData.length === 0) return 0;
+        const totalProgress = filteredData.reduce((sum, item) => sum + parseFloat(item.progressPercentage), 0);
+        return (totalProgress / filteredData.length).toFixed(2);
     };
 
     const getCompletionRate = () => {
-        if (data.length === 0) return 0;
-        const completedCourses = data.filter(item => item.state === 'Completado').length;
-        return ((completedCourses / data.length) * 100).toFixed(2);
+        if (filteredData.length === 0) return 0;
+        const completedCourses = filteredData.filter(item => item.state === 'Completado').length;
+        return ((completedCourses / filteredData.length) * 100).toFixed(2);
     };
 
     const getAverageScore = () => {
-        if (data.length === 0) return 0;
-        const totalScore = data.reduce((sum, item) => sum + parseFloat(item.finalScore), 0);
-        return (totalScore / data.length).toFixed(2);
+        if (filteredData.length === 0) return 0;
+        const totalScore = filteredData.reduce((sum, item) => sum + parseFloat(item.evaluationsAverage), 0);
+        return (totalScore / filteredData.length).toFixed(2);
     };
 
     const getProgressData = () => {
-        const progressCounts = data.reduce((acc, item) => {
+        const progressCounts = filteredData.reduce((acc, item) => {
             const progress = Math.floor(parseFloat(item.progressPercentage) / 10) * 10;
             acc[progress] = (acc[progress] || 0) + 1;
             return acc;
@@ -80,69 +123,144 @@ const Dashboard: React.FC = () => {
         }));
     };
 
+    const getUniqueValues = (key: keyof DataItem) => {
+        return Array.from(new Set(data.map(item => item[key])));
+    };
+
     return (
-        <div className="p-6 bg-white rounded-lg shadow-md overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Dashboard</h1>
-            </div>
+      <div className="p-6 bg-white rounded-lg shadow-md overflow-y-auto">
+          <h2 className={"text-xl font-bold"}>Filtros</h2>
+          <div className="grid grid-cols-12 md:grid-cols-4 gap-4 mb-6">
+              <div>
+                  <label htmlFor="login-filter" className="block text-sm font-medium text-gray-700">Logged In</label>
+                  <select
+                    id="login-filter"
+                    value={loginFilter}
+                    onChange={(e) => setLoginFilter(e.target.value)}
+                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                      <option value="all">All</option>
+                      <option value="SI">SI</option>
+                      <option value="NO">NO</option>
+                  </select>
+              </div>
+              <div>
+                  <label htmlFor="course-filter" className="block text-sm font-medium text-gray-700">Course</label>
+                  <select
+                    id="course-filter"
+                    value={courseFilter}
+                    onChange={(e) => setCourseFilter(e.target.value)}
+                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                      <option value="all">All</option>
+                      {getUniqueValues('course').map((course) => (
+                        <option key={`${course}`} value={`${course}`}>
+                            {course}
+                        </option>
+                      ))}
+                  </select>
+              </div>
+              <div>
+                  <label htmlFor="group-filter" className="block text-sm font-medium text-gray-700">Group</label>
+                  <select
+                    id="group-filter"
+                    value={groupFilter}
+                    onChange={(e) => setGroupFilter(e.target.value)}
+                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                      <option value="all">All</option>
+                      {getUniqueValues('businessGroup').map(group => (
+                        <option key={`${group}`} value={`${group}`}>{group}</option>
+                      ))}
+                  </select>
+              </div>
+              <div>
+                  <label htmlFor="year-filter" className="block text-sm font-medium text-gray-700">Year</label>
+                  <select
+                    id="year-filter"
+                    value={yearFilter}
+                    onChange={(e) => setYearFilter(e.target.value)}
+                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                      <option value="all">All</option>
+                      {getUniqueValues('year').map(year => (
+                        <option key={`${year}`} value={`${year}`}>{year}</option>
+                      ))}
+                  </select>
+              </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-blue-100 p-4 rounded-lg">
-                    <h2 className="text-lg font-semibold mb-2">Average Progress</h2>
-                    <p className="text-3xl font-bold">{getAverageProgress()}%</p>
-                </div>
-                <div className="bg-green-100 p-4 rounded-lg">
-                    <h2 className="text-lg font-semibold mb-2">Completion Rate</h2>
-                    <p className="text-3xl font-bold">{getCompletionRate()}%</p>
-                </div>
-                <div className="bg-yellow-100 p-4 rounded-lg">
-                    <h2 className="text-lg font-semibold mb-2">Average Score</h2>
-                    <p className="text-3xl font-bold">{getAverageScore()}</p>
-                </div>
-            </div>
+          <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold">Dashboard</h1>
+          </div>
 
-            <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-4">Progress Distribution</h2>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getProgressData()}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="progress" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="count" fill="#8884d8" />
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-blue-100 p-4 rounded-lg">
+                  <h2 className="text-lg font-semibold mb-2">Average Progress</h2>
+                  <p className="text-3xl font-bold">{getAverageProgress()}%</p>
+              </div>
+              <div className="bg-green-100 p-4 rounded-lg">
+                  <h2 className="text-lg font-semibold mb-2">Completion Rate</h2>
+                  <p className="text-3xl font-bold">{getCompletionRate()}%</p>
+              </div>
+              <div className="bg-yellow-100 p-4 rounded-lg">
+                  <h2 className="text-lg font-semibold mb-2">Average Score</h2>
+                  <p className="text-3xl font-bold">{getAverageScore()}%</p>
+              </div>
+          </div>
 
-            <h2 className="text-xl font-semibold mb-4">User Data</h2>
-            <div className="overflow-x-auto">
-                <table className="min-w-full bg-white">
-                    <thead>
-                    <tr>
-                        <th className="py-2 px-4 border-b">Name</th>
-                        <th className="py-2 px-4 border-b">Email</th>
-                        <th className="py-2 px-4 border-b">Course</th>
-                        <th className="py-2 px-4 border-b">Progress</th>
-                        <th className="py-2 px-4 border-b">State</th>
-                        <th className="py-2 px-4 border-b">Final Score</th>
+          <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-4">Progress Distribution</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={getProgressData()}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="progress" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="count" fill="#8884d8" />
+                  </BarChart>
+              </ResponsiveContainer>
+          </div>
+
+          <h2 className="text-xl font-semibold mb-4">User Data</h2>
+          <div className="overflow-x-auto">
+              <table className="min-w-full bg-white overflow-y-auto">
+                  <thead>
+                  <tr>
+                      <th className="py-2 px-4 border-b">Name</th>
+                      <th className="py-2 px-4 border-b">Email</th>
+                      <th className="py-2 px-4 border-b">Course</th>
+                      <th className="py-2 px-4 border-b">Progress</th>
+                      <th className="py-2 px-4 border-b">State</th>
+                      <th className="py-2 px-4 border-b">Final Score</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {displayedData.map((item) => (
+                    <tr key={item.id}>
+                        <td className="py-2 px-4 border-b">{`${item.name} ${item.lastName}`}</td>
+                        <td className="py-2 px-4 border-b">{item.email}</td>
+                        <td className="py-2 px-4 border-b">{item.course}</td>
+                        <td className="py-2 px-4 border-b">{item.progressPercentage}</td>
+                        <td className="py-2 px-4 border-b">{item.state}</td>
+                        <td className="py-2 px-4 border-b">{item.finalScore}</td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    {data.map((item) => (
-                        <tr key={item.id}>
-                            <td className="py-2 px-4 border-b">{`${item.name} ${item.lastName}`}</td>
-                            <td className="py-2 px-4 border-b">{item.email}</td>
-                            <td className="py-2 px-4 border-b">{item.course}</td>
-                            <td className="py-2 px-4 border-b">{item.progressPercentage}%</td>
-                            <td className="py-2 px-4 border-b">{item.state}</td>
-                            <td className="py-2 px-4 border-b">{item.finalScore}</td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
+                  ))}
+                  </tbody>
+              </table>
+          </div>
+          {displayedData.length < filteredData.length && (
+            <div className="mt-4 flex justify-center">
+                <button
+                  onClick={loadMore}
+                  className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded"
+                >
+                    Cargar más
+                </button>
             </div>
-        </div>
+          )}
+      </div>
     );
 };
 
