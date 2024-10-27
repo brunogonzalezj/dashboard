@@ -21,7 +21,7 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center" style={{ backgroundImage: 'url(/background.svg)', backgroundRepeat: 'no-repeat', backgroundSize: 'cover' }}>
+        <div className="min-h-screen flex items-center justify-center" style={{ backgroundImage: 'url(/bg_login.svg)', backgroundRepeat: 'no-repeat', backgroundSize: 'cover' }}>
             <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl">
                 <div>
                     <div className="flex justify-center">
@@ -66,7 +66,7 @@ const LoginPage: React.FC = () => {
                     <div>
                         <button
                             type="submit"
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-500 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
                         >
                             Iniciar sesión
                         </button>

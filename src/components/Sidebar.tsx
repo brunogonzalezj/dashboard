@@ -8,7 +8,7 @@ export const Sidebar: React.FC = () => {
     const location = useLocation();
     const isActive = (path: string) => location.pathname === path;
 
-    return <aside className="w-20   text-white flex flex-col items-center py-8 pl-6 relative z-10">
+    return <aside className="w-30 px-4  bg-amber-500  text-white flex flex-col items-center py-8  relative z-10">
         <div className="flex-grow flex flex-col gap-2">
             <div className="mb-8">
                 <img src={"/soy_logo.png"} alt="Soy Logo" className="w-14 h-14"/>
