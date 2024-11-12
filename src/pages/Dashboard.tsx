@@ -76,7 +76,7 @@ const Dashboard: React.FC = () => {
         try {
             const url = dataType === 'actual'
               ? 'http://localhost:3001/data/dashboard-data'
-              : 'http://localhost:3001/';
+              : 'http://localhost:3001/data/history-dashboard-data';
             const response = await axios.get(url, { withCredentials: true });
             setData(response.data);
         } catch (error) {
