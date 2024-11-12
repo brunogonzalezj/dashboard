@@ -29,6 +29,15 @@ interface DataItem {
     material: string;
     evaluations: string;
     year: string;
+    group: string;
+    phone: string;
+    jobPosition: string;
+    education: string;
+    jobArea: string;
+    positionLevel: string;
+    yearsExperience: string;
+    birthday: string;
+    liveCourse: string;
 }
 
 const buildBadge = (isCompleted: boolean) => {
@@ -95,7 +104,7 @@ const Dashboard: React.FC = () => {
             result = result.filter(item => item.course === courseFilter);
         }
         if (groupFilter !== 'all') {
-            result = result.filter(item => item.businessGroup === groupFilter);
+            result = result.filter(item => item.group === groupFilter);
         }
         if (yearFilter !== 'all') {
             result = result.filter(item => item.year === yearFilter);
