@@ -6,7 +6,9 @@ export default function CsvUpload() {
     const [currentFile, setCurrentFile] = useState<File | null>(null);
     const [historyFile, setHistoryFile] = useState<File | null>(null);
     const [message, setMessage] = useState('');
+    const [messageHistory, setMessageHistory] = useState('');
     const [isUploading, setIsUploading] = useState(false);
+    const [isUploadingHistory, setIsUploadingHistory] = useState(false);
 
     const handleCurrentFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -48,7 +50,7 @@ export default function CsvUpload() {
 
     const handleUploadHistory = async () => {
         if (!historyFile) {
-            setMessage('Por favor, seleccione un archivo CSV');
+            setMessageHistory('Por favor, seleccione un archivo CSV');
             return;
         }
 
@@ -68,7 +70,7 @@ export default function CsvUpload() {
         }
 
 
-        setIsUploading(true);
+        setIsUploadingHistory(true);
         const formData = new FormData();
         formData.append('file', historyFile);
 
@@ -79,12 +81,12 @@ export default function CsvUpload() {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            setMessage(response.data.message || 'Archivo CSV cargado exitosamente');
+            setMessageHistory(response.data.message || 'Archivo CSV cargado exitosamente');
         } catch (error) {
             console.error('Error uploading CSV:', error);
-            setMessage('Error al cargar el archivo CSV');
+            setMessageHistory('Error al cargar el archivo CSV');
         } finally {
-            setIsUploading(false);
+            setIsUploadingHistory(false);
         }
     };
 
@@ -147,6 +149,8 @@ export default function CsvUpload() {
                     )}
                 </div>
             </div>
+
+            {/* History CSV */}
             <div className="w-full max-w-md p-4 bg-white rounded-lg shadow-md">
                 <h2 className="text-xl font-bold text-center text-gray-900 mb-4">
                     Cargar CSV Histórico
@@ -185,21 +189,21 @@ export default function CsvUpload() {
                     )}
                     <button
                         onClick={handleUploadHistory}
-                        disabled={isUploading || !historyFile}
+                        disabled={isUploadingHistory || !historyFile}
                         className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                            isUploading || !historyFile
+                            isUploadingHistory || !historyFile
                                 ? 'bg-blue-300 cursor-not-allowed'
                                 : 'bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
                         }`}
                     >
-                        {isUploading ? 'Cargando...' : ''}
+                        {isUploadingHistory ? 'Cargando...' : ''}
                         {!historyFile ? 'Seleccione un archivo' : 'Cargar CSV'}
                     </button>
-                    {message && (
+                    {messageHistory && (
                         <div className={`text-xs font-medium text-center p-2 rounded ${
-                            message.includes('Error') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                            messageHistory.includes('Error') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
                         }`}>
-                            {message}
+                            {messageHistory}
                         </div>
                     )}
                 </div>
