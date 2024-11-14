@@ -27,8 +27,13 @@ const Users: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
+      setUserLoading(true);
       const response = await axios.get('http://localhost:3001/users', { withCredentials: true });
       setUsers(response.data);
+      setTimeout(() => {
+          setLoading(false);
+        }, 2000
+      );
     } catch (error) {
       console.error('Error fetching users:', error);
       setError('Error al obtener usuarios');
@@ -140,24 +145,27 @@ const Users: React.FC = () => {
         </button>
         {error && <div className="text-red-500">{error}</div>}
         {successMessage && <div className="text-green-500">{successMessage}</div>}
-        <table className="min-w-full bg-white">
-          <thead>
-          <tr>
-            <th className="py-2 px-4 border-b">Username</th>
-            <th className="py-2 px-4 border-b">Role</th>
-            <th className="py-2 px-4 border-b">Company</th>
-          </tr>
-          </thead>
-          <tbody>
-          {users.map((user) => (
-            <tr key={user.id}>
-              <td className="py-2 px-4 border-b text-center">{user.username}</td>
-              <td className="py-2 px-4 border-b text-center">{user.role}</td>
-              <td className="py-2 px-4 border-b text-center">{user.company}</td>
+        {!userLoading ?
+          <table className="min-w-full bg-white">
+            <thead>
+            <tr>
+              <th className="py-2 px-4 border-b">Username</th>
+              <th className="py-2 px-4 border-b">Role</th>
+              <th className="py-2 px-4 border-b">Company</th>
             </tr>
-          ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+            {users.map((user) => (
+              <tr key={user.id}>
+                <td className="py-2 px-4 border-b text-center">{user.username}</td>
+                <td className="py-2 px-4 border-b text-center">{user.role}</td>
+                <td className="py-2 px-4 border-b text-center">{user.company}</td>
+              </tr>
+            ))}
+            </tbody>
+          </table> : <div className={'flex items-center justify-center'}>
+            <span className="loading loading-ring loading-lg"></span>
+          </div>}
       </div>
     </div>
   );
