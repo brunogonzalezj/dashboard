@@ -31,7 +31,7 @@ const Users: React.FC = () => {
       const response = await axios.get('http://localhost:3001/users', { withCredentials: true });
       setUsers(response.data);
       setTimeout(() => {
-          setLoading(false);
+          setUserLoading(false);
         }, 2000
       );
     } catch (error) {
