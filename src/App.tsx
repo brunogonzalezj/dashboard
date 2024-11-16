@@ -1,34 +1,41 @@
-import React from 'react';
-import {BrowserRouter as Router, Route, Routes, Navigate, Outlet} from 'react-router-dom';
-import {AuthProvider, useAuth} from './contexts/AuthContext';
+import React, { Suspense } from 'react';
+import { BrowserRouter as Router, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/LoginPage';
-import Dashboard from './pages/Dashboard';
-import Users from './pages/Users';
-import CsvUpload from './pages/CsvUpload';
-import Layout from "./components/Layout.tsx";
+import Layout from './components/Layout.tsx';
+
+// Importaciones dinámicas
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Users = React.lazy(() => import('./pages/Users'));
+const CsvUpload = React.lazy(() => import('./pages/CsvUpload'));
 
 const PrivateRoute: React.FC = () => {
-    const {isAuthenticated} = useAuth();
-    return isAuthenticated ? <Outlet/> : <Navigate to="/login"/>;
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 };
 
+// Componente de carga
+const LoadingFallback = () => <div>Cargando...</div>;
+
 const App: React.FC = () => {
-    return (
-        <Router>
-            <AuthProvider>
-                <Routes>
-                    <Route path="/login" element={<Login/>}/>
-                    <Route element={<PrivateRoute/>}>
-                        <Route element={<Layout/>}>
-                            <Route path="/" element={<Dashboard/>}/>
-                            <Route path="/users" element={<Users/>}/>
-                            <Route path="/csv-upload" element={<CsvUpload/>}/>
-                        </Route>
-                    </Route>
-                </Routes>
-            </AuthProvider>
-        </Router>
-    );
+  return (
+    <Router>
+      <AuthProvider>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route element={<PrivateRoute />}>
+              <Route element={<Layout />}>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/users" element={<Users />} />
+                <Route path="/csv-upload" element={<CsvUpload />} />
+              </Route>
+            </Route>
+          </Routes>
+        </Suspense>
+      </AuthProvider>
+    </Router>
+  );
 };
 
 export default App;
