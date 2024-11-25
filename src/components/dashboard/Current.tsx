@@ -91,7 +91,7 @@ const Current: React.FC = () => {
       console.error('Error fetching dashboard data:', error);
       setData([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
 
@@ -165,6 +165,7 @@ const Current: React.FC = () => {
       'Nombre': item.name,
       'Apellido': item.lastName,
       'Correo': item.email,
+      'Sesion iniciada': item.login,
       'Empresa': item.business,
       'Estado': item.stateOfCompleteness,
       '% de avance': item.progressPercentage
