@@ -2,11 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.background-custom {
-    @apply bg-cover bg-no-repeat bg-center bg-fixed h-screen w-screen;
-    background-image:  url('/background.svg');
-}
-
 .tooltip {
     --tooltip-offset: 50px;
     --tooltip-tail-offset: 0px;
