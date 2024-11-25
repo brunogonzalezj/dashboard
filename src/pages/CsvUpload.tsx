@@ -67,7 +67,7 @@ export default function CsvUpload() {
     formData.append('file', currentFile);
 
     try {
-      const response = await axios.post(`${import.meta.env.API_URL}/data/upload-csv`, formData, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/data/upload-csv`, formData, {
         withCredentials: true,
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -109,7 +109,7 @@ export default function CsvUpload() {
     formData.append('file', historyFile);
 
     try {
-      const response = await axios.post(`${import.meta.env.API_URL}/data/upload-history`, formData, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/data/upload-history`, formData, {
         withCredentials: true,
         headers: {
           'Content-Type': 'multipart/form-data'
