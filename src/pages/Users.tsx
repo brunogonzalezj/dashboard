@@ -86,13 +86,11 @@ const Users: React.FC = () => {
     try {
       const updateData: Partial<User> & { password?: string } = {
         username: editingUser.username,
-        company: editingUser.company,
-        role: editingUser.role,
       };
       if (newPassword) {
         updateData.password = newPassword;
       }
-      await axios.put(`${import.meta.env.VITE_API_URL}/update-user/${editingUser.id}`, updateData, { withCredentials: true });
+      await axios.put(`${import.meta.env.VITE_API_URL}/update-user/:${editingUser.id}`, updateData, { withCredentials: true });
       setEditingUser(null);
       setNewPassword('');
       fetchUsers();
@@ -106,7 +104,7 @@ const Users: React.FC = () => {
   const handleDeleteUser = async (id: number) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
       try {
-        await axios.delete(`${import.meta.env.VITE_API_URL}/delete-user/${id}`, { withCredentials: true });
+        await axios.delete(`${import.meta.env.VITE_API_URL}/delete-user/:${id}`, { withCredentials: true });
         fetchUsers();
         setSuccessMessage('Usuario eliminado exitosamente');
       } catch (error) {
