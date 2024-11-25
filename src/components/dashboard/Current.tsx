@@ -65,6 +65,7 @@ const Current: React.FC = () => {
     business: 'all'
   });
 
+
   const [sortConfig, setSortConfig] = useState<{ key: keyof DataItem, direction: 'asc' | 'desc' } | null>(null);
 
   useEffect(() => {
@@ -104,8 +105,15 @@ const Current: React.FC = () => {
 
     if (sortConfig !== null) {
       result.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1;
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return aValue.localeCompare(bValue, 'es', { sensitivity: 'base' }) * (sortConfig.direction === 'asc' ? 1 : -1);
+        }
+
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       });
     }
@@ -269,31 +277,39 @@ const Current: React.FC = () => {
         ))}
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-hidden w-full">
         {!loading ? (
-          <table className="min-w-full overflow-hidden">
+          <table className="w-full overflow-hidden">
             <thead>
             <tr>
-              {['curso', 'nombre', 'apellido', 'correo', 'empresa', 'estado', '% de progreso'].map((column) => (
+              {[
+                { key: 'course', label: 'Curso' },
+                { key: 'name', label: 'Nombre' },
+                { key: 'lastName', label: 'Apellido' },
+                { key: 'email', label: 'Correo' },
+                { key: 'business', label: 'Empresa' },
+                { key: 'stateOfCompleteness', label: 'Estado' },
+                { key: 'progressPercentage', label: '% de progreso' }
+              ].map(({ key, label }) => (
                 <th
-                  key={column}
-                  className="py-2 px-4 border-b cursor-pointer"
-                  onClick={() => handleSort(column as keyof DataItem)}
+                  key={key}
+                  className="py-2 px-2 border-b cursor-pointer"
+                  onClick={() => handleSort(key as keyof DataItem)}
                 >
-                  {column.charAt(0).toUpperCase() + column.slice(1)} <SortIcon column={column as keyof DataItem} />
+                  {label} <SortIcon column={key as keyof DataItem} />
                 </th>
               ))}
             </tr>
             </thead>
             <tbody>
-            {displayedData.map((item) => (
+            {filteredData.map((item) => (
               <tr key={item.id} className="text-center">
-                <td className="py-2 px-4 border-b">{item.course}</td>
-                <td className="py-2 px-4 border-b text-left">{item.name}</td>
-                <td className="py-2 px-4 border-b text-left">{item.lastName}</td>
-                <td className="py-2 px-4 border-b text-left">{item.email}</td>
-                <td className="py-2 px-4 border-b text-left">{item.business}</td>
-                <td className="py-2 px-4 border-b">
+                <td className="py-2 px-2 border-b">{item.course}</td>
+                <td className="py-2 px-2 border-b text-left">{item.name}</td>
+                <td className="py-2 px-2 border-b text-left">{item.lastName}</td>
+                <td className="py-2 px-2 border-b text-left">{item.email}</td>
+                <td className="py-2 px-2 border-b text-left">{item.business}</td>
+                <td className="py-2 px-2 border-b">
                   <div
                     className={`badge p-4 justify-center ${item.stateOfCompleteness === 'Completado' ? 'badge-success' : 'badge-error'} text-white`}>
                     {item.stateOfCompleteness === 'Completado' ? 'Completado' : 'No completado'}
