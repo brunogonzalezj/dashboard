@@ -84,7 +84,7 @@ const Current: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const url = `${import.meta.env.API_URL}/data/dashboard-data`;
+      const url = `${import.meta.env.VITE_API_URL}/data/dashboard-data`;
       const response = await axios.get(url, { withCredentials: true });
       setData(response.data);
     } catch (error) {
