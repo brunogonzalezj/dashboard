@@ -52,7 +52,6 @@ enum FilterLabels {
 const Current: React.FC = () => {
   const [data, setData] = useState<DataItem[]>([]);
   const [filteredData, setFilteredData] = useState<DataItem[]>([]);
-  const [displayedData, setDisplayedData] = useState<DataItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
   const { isAuthenticated } = useAuth();
@@ -78,9 +77,9 @@ const Current: React.FC = () => {
     filterAndSortData();
   }, [data, filters, sortConfig]);
 
-  useEffect(() => {
-    setDisplayedData(filteredData.slice(0, currentPage * itemsPerPage));
-  }, [filteredData, currentPage]);
+  const displayedData = useMemo(() => {
+    return filteredData.slice(0, currentPage * itemsPerPage);
+  }, [filteredData, currentPage, itemsPerPage]);
 
   const fetchData = async () => {
     try {
@@ -302,7 +301,7 @@ const Current: React.FC = () => {
             </tr>
             </thead>
             <tbody>
-            {filteredData.map((item) => (
+            {displayedData.map((item) => (
               <tr key={item.id} className="text-center">
                 <td className="py-2 px-2 border-b">{item.course}</td>
                 <td className="py-2 px-2 border-b text-left">{item.name}</td>
