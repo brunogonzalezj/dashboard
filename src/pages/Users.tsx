@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import FileSaver from 'file-saver';
-import { DownloadIcon } from 'lucide-react';
+import { DownloadIcon, Edit2Icon, Trash2Icon } from 'lucide-react';
 import { User } from '../interfaces/IUsers';
 
 const Users: React.FC = () => {
@@ -15,8 +15,11 @@ const Users: React.FC = () => {
   const { userRole, isAuthenticated } = useAuth();
   const [companyOptions, setCompanyOptions] = useState<{ businessGroups: string[], associations: string[], business: string[] }>({
     businessGroups: [],
-    associations: [], business: [],
+    associations: [],
+    business: [],
   });
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [newPassword, setNewPassword] = useState('');
 
   useEffect(() => {
     if (isAuthenticated && userRole === 'admin') {
@@ -28,19 +31,19 @@ const Users: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setUserLoading(true);
-      const response = await axios.get('http://excelenciadelasoya.org/api/users', { withCredentials: true });
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/users`, { withCredentials: true });
       setUsers(response.data);
       setUserLoading(false);
-
     } catch (error) {
       console.error('Error fetching users:', error);
       setError('Error al obtener usuarios');
+      setUserLoading(false);
     }
   };
 
   const fetchCompanyOptions = async () => {
     try {
-      const response = await axios.get('http://excelenciadelasoya.org/api/data/company-options', { withCredentials: true });
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/data/company-options`, { withCredentials: true });
       setCompanyOptions(response.data);
     } catch (error) {
       console.error('Error fetching company options:', error);
@@ -50,7 +53,7 @@ const Users: React.FC = () => {
 
   const createUser = async () => {
     try {
-      const response = await axios.post('http://excelenciadelasoya.org/api/users', newUser, { withCredentials: true });
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/users`, newUser, { withCredentials: true });
       setNewUser({ username: '', companyType: '', company: '', role: '' });
       setSuccessMessage(`Usuario creado: ${response.data.username}, Contraseña: ${response.data.password}`);
       fetchUsers();
@@ -63,13 +66,53 @@ const Users: React.FC = () => {
   const handleUpdatePasswords = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://excelenciadelasoya.org/api/users/update-passwords', { withCredentials: true });
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/update-passwords`, { withCredentials: true });
       const blob = new Blob([response.data.csv], { type: 'text/csv;charset=utf-8;' });
       FileSaver.saveAs(blob, 'updated_clients_passwords.csv');
     } catch (error) {
       console.error('Error updating passwords', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setNewPassword('');
+  };
+
+  const handleUpdateUser = async () => {
+    if (!editingUser) return;
+    try {
+      const updateData: Partial<User> & { password?: string } = {
+        username: editingUser.username,
+        company: editingUser.company,
+        role: editingUser.role,
+      };
+      if (newPassword) {
+        updateData.password = newPassword;
+      }
+      await axios.put(`${import.meta.env.VITE_API_URL}/update-user/${editingUser.id}`, updateData, { withCredentials: true });
+      setEditingUser(null);
+      setNewPassword('');
+      fetchUsers();
+      setSuccessMessage('Usuario actualizado exitosamente');
+    } catch (error) {
+      console.error('Error updating user:', error);
+      setError('Error al actualizar usuario');
+    }
+  };
+
+  const handleDeleteUser = async (id: number) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
+      try {
+        await axios.delete(`${import.meta.env.VITE_API_URL}/delete-user/${id}`, { withCredentials: true });
+        fetchUsers();
+        setSuccessMessage('Usuario eliminado exitosamente');
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        setError('Error al eliminar usuario');
+      }
     }
   };
 
@@ -141,9 +184,9 @@ const Users: React.FC = () => {
                 )))
               }
               {newUser.companyType === 'business' && (
-              companyOptions.business.map((business: string) => (
-                <option key={business} value={business}>{business}</option>
-              )))}
+                companyOptions.business.map((business: string) => (
+                  <option key={business} value={business}>{business}</option>
+                )))}
             </select>
           )}
           <button
@@ -159,13 +202,14 @@ const Users: React.FC = () => {
         </button>
         {error && <div className="text-red-500">{error}</div>}
         {successMessage && <div className="text-green-500">{successMessage}</div>}
-        {!userLoading ?
+        {!userLoading ? (
           <table className="min-w-full bg-white">
             <thead>
             <tr>
               <th className="py-2 px-4 border-b">Username</th>
               <th className="py-2 px-4 border-b">Role</th>
               <th className="py-2 px-4 border-b">Company</th>
+              <th className="py-2 px-4 border-b">Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -174,15 +218,68 @@ const Users: React.FC = () => {
                 <td className="py-2 px-4 border-b text-center">{user.username}</td>
                 <td className="py-2 px-4 border-b text-center">{user.role}</td>
                 <td className="py-2 px-4 border-b text-center">{user.company}</td>
+                <td className="py-2 px-4 border-b text-center">
+                  <button
+                    onClick={() => handleEditUser(user)}
+                    className="mr-2 p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    <Edit2Icon size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteUser(user.id)}
+                    className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    <Trash2Icon size={16} />
+                  </button>
+                </td>
               </tr>
             ))}
             </tbody>
-          </table> : <div className={'flex items-center justify-center'}>
+          </table>
+        ) : (
+          <div className="flex items-center justify-center">
             <span className="loading loading-ring loading-lg"></span>
-          </div>}
+          </div>
+        )}
       </div>
+      {editingUser && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+          <div className="bg-white p-5 rounded-lg shadow-xl">
+            <h3 className="text-lg font-bold mb-4">Editar Usuario</h3>
+            <input
+              type="text"
+              value={editingUser.username}
+              onChange={(e) => setEditingUser({ ...editingUser, username: e.target.value })}
+              className="p-2 border rounded mb-2 w-full"
+              placeholder="Nombre de usuario"
+            />
+            <input
+              type="text"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="p-2 border rounded mb-4 w-full"
+              placeholder="Nueva contraseña (dejar en blanco para no cambiar)"
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={() => setEditingUser(null)}
+                className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400 mr-2"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleUpdateUser}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Actualizar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default Users;
+

@@ -243,7 +243,7 @@ const Current: React.FC = () => {
       </div>
 
       <h2 className="text-xl font-semibold">Filtros</h2>
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-4 mb-6">
         {Object.entries(filters).map(([key, value]) => (
           <div key={key}>
             <label htmlFor={`${key}-filter`} className="block text-sm font-medium text-gray-700">

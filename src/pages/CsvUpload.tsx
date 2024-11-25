@@ -32,7 +32,7 @@ export default function CsvUpload() {
     setMigrationMessage('');
 
     try {
-      const response = await axios.get(`${import.meta.env.API_URL}/data/migrate`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/data/migrate`, {
         withCredentials: true
       });
       setMigrationMessage(response.data.message);
