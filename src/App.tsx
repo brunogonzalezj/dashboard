@@ -16,7 +16,7 @@ const PrivateRoute: React.FC = () => {
 
 // Componente de carga
 const LoadingFallback = () =>
-  <div className={`flex items-center justify-center`}>
+  <div className={`flex items-center justify-center h-screen w-full`}>
   <span className="loading loading-ring loading-lg"></span>;
   </div>;
 const App: React.FC = () => {
