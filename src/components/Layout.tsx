@@ -23,7 +23,7 @@ const Layout: React.FC = () => {
                         </div>
                     </div>
                 </header>
-                <div className="max-w-7xl mx-auto py-2 sm:px-6 lg:px-8 overflow-hidden" >
+                <div className="w-full mx-auto py-2 sm:px-6 lg:px-8 overflow-hidden" >
                     <Outlet/>
                 </div>
             </main>

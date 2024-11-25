@@ -7,15 +7,15 @@ import { User } from '../interfaces/IUsers';
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [newUser, setNewUser] = useState({ username: '', companyType: '', company: '' });
+  const [newUser, setNewUser] = useState({ username: '', companyType: '', company: '', role: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const { userRole, isAuthenticated } = useAuth();
-  const [companyOptions, setCompanyOptions] = useState<{ businessGroups: string[], associations: string[] }>({
+  const [companyOptions, setCompanyOptions] = useState<{ businessGroups: string[], associations: string[], business: string[] }>({
     businessGroups: [],
-    associations: []
+    associations: [], business: [],
   });
 
   useEffect(() => {
@@ -28,12 +28,10 @@ const Users: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setUserLoading(true);
-      const response = await axios.get('http://localhost:3001/users', { withCredentials: true });
+      const response = await axios.get('http://excelenciadelasoya.org/api/users', { withCredentials: true });
       setUsers(response.data);
-      setTimeout(() => {
-          setUserLoading(false);
-        }, 2000
-      );
+      setUserLoading(false);
+
     } catch (error) {
       console.error('Error fetching users:', error);
       setError('Error al obtener usuarios');
@@ -42,7 +40,7 @@ const Users: React.FC = () => {
 
   const fetchCompanyOptions = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/data/company-options', { withCredentials: true });
+      const response = await axios.get('http://excelenciadelasoya.org/api/data/company-options', { withCredentials: true });
       setCompanyOptions(response.data);
     } catch (error) {
       console.error('Error fetching company options:', error);
@@ -52,8 +50,8 @@ const Users: React.FC = () => {
 
   const createUser = async () => {
     try {
-      const response = await axios.post('http://localhost:3001/users', newUser, { withCredentials: true });
-      setNewUser({ username: '', companyType: '', company: '' });
+      const response = await axios.post('http://excelenciadelasoya.org/api/users', newUser, { withCredentials: true });
+      setNewUser({ username: '', companyType: '', company: '', role: '' });
       setSuccessMessage(`Usuario creado: ${response.data.username}, Contraseña: ${response.data.password}`);
       fetchUsers();
     } catch (error) {
@@ -65,7 +63,7 @@ const Users: React.FC = () => {
   const handleUpdatePasswords = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:3001/users/update-passwords', { withCredentials: true });
+      const response = await axios.get('http://excelenciadelasoya.org/api/users/update-passwords', { withCredentials: true });
       const blob = new Blob([response.data.csv], { type: 'text/csv;charset=utf-8;' });
       FileSaver.saveAs(blob, 'updated_clients_passwords.csv');
     } catch (error) {
@@ -114,6 +112,17 @@ const Users: React.FC = () => {
               />
               <span className="ml-2">Asociación</span>
             </label>
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                className="form-radio"
+                name="companyType"
+                value="business"
+                checked={newUser.companyType === 'business'}
+                onChange={(e) => setNewUser({ ...newUser, companyType: e.target.value, company: '' })}
+              />
+              <span className="ml-2">Empresa</span>
+            </label>
           </div>
           {newUser.companyType && (
             <select
@@ -123,13 +132,18 @@ const Users: React.FC = () => {
             >
               <option value="">Seleccione una opción</option>
               {newUser.companyType === 'businessGroup'
-                ? companyOptions.businessGroups.map((group: string) => (
+                && (companyOptions.businessGroups.map((group: string) => (
                   <option key={group} value={group}>{group}</option>
-                ))
-                : companyOptions.associations.map((association: string) => (
+                )))}
+              {newUser.companyType === 'association'
+                && (companyOptions.associations.map((association: string) => (
                   <option key={association} value={association}>{association}</option>
-                ))
+                )))
               }
+              {newUser.companyType === 'business' && (
+              companyOptions.business.map((business: string) => (
+                <option key={business} value={business}>{business}</option>
+              )))}
             </select>
           )}
           <button

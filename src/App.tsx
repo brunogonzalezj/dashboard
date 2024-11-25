@@ -15,12 +15,14 @@ const PrivateRoute: React.FC = () => {
 };
 
 // Componente de carga
-const LoadingFallback = () => <div>Cargando...</div>;
-
+const LoadingFallback = () =>
+  <div className={`flex items-center justify-center`}>
+  <span className="loading loading-ring loading-lg"></span>;
+  </div>;
 const App: React.FC = () => {
   return (
     <Router>
-      <AuthProvider>
+    <AuthProvider>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/login" element={<Login />} />

@@ -32,7 +32,7 @@ export default function CsvUpload() {
     setMigrationMessage('');
 
     try {
-      const response = await axios.get('http://localhost:3001/data/migrate', {
+      const response = await axios.get(`${import.meta.env.API_URL}/data/migrate`, {
         withCredentials: true
       });
       setMigrationMessage(response.data.message);
@@ -67,7 +67,7 @@ export default function CsvUpload() {
     formData.append('file', currentFile);
 
     try {
-      const response = await axios.post('http://localhost:3001/data/upload-csv', formData, {
+      const response = await axios.post(`${import.meta.env.API_URL}/data/upload-csv`, formData, {
         withCredentials: true,
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -109,7 +109,7 @@ export default function CsvUpload() {
     formData.append('file', historyFile);
 
     try {
-      const response = await axios.post('http://localhost:3001/data/upload-history', formData, {
+      const response = await axios.post(`${import.meta.env.API_URL}/data/upload-history`, formData, {
         withCredentials: true,
         headers: {
           'Content-Type': 'multipart/form-data'
