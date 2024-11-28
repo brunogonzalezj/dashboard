@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import FileSaver from 'file-saver';
-import { DownloadIcon, Edit2Icon, Trash2Icon } from 'lucide-react';
+import { DownloadIcon, Edit2Icon, Trash2Icon, ChevronUpIcon, ChevronDownIcon } from 'lucide-react';
 import { User } from '../interfaces/IUsers';
 
 const Users: React.FC = () => {
@@ -20,6 +20,7 @@ const Users: React.FC = () => {
   });
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: keyof User, direction: 'asc' | 'desc' } | null>(null);
 
   useEffect(() => {
     if (isAuthenticated && userRole === 'admin') {
@@ -44,7 +45,12 @@ const Users: React.FC = () => {
   const fetchCompanyOptions = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/data/company-options`, { withCredentials: true });
-      setCompanyOptions(response.data);
+      const sortedOptions = {
+        businessGroups: response.data.businessGroups.sort((a: string, b: string) => a.localeCompare(b)),
+        associations: response.data.associations.sort((a: string, b: string) => a.localeCompare(b)),
+        business: response.data.business.sort((a: string, b: string) => a.localeCompare(b)),
+      };
+      setCompanyOptions(sortedOptions);
     } catch (error) {
       console.error('Error fetching company options:', error);
       setError('Error al obtener opciones de compañía');
@@ -112,6 +118,36 @@ const Users: React.FC = () => {
         setError('Error al eliminar usuario');
       }
     }
+  };
+
+  const handleSort = (key: keyof User) => {
+    setSortConfig(prevConfig =>
+      prevConfig?.key === key
+        ? { ...prevConfig, direction: prevConfig.direction === 'asc' ? 'desc' : 'asc' }
+        : { key, direction: 'asc' }
+    );
+  };
+
+  const sortedUsers = React.useMemo(() => {
+    const sortableUsers = [...users];
+    if (sortConfig !== null) {
+      sortableUsers.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableUsers;
+  }, [users, sortConfig]);
+
+  const SortIcon = ({ column }: { column: keyof User }) => {
+    if (sortConfig?.key !== column) return null;
+    return sortConfig.direction === 'asc' ? <ChevronUpIcon className="w-4 h-4 inline-block ml-1" /> :
+      <ChevronDownIcon className="w-4 h-4 inline-block ml-1" />;
   };
 
   if (!isAuthenticated || userRole !== 'admin') {
@@ -204,14 +240,20 @@ const Users: React.FC = () => {
           <table className="min-w-full bg-white">
             <thead>
             <tr>
-              <th className="py-2 px-4 border-b">Username</th>
-              <th className="py-2 px-4 border-b">Role</th>
-              <th className="py-2 px-4 border-b">Company</th>
+              <th className="py-2 px-4 border-b cursor-pointer" onClick={() => handleSort('username')}>
+                Username <SortIcon column="username" />
+              </th>
+              <th className="py-2 px-4 border-b cursor-pointer" onClick={() => handleSort('role')}>
+                Role <SortIcon column="role" />
+              </th>
+              <th className="py-2 px-4 border-b cursor-pointer" onClick={() => handleSort('company')}>
+                Company <SortIcon column="company" />
+              </th>
               <th className="py-2 px-4 border-b">Actions</th>
             </tr>
             </thead>
             <tbody>
-            {users.map((user) => (
+            {sortedUsers.map((user) => (
               <tr key={user.id}>
                 <td className="py-2 px-4 border-b text-center">{user.username}</td>
                 <td className="py-2 px-4 border-b text-center">{user.role}</td>
