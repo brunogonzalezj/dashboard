@@ -1,7 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { ChevronDownIcon, ChevronUpIcon, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -46,7 +55,7 @@ enum FilterLabels {
   login = 'Sesion Iniciada',
   course = 'Curso',
   country = 'País',
-  business = 'Empresa'
+  business = 'Empresa',
 }
 
 const Current: React.FC = () => {
@@ -56,20 +65,24 @@ const Current: React.FC = () => {
   const itemsPerPage = 50;
   const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [lastDate, setLastDate] = useState('');
 
   const [filters, setFilters] = useState({
     login: 'all',
     course: 'all',
     country: 'all',
-    business: 'all'
+    business: 'all',
   });
 
-
-  const [sortConfig, setSortConfig] = useState<{ key: keyof DataItem, direction: 'asc' | 'desc' } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof DataItem;
+    direction: 'asc' | 'desc';
+  } | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchData();
+      getLastDate();
     }
   }, [isAuthenticated]);
 
@@ -79,7 +92,21 @@ const Current: React.FC = () => {
 
   const displayedData = useMemo(() => {
     return filteredData.slice(0, currentPage * itemsPerPage);
-  }, [filteredData, currentPage, itemsPerPage]);
+  }, [filteredData, currentPage]);
+
+  const getLastDate = async () => {
+    try {
+      setLoading(true);
+      const url = `${import.meta.env.VITE_API_URL}/data/get-upload-date`;
+      const response = await axios.get(url, { withCredentials: true });
+      setLastDate(response.data.uploadDate);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setLastDate('');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -96,10 +123,11 @@ const Current: React.FC = () => {
   };
 
   const filterAndSortData = () => {
-    const result = data.filter(item =>
-      Object.entries(filters).every(([key, value]) =>
-        value === 'all' || item[key as keyof DataItem] === value
-      )
+    const result = data.filter((item) =>
+      Object.entries(filters).every(
+        ([key, value]) =>
+          value === 'all' || item[key as keyof DataItem] === value,
+      ),
     );
 
     if (sortConfig !== null) {
@@ -108,7 +136,10 @@ const Current: React.FC = () => {
         const bValue = b[sortConfig.key];
 
         if (typeof aValue === 'string' && typeof bValue === 'string') {
-          return aValue.localeCompare(bValue, 'es', { sensitivity: 'base' }) * (sortConfig.direction === 'asc' ? 1 : -1);
+          return (
+            aValue.localeCompare(bValue, 'es', { sensitivity: 'base' }) *
+            (sortConfig.direction === 'asc' ? 1 : -1)
+          );
         }
 
         if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
@@ -122,148 +153,185 @@ const Current: React.FC = () => {
   };
 
   const handleSort = (key: keyof DataItem) => {
-    setSortConfig(prevConfig =>
+    setSortConfig((prevConfig) =>
       prevConfig?.key === key
-        ? { ...prevConfig, direction: prevConfig.direction === 'asc' ? 'desc' : 'asc' }
-        : { key, direction: 'asc' }
+        ? {
+            ...prevConfig,
+            direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
+          }
+        : { key, direction: 'asc' },
     );
   };
 
   const SortIcon = ({ column }: { column: keyof DataItem }) => {
     if (sortConfig?.key !== column) return null;
-    return sortConfig.direction === 'asc' ? <ChevronUpIcon className="w-4 h-4 inline-block ml-1" /> :
-      <ChevronDownIcon className="w-4 h-4 inline-block ml-1" />;
+    return sortConfig.direction === 'asc' ? (
+      <ChevronUpIcon className='w-4 h-4 inline-block ml-1' />
+    ) : (
+      <ChevronDownIcon className='w-4 h-4 inline-block ml-1' />
+    );
   };
 
   const getAverageProgress = useMemo(() => {
     if (filteredData.length === 0) return 0;
-    const totalProgress = filteredData.reduce((sum, item) => sum + parseFloat(item.progressPercentage), 0);
+    const totalProgress = filteredData.reduce(
+      (sum, item) => sum + parseFloat(item.progressPercentage),
+      0,
+    );
     return (totalProgress / filteredData.length).toFixed(2);
   }, [filteredData]);
 
   const getCompletionRate = useMemo(() => {
     if (filteredData.length === 0) return 0;
-    const completedCourses = filteredData.filter(item => item.stateOfCompleteness === 'Completado').length;
+    const completedCourses = filteredData.filter(
+      (item) => item.stateOfCompleteness === 'Completado',
+    ).length;
     return ((completedCourses / filteredData.length) * 100).toFixed(2);
   }, [filteredData]);
 
   const getAverageScore = useMemo(() => {
     if (filteredData.length === 0) return 0;
-    const totalScore = filteredData.reduce((sum, item) => sum + parseFloat(item.finalScore), 0);
+    const totalScore = filteredData.reduce(
+      (sum, item) => sum + parseFloat(item.finalScore),
+      0,
+    );
     return (totalScore / filteredData.length).toFixed(2);
   }, [filteredData]);
 
   const getProgressData = useMemo(() => {
-    const progressCounts = filteredData.reduce((acc, item) => {
-      const progress = Math.floor(parseFloat(item.progressPercentage) / 10) * 10;
-      acc[progress] = (acc[progress] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>);
+    const progressCounts = filteredData.reduce(
+      (acc, item) => {
+        const progress =
+          Math.floor(parseFloat(item.progressPercentage) / 10) * 10;
+        acc[progress] = (acc[progress] || 0) + 1;
+        return acc;
+      },
+      {} as Record<number, number>,
+    );
 
     return Object.entries(progressCounts).map(([progress, count]) => ({
       progress: `${progress}-${parseInt(progress) + 10}%`,
-      count
+      count,
     }));
   }, [filteredData]);
 
   const handleDownloadXLSX = () => {
-    const dataToExport = filteredData.map(item => ({
-      'Curso': item.course,
-      'Nombre': item.name,
-      'Apellido': item.lastName,
-      'Correo': item.email,
+    const dataToExport = filteredData.map((item) => ({
+      Curso: item.course,
+      Nombre: item.name,
+      Apellido: item.lastName,
+      Correo: item.email,
       'Sesion iniciada': item.login,
-      'Empresa': item.business,
-      'Estado': item.stateOfCompleteness,
-      '% de avance': item.progressPercentage
+      Empresa: item.business,
+      Estado: item.stateOfCompleteness,
+      '% de avance': item.progressPercentage,
     }));
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Datos del Dashboard');
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const data = new Blob([excelBuffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
     saveAs(data, 'datos_dashboard.xlsx');
   };
 
   const getUniqueValues = (key: keyof DataItem) => {
-    return Array.from(new Set(filteredData.map(item => item[key]))).sort();
+    return Array.from(new Set(filteredData.map((item) => item[key]))).sort();
   };
 
   return (
-    <div className="p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto">
-      <div className="flex flex-row mb-8">
-        <div className="flex flex-col w-1/4 gap-y-4">
-          <div className="bg-[#3a69aa]/80 p-4 rounded-lg text-white">
-            <h2 className="text-lg font-semibold mb-2">Progreso Promedio</h2>
+    <div className='p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto'>
+      <div className='flex flex-row mb-8'>
+        <div className='flex flex-col w-1/4 gap-y-4'>
+          <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>
+            <h2 className='text-lg font-semibold mb-2'>Progreso Promedio</h2>
             {!loading ? (
-              <p className="text-3xl font-bold">{getAverageProgress}%</p>
+              <p className='text-3xl font-bold'>{getAverageProgress}%</p>
             ) : (
-              <span className="loading loading-ring loading-lg"></span>
+              <span className='loading loading-ring loading-lg'></span>
             )}
           </div>
-          <div className="bg-[#3a69aa]/80 p-4 rounded-lg text-white">
-            <h2 className="text-lg font-semibold mb-2">Tasa de Completados</h2>
+          <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>
+            <h2 className='text-lg font-semibold mb-2'>Tasa de Completados</h2>
             {!loading ? (
-              <p className="text-3xl font-bold">{getCompletionRate}%</p>
+              <p className='text-3xl font-bold'>{getCompletionRate}%</p>
             ) : (
-              <span className="loading loading-ring loading-lg"></span>
+              <span className='loading loading-ring loading-lg'></span>
             )}
           </div>
-          <div className="bg-[#3a69aa]/80 p-4 rounded-lg text-white">
-            <h2 className="text-lg font-semibold mb-2">Puntaje Promedio</h2>
+          <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>
+            <h2 className='text-lg font-semibold mb-2'>Puntaje Promedio</h2>
             {!loading ? (
-              <p className="text-3xl font-bold">{getAverageScore}%</p>
+              <p className='text-3xl font-bold'>{getAverageScore}%</p>
             ) : (
-              <span className="loading loading-ring loading-lg"></span>
+              <span className='loading loading-ring loading-lg'></span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center justify-center flex-col w-full">
-          <h2 className="text-xl font-semibold mb-4">Distribución de Progreso</h2>
+        <div className='flex items-center justify-center flex-col w-full'>
+          <div className='flex items-center justify-between mb-4 w-full pl-20'>
+            <h2 className='text-xl font-semibold'>Distribución de Progreso</h2>
+
+            <p>
+              Ultima modificación:{' '}
+              <span className={'badge badge-warning font-semibold'}>
+                {new Date(lastDate).toLocaleString()}
+              </span>
+            </p>
+          </div>
           {!loading ? (
-            <ResponsiveContainer width="100%" height={350}>
+            <ResponsiveContainer width='100%' height={350}>
               <BarChart data={getProgressData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="progress" />
+                <CartesianGrid strokeDasharray='3 3' />
+                <XAxis dataKey='progress' />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="count" fill="#3a69aa" />
+                <Bar dataKey='count' fill='#3a69aa' />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <span className="loading loading-ring loading-lg"></span>
+            <span className='loading loading-ring loading-lg'></span>
           )}
         </div>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">Datos de Usuario</h1>
+      <div className='flex justify-between items-center mb-4'>
+        <h1 className='text-xl font-bold'>Datos de Usuario</h1>
         <button
           onClick={handleDownloadXLSX}
-          className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center"
+          className='bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center'
         >
-          <Download className="mr-2" size={18} />
+          <Download className='mr-2' size={18} />
           Descargar Excel
         </button>
       </div>
 
-      <h2 className="text-xl font-semibold">Filtros</h2>
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <h2 className='text-xl font-semibold'>Filtros</h2>
+      <div className='grid grid-cols-2 gap-4 mb-6'>
         {Object.entries(filters).map(([key, value]) => (
           <div key={key}>
-            <label htmlFor={`${key}-filter`} className="block text-sm font-medium text-gray-700">
-              {FilterLabels[key as keyof typeof FilterLabels].charAt(0).toUpperCase() + FilterLabels[key as keyof typeof FilterLabels].slice(1)}
+            <label
+              htmlFor={`${key}-filter`}
+              className='block text-sm font-medium text-gray-700'
+            >
+              {FilterLabels[key as keyof typeof FilterLabels]
+                .charAt(0)
+                .toUpperCase() +
+                FilterLabels[key as keyof typeof FilterLabels].slice(1)}
             </label>
             <select
               id={`${key}-filter`}
               value={value}
-              onChange={(e) => setFilters(prev => ({ ...prev, [key]: e.target.value }))}
-              className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, [key]: e.target.value }))
+              }
+              className='mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
             >
-              <option value="all">Todos</option>
+              <option value='all'>Todos</option>
               {getUniqueValues(key as keyof DataItem).map((option) => (
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 //@ts-expect-error
@@ -276,60 +344,69 @@ const Current: React.FC = () => {
         ))}
       </div>
 
-      <div className="overflow-x-hidden w-full">
+      <div className='overflow-x-hidden w-full'>
         {!loading ? (
-          <table className="w-full overflow-hidden">
+          <table className='w-full overflow-hidden'>
             <thead>
-            <tr>
-              {[
-                { key: 'course', label: 'Curso' },
-                { key: 'name', label: 'Nombre' },
-                { key: 'lastName', label: 'Apellido' },
-                { key: 'email', label: 'Correo' },
-                { key: 'business', label: 'Empresa' },
-                { key: 'stateOfCompleteness', label: 'Estado' },
-                { key: 'progressPercentage', label: '% de progreso' }
-              ].map(({ key, label }) => (
-                <th
-                  key={key}
-                  className="py-2 px-2 border-b cursor-pointer"
-                  onClick={() => handleSort(key as keyof DataItem)}
-                >
-                  {label} <SortIcon column={key as keyof DataItem} />
-                </th>
-              ))}
-            </tr>
+              <tr>
+                {[
+                  { key: 'course', label: 'Curso' },
+                  { key: 'name', label: 'Nombre' },
+                  { key: 'lastName', label: 'Apellido' },
+                  { key: 'email', label: 'Correo' },
+                  { key: 'business', label: 'Empresa' },
+                  { key: 'stateOfCompleteness', label: 'Estado' },
+                  { key: 'progressPercentage', label: '% de progreso' },
+                ].map(({ key, label }) => (
+                  <th
+                    key={key}
+                    className='py-2 px-2 border-b cursor-pointer'
+                    onClick={() => handleSort(key as keyof DataItem)}
+                  >
+                    {label} <SortIcon column={key as keyof DataItem} />
+                  </th>
+                ))}
+              </tr>
             </thead>
             <tbody>
-            {displayedData.map((item) => (
-              <tr key={item.id} className="text-center">
-                <td className="py-2 px-2 border-b">{item.course}</td>
-                <td className="py-2 px-2 border-b text-left">{item.name}</td>
-                <td className="py-2 px-2 border-b text-left">{item.lastName}</td>
-                <td className="py-2 px-2 border-b text-left">{item.email}</td>
-                <td className="py-2 px-2 border-b text-left">{item.business}</td>
-                <td className="py-2 px-2 border-b">
-                  <div
-                    className={`badge p-4 justify-center ${item.stateOfCompleteness === 'Completado' ? 'badge-success' : 'badge-error'} text-white`}>
-                    {item.stateOfCompleteness === 'Completado' ? 'Completado' : 'No completado'}
-                  </div>
-                </td>
-                <td className="py-2 px-4 border-b">{item.progressPercentage}</td>
-              </tr>
-            ))}
+              {displayedData.map((item) => (
+                <tr key={item.id} className='text-center'>
+                  <td className='py-2 px-2 border-b'>{item.course}</td>
+                  <td className='py-2 px-2 border-b text-left'>{item.name}</td>
+                  <td className='py-2 px-2 border-b text-left'>
+                    {item.lastName}
+                  </td>
+                  <td className='py-2 px-2 border-b text-left'>{item.email}</td>
+                  <td className='py-2 px-2 border-b text-left'>
+                    {item.business}
+                  </td>
+                  <td className='py-2 px-2 border-b'>
+                    <div
+                      className={`badge p-4 justify-center ${item.stateOfCompleteness === 'Completado' ? 'badge-success' : 'badge-error'} text-white text-nowrap`}
+                    >
+                      {item.stateOfCompleteness === 'Completado'
+                        ? 'Completado'
+                        : 'No completado'}
+                    </div>
+                  </td>
+                  <td className='py-2 px-4 border-b'>
+                    {item.progressPercentage}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         ) : (
-          <div className="flex items-center justify-center">
-            <span className="loading loading-ring loading-lg"></span>
+          <div className='flex items-center justify-center'>
+            <span className='loading loading-ring loading-lg'></span>
           </div>
         )}
       </div>
       {displayedData.length < filteredData.length && (
-        <div className="mt-4 flex justify-center">
+        <div className='mt-4 flex justify-center'>
           <button
-            onClick={() => setCurrentPage(prev => prev + 1)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            className='bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded'
           >
             Cargar más
           </button>
