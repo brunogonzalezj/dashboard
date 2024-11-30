@@ -117,8 +117,6 @@ const Current: React.FC = () => {
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setData([]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -156,9 +154,9 @@ const Current: React.FC = () => {
     setSortConfig((prevConfig) =>
       prevConfig?.key === key
         ? {
-            ...prevConfig,
-            direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
-          }
+          ...prevConfig,
+          direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
+        }
         : { key, direction: 'asc' },
     );
   };
@@ -242,55 +240,54 @@ const Current: React.FC = () => {
   };
 
   return (
-    <div className='p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto'>
-      <div className='flex flex-row mb-8'>
-        <div className='flex flex-col w-1/4 gap-y-4'>
+    <div className='p-2 sm:p-4 md:p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto'>
+      <div className='flex flex-col lg:flex-row mb-4 lg:mb-8 gap-4'>
+        <div className='flex flex-col w-full lg:w-1/4 gap-y-4'>
           <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>
-            <h2 className='text-lg font-semibold mb-2'>Progreso Promedio</h2>
+            <h2 className='text-base sm:text-lg font-semibold mb-2'>Progreso Promedio</h2>
             {!loading ? (
-              <p className='text-3xl font-bold'>{getAverageProgress}%</p>
+              <p className='text-2xl sm:text-3xl font-bold'>{getAverageProgress}%</p>
             ) : (
               <span className='loading loading-ring loading-lg'></span>
             )}
           </div>
           <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>
-            <h2 className='text-lg font-semibold mb-2'>Tasa de Completados</h2>
+            <h2 className='text-base sm:text-lg font-semibold mb-2'>Tasa de Completados</h2>
             {!loading ? (
-              <p className='text-3xl font-bold'>{getCompletionRate}%</p>
+              <p className='text-2xl sm:text-3xl font-bold'>{getCompletionRate}%</p>
             ) : (
               <span className='loading loading-ring loading-lg'></span>
             )}
           </div>
           <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>
-            <h2 className='text-lg font-semibold mb-2'>Puntaje Promedio</h2>
+            <h2 className='text-base sm:text-lg font-semibold mb-2'>Puntaje Promedio</h2>
             {!loading ? (
-              <p className='text-3xl font-bold'>{getAverageScore}%</p>
+              <p className='text-2xl sm:text-3xl font-bold'>{getAverageScore}%</p>
             ) : (
               <span className='loading loading-ring loading-lg'></span>
             )}
           </div>
         </div>
 
-        <div className='flex items-center justify-center flex-col w-full'>
-          <div className='flex items-center justify-between mb-4 w-full pl-20'>
-            <h2 className='text-xl font-semibold'>Distribución de Progreso</h2>
-
-            <p>
+        <div className='flex items-center justify-center flex-col w-full lg:w-3/4'>
+          <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 w-full'>
+            <h2 className='text-lg sm:text-xl font-semibold mb-2 sm:mb-0'>Distribución de Progreso</h2>
+            <p className='text-sm sm:text-base'>
               Ultima modificación:{' '}
-              <span className={'badge badge-warning font-semibold'}>
+              <span className='badge badge-warning font-semibold'>
                 {new Date(lastDate).toLocaleString()}
               </span>
             </p>
           </div>
           {!loading ? (
-            <ResponsiveContainer width='100%' height={350}>
+            <ResponsiveContainer width='100%' height={300}>
               <BarChart data={getProgressData}>
                 <CartesianGrid strokeDasharray='3 3' />
                 <XAxis dataKey='progress' />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey='count' fill='#3a69aa' />
+                <Bar dataKey='count' name="Nro de Usuarios" fill='#3a69aa' />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -299,19 +296,19 @@ const Current: React.FC = () => {
         </div>
       </div>
 
-      <div className='flex justify-between items-center mb-4'>
-        <h1 className='text-xl font-bold'>Datos de Usuario</h1>
+      <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2'>
+        <h1 className='text-lg sm:text-xl font-bold'>Datos de Usuario</h1>
         <button
           onClick={handleDownloadXLSX}
-          className='bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center'
+          className='bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center text-sm'
         >
           <Download className='mr-2' size={18} />
           Descargar Excel
         </button>
       </div>
 
-      <h2 className='text-xl font-semibold'>Filtros</h2>
-      <div className='grid grid-cols-2 gap-4 mb-6'>
+      <h2 className='text-lg sm:text-xl font-semibold mb-2'>Filtros</h2>
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
         {Object.entries(filters).map(([key, value]) => (
           <div key={key}>
             <label
@@ -319,8 +316,8 @@ const Current: React.FC = () => {
               className='block text-sm font-medium text-gray-700'
             >
               {FilterLabels[key as keyof typeof FilterLabels]
-                .charAt(0)
-                .toUpperCase() +
+                  .charAt(0)
+                  .toUpperCase() +
                 FilterLabels[key as keyof typeof FilterLabels].slice(1)}
             </label>
             <select
@@ -329,12 +326,11 @@ const Current: React.FC = () => {
               onChange={(e) =>
                 setFilters((prev) => ({ ...prev, [key]: e.target.value }))
               }
-              className='mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
+              className='mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm'
             >
               <option value='all'>Todos</option>
               {getUniqueValues(key as keyof DataItem).map((option) => (
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                //@ts-expect-error
+                //@ts-ignore
                 <option key={option} value={option}>
                   {option}
                 </option>
@@ -344,69 +340,67 @@ const Current: React.FC = () => {
         ))}
       </div>
 
-      <div className='overflow-x-hidden w-full'>
-        {!loading ? (
-          <table className='w-full overflow-hidden'>
-            <thead>
-              <tr>
-                {[
-                  { key: 'course', label: 'Curso' },
-                  { key: 'name', label: 'Nombre' },
-                  { key: 'lastName', label: 'Apellido' },
-                  { key: 'email', label: 'Correo' },
-                  { key: 'business', label: 'Empresa' },
-                  { key: 'stateOfCompleteness', label: 'Estado' },
-                  { key: 'progressPercentage', label: '% de progreso' },
-                ].map(({ key, label }) => (
-                  <th
-                    key={key}
-                    className='py-2 px-2 border-b cursor-pointer'
-                    onClick={() => handleSort(key as keyof DataItem)}
-                  >
-                    {label} <SortIcon column={key as keyof DataItem} />
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {displayedData.map((item) => (
-                <tr key={item.id} className='text-center'>
-                  <td className='py-2 px-2 border-b'>{item.course}</td>
-                  <td className='py-2 px-2 border-b text-left'>{item.name}</td>
-                  <td className='py-2 px-2 border-b text-left'>
-                    {item.lastName}
-                  </td>
-                  <td className='py-2 px-2 border-b text-left'>{item.email}</td>
-                  <td className='py-2 px-2 border-b text-left'>
-                    {item.business}
-                  </td>
-                  <td className='py-2 px-2 border-b'>
-                    <div
-                      className={`badge p-4 justify-center ${item.stateOfCompleteness === 'Completado' ? 'badge-success' : 'badge-error'} text-white text-nowrap`}
-                    >
-                      {item.stateOfCompleteness === 'Completado'
-                        ? 'Completado'
-                        : 'No completado'}
-                    </div>
-                  </td>
-                  <td className='py-2 px-4 border-b'>
-                    {item.progressPercentage}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className='flex items-center justify-center'>
-            <span className='loading loading-ring loading-lg'></span>
-          </div>
-        )}
+      <div className='overflow-x-auto w-full'>
+        <table className='w-full min-w-[640px] overflow-hidden text-sm sm:text-base'>
+          <thead>
+          <tr>
+            {[
+              { key: 'course', label: 'Curso' },
+              { key: 'name', label: 'Nombre' },
+              { key: 'lastName', label: 'Apellido' },
+              { key: 'email', label: 'Correo' },
+              { key: 'business', label: 'Empresa' },
+              { key: 'stateOfCompleteness', label: 'Estado' },
+              { key: 'progressPercentage', label: '% de progreso' },
+            ].map(({ key, label }) => (
+              <th
+                key={key}
+                className='py-2 px-2 border-b cursor-pointer'
+                onClick={() => handleSort(key as keyof DataItem)}
+              >
+                {label} <SortIcon column={key as keyof DataItem} />
+              </th>
+            ))}
+          </tr>
+          </thead>
+          <tbody>
+          {displayedData.map((item) => (
+            <tr key={item.id} className='text-center'>
+              <td className='py-2 px-2 border-b'>{item.course}</td>
+              <td className='py-2 px-2 border-b text-left'>{item.name}</td>
+              <td className='py-2 px-2 border-b text-left'>
+                {item.lastName}
+              </td>
+              <td className='py-2 px-2 border-b text-left'>{item.email}</td>
+              <td className='py-2 px-2 border-b text-left'>
+                {item.business}
+              </td>
+              <td className='py-2 px-2 border-b'>
+                <div
+                  className={`badge p-2 sm:p-4 justify-center ${
+                    item.stateOfCompleteness === 'Completado'
+                      ? 'badge-success'
+                      : 'badge-error'
+                  } text-white text-xs sm:text-sm`}
+                >
+                  {item.stateOfCompleteness === 'Completado'
+                    ? 'Completado'
+                    : 'No completado'}
+                </div>
+              </td>
+              <td className='py-2 px-4 border-b'>
+                {item.progressPercentage}
+              </td>
+            </tr>
+          ))}
+          </tbody>
+        </table>
       </div>
       {displayedData.length < filteredData.length && (
         <div className='mt-4 flex justify-center'>
           <button
             onClick={() => setCurrentPage((prev) => prev + 1)}
-            className='bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded'
+            className='bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm sm:text-base'
           >
             Cargar más
           </button>
@@ -417,3 +411,4 @@ const Current: React.FC = () => {
 };
 
 export default Current;
+

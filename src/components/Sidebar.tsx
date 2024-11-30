@@ -1,58 +1,89 @@
-import {Link, useLocation} from "react-router-dom";
-import {FileSpreadsheet, Home, LogOut, Users} from "lucide-react";
-import {useAuth} from "../contexts/AuthContext";
+import { Link, useLocation } from "react-router-dom";
+import { FileSpreadsheet, Home, LogOut, Users, X } from 'lucide-react';
+import { useAuth } from "../contexts/AuthContext";
 import React from "react";
 
-export const Sidebar: React.FC = () => {
-    const {logout, userRole} = useAuth();
+interface SidebarProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+    const { logout, userRole } = useAuth();
     const location = useLocation();
     const isActive = (path: string) => location.pathname === path;
 
-    return <aside className="w-30 px-4  bg-amber-500  text-white flex flex-col items-center py-8  relative z-10">
-        <div className="flex-grow flex flex-col gap-2">
-            <div className="mb-8">
-                <img src={"/soy_logo.png"} alt="Soy Logo" className="w-14 h-14"/>
-            </div>
+    return (
+      <>
+          {/* Overlay */}
+          {isOpen && (
+            <div
+              className="fixed inset-0 z-20 bg-black bg-opacity-50 sm:hidden"
+              onClick={onClose}
+            ></div>
+          )}
 
-            <nav className="flex flex-col items-center space-y-4 p-1 bg-gray-200/30 backdrop-blur rounded-full">
-                <div className={"flex group tooltip tooltip-right"} data-tip={"Home"}>
-                    <Link to="/"
-                          className={`p-3 rounded-full ${isActive('/') ? 'bg-white/80' : 'group-hover:bg-white/50'}`}>
-                        <Home size={24}
-                              className={`${isActive("/") ? 'text-amber-500' : 'text-white group-hover:text-amber-500'}`}/>
-                    </Link>
-                </div>
-                {userRole === 'admin' && (
-                    <>
-                        <div className={"flex group tooltip tooltip-right"} data-tip={"Users"}>
-                            <Link to="/users"
-                                  className={`p-3 rounded-full ${isActive('/users') ? 'bg-white/80' : 'group-hover:bg-white/50'}`}>
-                                <Users size={24}
-                                       className={`${isActive("/users") ? 'text-amber-500' : 'text-white group-hover:text-amber-500'}`}/>
+          {/* Sidebar */}
+          <aside
+            className={`
+                    fixed sm:static inset-y-0 left-0 z-30 w-64 sm:w-20 bg-amber-500 text-white 
+                    transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
+                    sm:translate-x-0 transition-transform duration-300 ease-in-out
+                    flex flex-col items-center justify-between py-4 sm:py-8
+                `}
+          >
+              <div className="flex flex-col items-center gap-4 sm:gap-8 w-full">
+                  <div className="flex justify-between items-center w-full px-4 sm:px-0 sm:justify-center">
+                      <img src="/soy_logo.png" alt="Soy Logo" className="w-10 h-10 sm:w-14 sm:h-14"/>
+                      <button onClick={onClose} className="sm:hidden text-white">
+                          <X size={24} />
+                      </button>
+                  </div>
+
+                  <nav className="flex flex-col sm:items-center space-y-4 w-full px-4 sm:px-0">
+                      <Link
+                        to="/"
+                        className={`flex items-center space-x-4 sm:space-x-0 p-2 rounded-md ${isActive('/') ? 'bg-white/80 text-amber-500' : 'hover:bg-white/20'}`}
+                        onClick={onClose}
+                      >
+                          <Home size={20} />
+                          <span className="sm:hidden">Home</span>
+                      </Link>
+                      {userRole === 'admin' && (
+                        <>
+                            <Link
+                              to="/users"
+                              className={`flex items-center space-x-4 sm:space-x-0 p-2 rounded-md ${isActive('/users') ? 'bg-white/80 text-amber-500' : 'hover:bg-white/20'}`}
+                              onClick={onClose}
+                            >
+                                <Users size={20} />
+                                <span className="sm:hidden">Usuarios</span>
                             </Link>
-                        </div>
-
-                        <div className={"flex group tooltip tooltip-right"} data-tip={"CSV Upload"}>
-                            <Link to="/csv-upload"
-                                  className={`p-3 rounded-full ${isActive('/csv-upload') ? 'bg-white/80' : 'group-hover:bg-white/50 '}`}>
-                                <FileSpreadsheet size={24}
-                                                 className={`${isActive("/csv-upload") ? 'text-amber-500' : 'text-white group-hover:text-amber-500'}`}/>
+                            <Link
+                              to="/csv-upload"
+                              className={`flex items-center space-x-4 sm:space-x-0 p-2 rounded-md ${isActive('/csv-upload') ? 'bg-white/80 text-amber-500' : 'hover:bg-white/20'}`}
+                              onClick={onClose}
+                            >
+                                <FileSpreadsheet size={20} />
+                                <span className="sm:hidden">CSV</span>
                             </Link>
-                        </div>
-                    </>
-                )}
+                        </>
+                      )}
+                  </nav>
+              </div>
 
+              <button
+                onClick={() => {
+                    logout();
+                    onClose();
+                }}
+                className="flex items-center space-x-4 sm:space-x-0 p-2 rounded-md hover:bg-white/20 w-full px-4 sm:px-0 sm:justify-center"
+              >
+                  <LogOut size={20} />
+                  <span className="sm:hidden">Cerrar Sesión</span>
+              </button>
+          </aside>
+      </>
+    );
+};
 
-            </nav>
-        </div>
-
-        <footer className={"group"}>
-            <button onClick={logout}
-                    className="tooltip tooltip-right mt-auto p-3 rounded-full bg-gray-200/30 group-hover:bg-white/80"
-                    data-tip={"Logout"}>
-                <LogOut size={24} className={"group-hover:text-amber-500"}/>
-            </button>
-        </footer>
-
-    </aside>
-}
