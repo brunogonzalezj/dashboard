@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ChevronDownIcon, ChevronUpIcon, Download } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import { saveAs } from 'file-saver';
 
 interface DataItem {
@@ -223,9 +223,15 @@ const Current: React.FC = () => {
 
     // Aplicar estilos a la hoja de cálculo
     const headerStyle = {
-      font: { bold: true },
-      fill: { fgColor: { rgb: "FFD700" } }, // Color mostaza
-      alignment: { horizontal: "center" }
+      font: { bold: true, color: { rgb: "000000" } },
+      fill: { fgColor: { rgb: "F59E0B" } }, // Color mostaza
+      alignment: { horizontal: "center", vertical: "center" },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+      }
     };
 
     // Obtener el rango de celdas para los encabezados
@@ -235,6 +241,7 @@ const Current: React.FC = () => {
     // Aplicar estilos a los encabezados
     for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
       const address = XLSX.utils.encode_cell({ r: headerRange.s.r, c: C });
+      if (!ws[address]) ws[address] = {};
       ws[address].s = headerStyle;
     }
 
@@ -243,21 +250,21 @@ const Current: React.FC = () => {
       { wch: 20 }, // Curso
       { wch: 15 }, // Nombre
       { wch: 15 }, // Apellido
-      { wch: 25 }, // Correo
+      { wch: 30 }, // Correo
       { wch: 15 }, // Sesion iniciada
-      { wch: 20 }, // Empresa
+      { wch: 35 }, // Empresa
       { wch: 15 }, // Estado
       { wch: 12 }, // % de avance
     ];
 
-    XLSX.utils.book_append_sheet(wb, ws, 'Datos del Dashboard');
+    XLSX.utils.book_append_sheet(wb, ws, `Datos de ${username}`);
 
     // Generar el archivo
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-    saveAs(data, `Cursos ${username}.xlsx`);
+    saveAs(data, `Cursos de ${username}.xlsx`);
   };
 
 
