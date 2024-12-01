@@ -1,16 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ChevronDownIcon, ChevronUpIcon, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -66,6 +57,8 @@ const Current: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [lastDate, setLastDate] = useState('');
+
+  const { username } = useAuth();
 
   const [filters, setFilters] = useState({
     login: 'all',
@@ -227,13 +220,47 @@ const Current: React.FC = () => {
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
+
+    // Aplicar estilos a la hoja de cálculo
+    const headerStyle = {
+      font: { bold: true },
+      fill: { fgColor: { rgb: "FFD700" } }, // Color mostaza
+      alignment: { horizontal: "center" }
+    };
+
+    // Obtener el rango de celdas para los encabezados
+    const range = XLSX.utils.decode_range(ws['!ref'] as string);
+    const headerRange = { s: { r: range.s.r, c: range.s.c }, e: { r: range.s.r, c: range.e.c } };
+
+    // Aplicar estilos a los encabezados
+    for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
+      const address = XLSX.utils.encode_cell({ r: headerRange.s.r, c: C });
+      ws[address].s = headerStyle;
+    }
+
+    // Ajustar el ancho de las columnas
+    ws['!cols'] = [
+      { wch: 20 }, // Curso
+      { wch: 15 }, // Nombre
+      { wch: 15 }, // Apellido
+      { wch: 25 }, // Correo
+      { wch: 15 }, // Sesion iniciada
+      { wch: 20 }, // Empresa
+      { wch: 15 }, // Estado
+      { wch: 12 }, // % de avance
+    ];
+
     XLSX.utils.book_append_sheet(wb, ws, 'Datos del Dashboard');
+
+    // Generar el archivo
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-    saveAs(data, 'datos_dashboard.xlsx');
+    saveAs(data, `Cursos ${username}.xlsx`);
   };
+
+
 
   const getUniqueValues = (key: keyof DataItem) => {
     return Array.from(new Set(filteredData.map((item) => item[key]))).sort();
@@ -381,7 +408,7 @@ const Current: React.FC = () => {
                     item.stateOfCompleteness === 'Completado'
                       ? 'badge-success'
                       : 'badge-error'
-                  } text-white text-xs sm:text-sm`}
+                  } text-white text-nowrap text-xs sm:text-sm`}
                 >
                   {item.stateOfCompleteness === 'Completado'
                     ? 'Completado'
