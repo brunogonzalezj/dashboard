@@ -1,0 +1,35 @@
+export interface DataItem {
+  id: number;
+  association: string;
+  businessGroup: string;
+  business: string;
+  fiscalYear: string;
+  year: string;
+  course: string;
+  grupo: string;
+  country: string;
+  city: string;
+  gender: string;
+  name: string;
+  lastName: string;
+  email: string;
+  birthday: number;
+  phone: string;
+  education: string;
+  jobArea: string;
+  jobPosition: string;
+  positionLevel: string;
+  yearsExperience: string;
+  login: string;
+  progressPercentage: string;
+  stateOfCompleteness: string;
+  finalScore: string;
+  progress: string;
+  previousPoll: boolean;
+  seenMaterial: string;
+  completedEvaluations: string;
+  reunionVisualized: number;
+  postPoll: boolean;
+  evaluationRange: string;
+  presentialCourse: string;
+}

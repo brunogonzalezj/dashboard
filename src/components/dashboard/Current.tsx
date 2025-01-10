@@ -1,46 +1,20 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { ChevronDownIcon, ChevronUpIcon, Download } from 'lucide-react';
 import * as XLSX from 'xlsx-js-style';
 import { saveAs } from 'file-saver';
-
-interface DataItem {
-  id: number;
-  association: string;
-  businessGroup: string;
-  business: string;
-  fiscalYear: string;
-  year: string;
-  course: string;
-  grupo: string;
-  country: string;
-  city: string;
-  gender: string;
-  name: string;
-  lastName: string;
-  email: string;
-  birthday: number;
-  phone: string;
-  education: string;
-  jobArea: string;
-  jobPosition: string;
-  positionLevel: string;
-  yearsExperience: string;
-  login: string;
-  progressPercentage: string;
-  stateOfCompleteness: string;
-  finalScore: string;
-  progress: string;
-  previousPoll: boolean;
-  seenMaterial: string;
-  completedEvaluations: string;
-  reunionVisualized: number;
-  postPoll: boolean;
-  evaluationRange: string;
-  presentialCourse: string;
-}
+import { DataItem } from '../../interfaces/IData.ts';
 
 enum FilterLabels {
   login = 'Sesion Iniciada',
@@ -147,9 +121,9 @@ const Current: React.FC = () => {
     setSortConfig((prevConfig) =>
       prevConfig?.key === key
         ? {
-          ...prevConfig,
-          direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
-        }
+            ...prevConfig,
+            direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
+          }
         : { key, direction: 'asc' },
     );
   };
@@ -172,12 +146,17 @@ const Current: React.FC = () => {
     return (totalProgress / filteredData.length).toFixed(2);
   }, [filteredData]);
 
-  const getCompletionRate = useMemo(() => {
-    if (filteredData.length === 0) return 0;
-    const completedCourses = filteredData.filter(
+  const getCompletionStats = useMemo(() => {
+    if (filteredData.length === 0)
+      return { completedCount: 0, totalCount: 0, rate: 0 };
+
+    const completedCount = filteredData.filter(
       (item) => item.stateOfCompleteness === 'Completado',
     ).length;
-    return ((completedCourses / filteredData.length) * 100).toFixed(2);
+    const totalCount = filteredData.length;
+    const rate = ((completedCount / totalCount) * 100).toFixed(2);
+
+    return { completedCount, totalCount, rate };
   }, [filteredData]);
 
   const getAverageScore = useMemo(() => {
@@ -223,20 +202,23 @@ const Current: React.FC = () => {
 
     // Aplicar estilos a la hoja de cálculo
     const headerStyle = {
-      font: { bold: true, color: { rgb: "000000" } },
-      fill: { fgColor: { rgb: "F59E0B" } }, // Color mostaza
-      alignment: { horizontal: "center", vertical: "center" },
+      font: { bold: true, color: { rgb: '000000' } },
+      fill: { fgColor: { rgb: 'F59E0B' } }, // Color mostaza
+      alignment: { horizontal: 'center', vertical: 'center' },
       border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        left: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-      }
+        top: { style: 'thin', color: { rgb: '000000' } },
+        bottom: { style: 'thin', color: { rgb: '000000' } },
+        left: { style: 'thin', color: { rgb: '000000' } },
+        right: { style: 'thin', color: { rgb: '000000' } },
+      },
     };
 
     // Obtener el rango de celdas para los encabezados
     const range = XLSX.utils.decode_range(ws['!ref'] as string);
-    const headerRange = { s: { r: range.s.r, c: range.s.c }, e: { r: range.s.r, c: range.e.c } };
+    const headerRange = {
+      s: { r: range.s.r, c: range.s.c },
+      e: { r: range.s.r, c: range.e.c },
+    };
 
     // Aplicar estilos a los encabezados
     for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
@@ -264,10 +246,8 @@ const Current: React.FC = () => {
     const data = new Blob([excelBuffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-    saveAs(data, `Cursos de ${username}.xlsx`);
+    saveAs(data, `Reporte de participantes de ${username} en cursos SEC.xlsx`);
   };
-
-
 
   const getUniqueValues = (key: keyof DataItem) => {
     return Array.from(new Set(filteredData.map((item) => item[key]))).sort();
@@ -276,36 +256,51 @@ const Current: React.FC = () => {
   return (
     <div className='p-2 sm:p-4 md:p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto'>
       <div className='flex flex-col lg:flex-row mb-4 lg:mb-8 gap-4'>
-        <div className='flex flex-col w-full lg:w-1/4 gap-y-4'>
+        <div className='flex flex-col w-full lg:w-[30%] gap-y-4'>
           <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>
-            <h2 className='text-base sm:text-lg font-semibold mb-2'>Progreso Promedio</h2>
+            <h2 className='text-base sm:text-lg font-semibold mb-2'>
+              Progreso Promedio
+            </h2>
             {!loading ? (
-              <p className='text-2xl sm:text-3xl font-bold'>{getAverageProgress}%</p>
+              <p className='text-2xl sm:text-3xl font-bold'>
+                {getAverageProgress}%
+              </p>
             ) : (
               <span className='loading loading-ring loading-lg'></span>
             )}
           </div>
           <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>
-            <h2 className='text-base sm:text-lg font-semibold mb-2'>Tasa de Completados</h2>
+            <h2 className='text-base sm:text-lg font-semibold mb-2'>
+              Tasa de Completados
+            </h2>
             {!loading ? (
-              <p className='text-2xl sm:text-3xl font-bold'>{getCompletionRate}%</p>
+              <p className='flex text-nowrap text-2xl sm:text-3xl font-bold'>
+                {getCompletionStats.completedCount} de{' '}
+                {getCompletionStats.totalCount} usuarios
+              </p>
             ) : (
               <span className='loading loading-ring loading-lg'></span>
             )}
           </div>
           <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>
-            <h2 className='text-base sm:text-lg font-semibold mb-2'>Puntaje Promedio</h2>
+            <h2 className='text-base sm:text-lg font-semibold mb-2'>
+              Puntaje Promedio
+            </h2>
             {!loading ? (
-              <p className='text-2xl sm:text-3xl font-bold'>{getAverageScore}%</p>
+              <p className='text-2xl sm:text-3xl font-bold'>
+                {getAverageScore}%
+              </p>
             ) : (
               <span className='loading loading-ring loading-lg'></span>
             )}
           </div>
         </div>
 
-        <div className='flex items-center justify-center flex-col w-full lg:w-3/4'>
+        <div className='flex items-center justify-center flex-col w-full lg:flex-1'>
           <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 w-full'>
-            <h2 className='text-lg sm:text-xl font-semibold mb-2 sm:mb-0'>Distribución de Progreso</h2>
+            <h2 className='text-lg sm:text-xl font-semibold mb-2 sm:mb-0'>
+              Distribución de Progreso
+            </h2>
             <p className='text-sm sm:text-base'>
               Ultima modificación:{' '}
               <span className='badge badge-warning font-semibold'>
@@ -321,7 +316,7 @@ const Current: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey='count' name="Nro de Usuarios" fill='#3a69aa' />
+                <Bar dataKey='count' name='Nro de Usuarios' fill='#3a69aa' />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -350,8 +345,8 @@ const Current: React.FC = () => {
               className='block text-sm font-medium text-gray-700'
             >
               {FilterLabels[key as keyof typeof FilterLabels]
-                  .charAt(0)
-                  .toUpperCase() +
+                .charAt(0)
+                .toUpperCase() +
                 FilterLabels[key as keyof typeof FilterLabels].slice(1)}
             </label>
             <select
@@ -377,56 +372,56 @@ const Current: React.FC = () => {
       <div className='overflow-x-auto w-full'>
         <table className='w-full min-w-[640px] overflow-hidden text-sm sm:text-base'>
           <thead>
-          <tr>
-            {[
-              { key: 'course', label: 'Curso' },
-              { key: 'name', label: 'Nombre' },
-              { key: 'lastName', label: 'Apellido' },
-              { key: 'email', label: 'Correo' },
-              { key: 'business', label: 'Empresa' },
-              { key: 'stateOfCompleteness', label: 'Estado' },
-              { key: 'progressPercentage', label: '% de progreso' },
-            ].map(({ key, label }) => (
-              <th
-                key={key}
-                className='py-2 px-2 border-b cursor-pointer'
-                onClick={() => handleSort(key as keyof DataItem)}
-              >
-                {label} <SortIcon column={key as keyof DataItem} />
-              </th>
-            ))}
-          </tr>
+            <tr>
+              {[
+                { key: 'course', label: 'Curso' },
+                { key: 'name', label: 'Nombre' },
+                { key: 'lastName', label: 'Apellido' },
+                { key: 'email', label: 'Correo' },
+                { key: 'business', label: 'Empresa' },
+                { key: 'stateOfCompleteness', label: 'Estado' },
+                { key: 'progressPercentage', label: '% de progreso' },
+              ].map(({ key, label }) => (
+                <th
+                  key={key}
+                  className='py-2 px-2 border-b cursor-pointer'
+                  onClick={() => handleSort(key as keyof DataItem)}
+                >
+                  {label} <SortIcon column={key as keyof DataItem} />
+                </th>
+              ))}
+            </tr>
           </thead>
           <tbody>
-          {displayedData.map((item) => (
-            <tr key={item.id} className='text-center'>
-              <td className='py-2 px-2 border-b'>{item.course}</td>
-              <td className='py-2 px-2 border-b text-left'>{item.name}</td>
-              <td className='py-2 px-2 border-b text-left'>
-                {item.lastName}
-              </td>
-              <td className='py-2 px-2 border-b text-left'>{item.email}</td>
-              <td className='py-2 px-2 border-b text-left'>
-                {item.business}
-              </td>
-              <td className='py-2 px-2 border-b'>
-                <div
-                  className={`badge p-2 sm:p-4 justify-center ${
-                    item.stateOfCompleteness === 'Completado'
-                      ? 'badge-success'
-                      : 'badge-error'
-                  } text-white text-nowrap text-xs sm:text-sm`}
-                >
-                  {item.stateOfCompleteness === 'Completado'
-                    ? 'Completado'
-                    : 'No completado'}
-                </div>
-              </td>
-              <td className='py-2 px-4 border-b'>
-                {item.progressPercentage}
-              </td>
-            </tr>
-          ))}
+            {displayedData.map((item) => (
+              <tr key={item.id} className='text-center'>
+                <td className='py-2 px-2 border-b'>{item.course}</td>
+                <td className='py-2 px-2 border-b text-left'>{item.name}</td>
+                <td className='py-2 px-2 border-b text-left'>
+                  {item.lastName}
+                </td>
+                <td className='py-2 px-2 border-b text-left'>{item.email}</td>
+                <td className='py-2 px-2 border-b text-left'>
+                  {item.business}
+                </td>
+                <td className='py-2 px-2 border-b'>
+                  <div
+                    className={`badge p-2 sm:p-4 justify-center ${
+                      item.stateOfCompleteness === 'Completado'
+                        ? 'badge-success'
+                        : 'badge-error'
+                    } text-white text-nowrap text-xs sm:text-sm`}
+                  >
+                    {item.stateOfCompleteness === 'Completado'
+                      ? 'Completado'
+                      : 'No completado'}
+                  </div>
+                </td>
+                <td className='py-2 px-4 border-b'>
+                  {item.progressPercentage}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -445,4 +440,3 @@ const Current: React.FC = () => {
 };
 
 export default Current;
-
