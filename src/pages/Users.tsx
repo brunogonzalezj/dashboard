@@ -18,8 +18,12 @@ const Users: React.FC = () => {
     companyType: '',
     company: '',
     role: '',
+    email: '',
+    phoneNumber: '',
+    fullName: '',
   });
   const [error, setError] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -94,7 +98,7 @@ const Users: React.FC = () => {
         newUser,
         { withCredentials: true },
       );
-      setNewUser({ username: '', companyType: '', company: '', role: '' });
+      setNewUser({ username: '', companyType: '', company: '', role: '', email: '', fullName: '', phoneNumber: '' });
       setSuccessMessage(
         `Usuario creado: ${response.data.username}, Contraseña: ${response.data.password}`,
       );
@@ -215,181 +219,251 @@ const Users: React.FC = () => {
   return (
     <div className='bg-white shadow rounded-lg p-6'>
       <h2 className='text-2xl font-bold mb-4'>Gestión de Usuarios</h2>
-      <div className='space-y-4'>
-        <div className='flex flex-col space-y-4'>
-          <input
-            type='text'
-            placeholder='Nombre de usuario'
-            value={newUser.username}
-            onChange={(e) =>
-              setNewUser({ ...newUser, username: e.target.value })
-            }
-            className='p-2 border rounded'
-          />
-          <div className='flex items-center space-x-4'>
-            <label className='inline-flex items-center'>
-              <input
-                type='radio'
-                className='form-radio'
-                name='companyType'
-                value='businessGroup'
-                checked={newUser.companyType === 'businessGroup'}
-                onChange={(e) =>
-                  setNewUser({
-                    ...newUser,
-                    companyType: e.target.value,
-                    company: '',
-                  })
-                }
-              />
-              <span className='ml-2'>Grupo Empresarial</span>
-            </label>
-            <label className='inline-flex items-center'>
-              <input
-                type='radio'
-                className='form-radio'
-                name='companyType'
-                value='association'
-                checked={newUser.companyType === 'association'}
-                onChange={(e) =>
-                  setNewUser({
-                    ...newUser,
-                    companyType: e.target.value,
-                    company: '',
-                  })
-                }
-              />
-              <span className='ml-2'>Asociación</span>
-            </label>
-            <label className='inline-flex items-center'>
-              <input
-                type='radio'
-                className='form-radio'
-                name='companyType'
-                value='business'
-                checked={newUser.companyType === 'business'}
-                onChange={(e) =>
-                  setNewUser({
-                    ...newUser,
-                    companyType: e.target.value,
-                    company: '',
-                  })
-                }
-              />
-              <span className='ml-2'>Empresa</span>
-            </label>
+      <div className="space-y-4">
+        {isModalOpen && (
+          <div className='fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center'>
+            <div className='bg-white p-6 rounded-lg shadow-lg w-96'>
+              <h3 className='text-lg font-bold mb-4'>Nuevo Usuario</h3>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  createUser();
+                  setIsModalOpen(false);
+                }}
+                className='space-y-4'
+              >
+                <input
+                  type='text'
+                  placeholder='Nombre de usuario'
+                  value={newUser.username}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, username: e.target.value })
+                  }
+                  className='p-2 border rounded w-full'
+                />
+                <input
+                  type='text'
+                  placeholder='Nombre completo'
+                  value={newUser.fullName}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, fullName: e.target.value })
+                  }
+                  className='p-2 border rounded w-full'
+                />
+                <input
+                  type='email'
+                  placeholder='Correo electrónico'
+                  value={newUser.email}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, email: e.target.value })
+                  }
+                  className='p-2 border rounded w-full'
+                />
+                <input
+                  type='text'
+                  placeholder='Teléfono'
+                  value={newUser.phoneNumber}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, phoneNumber: e.target.value })
+                  }
+                  className='p-2 border rounded w-full'
+                />
+                <div className='flex items-center space-x-4'>
+                  <label className='inline-flex items-center'>
+                    <input
+                      type='radio'
+                      className='form-radio'
+                      name='companyType'
+                      value='businessGroup'
+                      checked={newUser.companyType === 'businessGroup'}
+                      onChange={(e) =>
+                        setNewUser({
+                          ...newUser,
+                          companyType: e.target.value,
+                          company: '',
+                        })
+                      }
+                    />
+                    <span className='ml-2'>Grupo Empresarial</span>
+                  </label>
+                  <label className='inline-flex items-center'>
+                    <input
+                      type='radio'
+                      className='form-radio'
+                      name='companyType'
+                      value='association'
+                      checked={newUser.companyType === 'association'}
+                      onChange={(e) =>
+                        setNewUser({
+                          ...newUser,
+                          companyType: e.target.value,
+                          company: '',
+                        })
+                      }
+                    />
+                    <span className='ml-2'>Asociación</span>
+                  </label>
+                  <label className='inline-flex items-center'>
+                    <input
+                      type='radio'
+                      className='form-radio'
+                      name='companyType'
+                      value='business'
+                      checked={newUser.companyType === 'business'}
+                      onChange={(e) =>
+                        setNewUser({
+                          ...newUser,
+                          companyType: e.target.value,
+                          company: '',
+                        })
+                      }
+                    />
+                    <span className='ml-2'>Empresa</span>
+                  </label>
+                </div>
+                {newUser.companyType && (
+                  <select
+                    value={newUser.company}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, company: e.target.value })
+                    }
+                    className='p-2 border rounded w-full'
+                  >
+                    <option value=''>Seleccione una opción</option>
+                    {newUser.companyType === 'businessGroup' &&
+                      companyOptions.businessGroups.map((group: string) => (
+                        <option key={group} value={group}>
+                          {group}
+                        </option>
+                      ))}
+                    {newUser.companyType === 'association' &&
+                      companyOptions.associations.map((association: string) => (
+                        <option key={association} value={association}>
+                          {association}
+                        </option>
+                      ))}
+                    {newUser.companyType === 'business' &&
+                      companyOptions.business.map((business: string) => (
+                        <option key={business} value={business}>
+                          {business}
+                        </option>
+                      ))}
+                  </select>
+                )}
+                <select
+                  value={newUser.role}
+                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                  className='p-2 border rounded w-full'
+                >
+                  <option value=''>Seleccione un rol</option>
+                  <option value='admin'>Administrador</option>
+                  <option value='client'>Cliente</option>
+                </select>
+                <div className='flex justify-end space-x-2'>
+                  <button
+                    type='button'
+                    onClick={() => setIsModalOpen(false)}
+                    className='px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400'
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type='submit'
+                    className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
+                  >
+                    Guardar
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-          {newUser.companyType && (
-            <select
-              value={newUser.company}
-              onChange={(e) =>
-                setNewUser({ ...newUser, company: e.target.value })
-              }
-              className='p-2 border rounded'
-            >
-              <option value=''>Seleccione una opción</option>
-              {newUser.companyType === 'businessGroup' &&
-                companyOptions.businessGroups.map((group: string) => (
-                  <option key={group} value={group}>
-                    {group}
-                  </option>
-                ))}
-              {newUser.companyType === 'association' &&
-                companyOptions.associations.map((association: string) => (
-                  <option key={association} value={association}>
-                    {association}
-                  </option>
-                ))}
-              {newUser.companyType === 'business' &&
-                companyOptions.business.map((business: string) => (
-                  <option key={business} value={business}>
-                    {business}
-                  </option>
-                ))}
-            </select>
-          )}
-          <button
-            onClick={createUser}
-            className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
-          >
-            Crear Usuario
-          </button>
-        </div>
+        )}
+
+        <div className={"flex flex-row gap-2 w-full"}>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Crear Usuario
+        </button>
         <button
           onClick={handleUpdatePasswords}
           disabled={loading}
-          className='bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded flex items-center gap-2'
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded flex items-center gap-2"
         >
           <DownloadIcon />
           {loading ? 'Actualizando...' : 'Actualizar Contraseñas'}
         </button>
-        {error && <div className='text-red-500'>{error}</div>}
+        </div>
+        {error && <div className="text-red-500">{error}</div>}
         {successMessage && (
-          <div className='text-green-500'>{successMessage}</div>
+          <div className="text-green-500">{successMessage}</div>
         )}
         {!userLoading ? (
-          <table className='min-w-full bg-white'>
+          <table className="min-w-full bg-white">
             <thead>
-              <tr>
-                <th
-                  className='py-2 px-4 border-b cursor-pointer'
-                  onClick={() => handleSort('username')}
-                >
-                  Username <SortIcon column='username' />
-                </th>
-                <th
-                  className='py-2 px-4 border-b cursor-pointer'
-                  onClick={() => handleSort('role')}
-                >
-                  Role <SortIcon column='role' />
-                </th>
-                <th
-                  className='py-2 px-4 border-b cursor-pointer'
-                  onClick={() => handleSort('company')}
-                >
-                  Company <SortIcon column='company' />
-                </th>
-                <th className='py-2 px-4 border-b'>Actions</th>
-              </tr>
+            <tr>
+              <th
+                className="py-2 px-4 border-b cursor-pointer"
+                onClick={() => handleSort('username')}
+              >
+                Username <SortIcon column="username" />
+              </th>
+              <th
+                className="py-2 px-4 border-b cursor-pointer"
+                onClick={() => handleSort('role')}
+              >
+                Role <SortIcon column="role" />
+              </th>
+              <th
+                className="py-2 px-4 border-b cursor-pointer"
+                onClick={() => handleSort('company')}
+              >
+                Company <SortIcon column="company" />
+              </th>
+              <th className="py-2 px-4 border-b">Actions</th>
+            </tr>
             </thead>
             <tbody>
-              {sortedUsers.map((user) => (
-                <tr key={user.id}>
-                  <td className='py-2 px-4 border-b text-center'>
-                    {user.username}
-                  </td>
-                  <td className='py-2 px-4 border-b text-center'>
-                    {user.role}
-                  </td>
-                  <td className='py-2 px-4 border-b text-center'>
-                    {user.company}
-                  </td>
-                  <td className='py-2 px-4 border-b text-center'>
-                    <button
-                      onClick={() => handleEditUser(user)}
-                      className='mr-2 p-1 bg-blue-500 text-white rounded hover:bg-blue-600'
-                    >
-                      <Edit2Icon size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteUser(user.id)}
-                      className='p-1 bg-red-500 text-white rounded hover:bg-red-600'
-                    >
-                      <Trash2Icon size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+            {sortedUsers.map((user) => (
+              <tr key={user.id}>
+                <td className="py-2 px-4 border-b text-center">
+                  {user.username}
+                </td>
+                <td className="py-2 px-4 border-b text-center">
+                  {user.role}
+                </td>
+                <td className="py-2 px-4 border-b text-center">
+                  {user.company}
+                </td>
+                <td className="py-2 px-4 border-b text-center">
+                  <button
+                    onClick={() => handleEditUser(user)}
+                    className="mr-2 p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    <Edit2Icon size={16} />
+                  </button>
+                  {user.username !== "clagonjor" ? (
+                  <button
+                    onClick={() => handleDeleteUser(user.id)}
+                    className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    <Trash2Icon size={16} />
+                  </button>): null}
+                </td>
+              </tr>
+            ))}
             </tbody>
           </table>
         ) : (
-          <div className='flex items-center justify-center'>
-            <span className='loading loading-ring loading-lg'></span>
+          <div className="flex items-center justify-center">
+            <span className="loading loading-ring loading-lg"></span>
           </div>
         )}
       </div>
       {editingUser && (
-        <div className='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center'>
+        <div
+          className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
           <div className='bg-white p-5 rounded-lg shadow-xl'>
             <h3 className='text-lg font-bold mb-4'>Editar Usuario</h3>
             <input

@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis,
+  YAxis
 } from 'recharts';
 import { ChevronDownIcon, ChevronUpIcon, Download } from 'lucide-react';
 import * as XLSX from 'xlsx-js-style';
@@ -185,6 +185,7 @@ const Current: React.FC = () => {
     }));
   }, [filteredData]);
 
+
   const handleDownloadXLSX = () => {
     const dataToExport = filteredData.map((item) => ({
       Curso: item.course,
@@ -241,22 +242,22 @@ const Current: React.FC = () => {
 
     XLSX.utils.book_append_sheet(wb, ws, `Datos de ${username}`);
 
-    // Generar el archivo
+
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-    saveAs(data, `Reporte de participantes de ${username} en cursos SEC.xlsx`);
+    saveAs(data, `Reporte de participantes de ${username} en cursos SEC | ${new Date().toLocaleString().split('T')[0]}.xlsx`);
   };
-
   const getUniqueValues = (key: keyof DataItem) => {
     return Array.from(new Set(filteredData.map((item) => item[key]))).sort();
   };
 
+
   return (
     <div className='p-2 sm:p-4 md:p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto'>
-      <div className='flex flex-col lg:flex-row mb-4 lg:mb-8 gap-4'>
-        <div className='flex flex-col w-full lg:w-[30%] gap-y-4'>
+      <div className='flex flex-col mb-4 lg:mb-8 gap-4'>
+        <div className='flex flex-col items-center justify-center lg:flex-row w-full gap-4'>
           <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>
             <h2 className='text-base sm:text-lg font-semibold mb-2'>
               Progreso Promedio
@@ -309,14 +310,20 @@ const Current: React.FC = () => {
             </p>
           </div>
           {!loading ? (
-            <ResponsiveContainer width='100%' height={300}>
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={getProgressData}>
-                <CartesianGrid strokeDasharray='3 3' />
-                <XAxis dataKey='progress' />
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="progress" />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey='count' name='Nro de Usuarios' fill='#3a69aa' />
+                <Bar
+                  dataKey="count"
+                  name="Nro de Usuarios"
+                  fill="#3a69aa"
+                >
+                </Bar>
+
               </BarChart>
             </ResponsiveContainer>
           ) : (
