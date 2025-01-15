@@ -21,6 +21,10 @@ enum FilterLabels {
   course = 'Curso',
   country = 'País',
   business = 'Empresa',
+  progressPercentage = '% de Progreso',
+  association = 'Asociación',
+  businessGroup = 'Grupo Empresarial',
+  stateOfCompleteness = 'Estado de progreso',
 }
 
 const Current: React.FC = () => {
@@ -32,13 +36,17 @@ const Current: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [lastDate, setLastDate] = useState('');
 
-  const { username } = useAuth();
+  const { username, userRole } = useAuth();
 
   const [filters, setFilters] = useState({
     login: 'all',
     course: 'all',
     country: 'all',
     business: 'all',
+    progressPercentage: 'all',
+    association: 'all',
+    businessGroup: 'all',
+    stateOfCompleteness: 'all',
   });
 
   const [sortConfig, setSortConfig] = useState<{
@@ -89,10 +97,15 @@ const Current: React.FC = () => {
 
   const filterAndSortData = () => {
     const result = data.filter((item) =>
-      Object.entries(filters).every(
-        ([key, value]) =>
-          value === 'all' || item[key as keyof DataItem] === value,
-      ),
+      Object.entries(filters).every(([key, value]) => {
+        if (value === 'all') return true;
+        if (key === 'progressPercentage') {
+          const [min, max] = value.split('-').map(Number);
+          const progressValue = parseFloat(item.progressPercentage);
+          return progressValue >= min && progressValue < max;
+        }
+        return item[key as keyof DataItem] === value;
+      })
     );
 
     if (sortConfig !== null) {
@@ -137,13 +150,15 @@ const Current: React.FC = () => {
     );
   };
 
-  const getAverageProgress = useMemo(() => {
-    if (filteredData.length === 0) return 0;
-    const totalProgress = filteredData.reduce(
-      (sum, item) => sum + parseFloat(item.progressPercentage),
-      0,
-    );
-    return (totalProgress / filteredData.length).toFixed(2);
+  const getLoginStats = useMemo(() => {
+    if (filteredData.length === 0)
+      return { loggedInCount: 0, totalCount: 0, rate: 0 };
+
+    const loggedInCount = filteredData.filter((item) => item.login === 'SI').length;
+    const totalCount = filteredData.length;
+    const rate = ((loggedInCount / totalCount) * 100).toFixed(0);
+
+    return { loggedInCount, totalCount, rate };
   }, [filteredData]);
 
   const getCompletionStats = useMemo(() => {
@@ -154,19 +169,11 @@ const Current: React.FC = () => {
       (item) => item.stateOfCompleteness === 'Completado',
     ).length;
     const totalCount = filteredData.length;
-    const rate = ((completedCount / totalCount) * 100).toFixed(2);
+    const rate = ((completedCount / totalCount) * 100).toFixed(0);
 
     return { completedCount, totalCount, rate };
   }, [filteredData]);
 
-  const getAverageScore = useMemo(() => {
-    if (filteredData.length === 0) return 0;
-    const totalScore = filteredData.reduce(
-      (sum, item) => sum + parseFloat(item.finalScore),
-      0,
-    );
-    return (totalScore / filteredData.length).toFixed(2);
-  }, [filteredData]);
 
   const getProgressData = useMemo(() => {
     const progressCounts = filteredData.reduce(
@@ -249,8 +256,18 @@ const Current: React.FC = () => {
     });
     saveAs(data, `Reporte de participantes de ${username} en cursos SEC | ${new Date().toLocaleString().split('T')[0]}.xlsx`);
   };
+
+  const getProgressRangeOptions = () => {
+    const ranges = [];
+    for (let i = 0; i < 100; i += 10) {
+      ranges.push(`${i}-${i + 10}`);
+    }
+    return ranges;
+  };
+
   const getUniqueValues = (key: keyof DataItem) => {
-    return Array.from(new Set(filteredData.map((item) => item[key]))).sort();
+    if (key === 'progressPercentage') return getProgressRangeOptions();
+    return Array.from(new Set(data.map((item) => item[key]))).sort();
   };
 
 
@@ -260,11 +277,11 @@ const Current: React.FC = () => {
         <div className='flex flex-col items-center justify-center lg:flex-row w-full gap-4'>
           <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>
             <h2 className='text-base sm:text-lg font-semibold mb-2'>
-              Progreso Promedio
+              Usuarios que iniciaron sesión
             </h2>
             {!loading ? (
               <p className='text-2xl sm:text-3xl font-bold'>
-                {getAverageProgress}%
+                {getLoginStats.loggedInCount} de {' '}{getLoginStats.totalCount} usuarios ({getLoginStats.rate}%)
               </p>
             ) : (
               <span className='loading loading-ring loading-lg'></span>
@@ -272,24 +289,12 @@ const Current: React.FC = () => {
           </div>
           <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>
             <h2 className='text-base sm:text-lg font-semibold mb-2'>
-              Tasa de Completados
+              Usuarios que completaron el curso
             </h2>
             {!loading ? (
               <p className='flex text-nowrap text-2xl sm:text-3xl font-bold'>
                 {getCompletionStats.completedCount} de{' '}
-                {getCompletionStats.totalCount} usuarios
-              </p>
-            ) : (
-              <span className='loading loading-ring loading-lg'></span>
-            )}
-          </div>
-          <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>
-            <h2 className='text-base sm:text-lg font-semibold mb-2'>
-              Puntaje Promedio
-            </h2>
-            {!loading ? (
-              <p className='text-2xl sm:text-3xl font-bold'>
-                {getAverageScore}%
+                {getCompletionStats.totalCount} usuarios ({getCompletionStats.rate}%)
               </p>
             ) : (
               <span className='loading loading-ring loading-lg'></span>
@@ -346,33 +351,35 @@ const Current: React.FC = () => {
       <h2 className='text-lg sm:text-xl font-semibold mb-2'>Filtros</h2>
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
         {Object.entries(filters).map(([key, value]) => (
-          <div key={key}>
-            <label
-              htmlFor={`${key}-filter`}
-              className='block text-sm font-medium text-gray-700'
-            >
-              {FilterLabels[key as keyof typeof FilterLabels]
-                .charAt(0)
-                .toUpperCase() +
-                FilterLabels[key as keyof typeof FilterLabels].slice(1)}
-            </label>
-            <select
-              id={`${key}-filter`}
-              value={value}
-              onChange={(e) =>
-                setFilters((prev) => ({ ...prev, [key]: e.target.value }))
-              }
-              className='mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm'
-            >
-              <option value='all'>Todos</option>
-              {getUniqueValues(key as keyof DataItem).map((option) => (
-                //@ts-ignore
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </div>
+          (userRole === 'admin' || !['association', 'businessGroup', 'business'].includes(key)) && (
+            <div key={key}>
+              <label
+                htmlFor={`${key}-filter`}
+                className='block text-sm font-medium text-gray-700'
+              >
+                {FilterLabels[key as keyof typeof FilterLabels]
+                    .charAt(0)
+                    .toUpperCase() +
+                  FilterLabels[key as keyof typeof FilterLabels].slice(1)}
+              </label>
+              <select
+                id={`${key}-filter`}
+                value={value}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, [key]: e.target.value }))
+                }
+                className='mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm'
+              >
+                <option value='all'>Todos</option>
+                {getUniqueValues(key as keyof DataItem).map((option) => (
+                  //@ts-ignore
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )
         ))}
       </div>
 

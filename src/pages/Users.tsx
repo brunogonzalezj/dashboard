@@ -3,11 +3,10 @@ import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import FileSaver from 'file-saver';
 import {
-  DownloadIcon,
   Edit2Icon,
   Trash2Icon,
   ChevronUpIcon,
-  ChevronDownIcon,
+  ChevronDownIcon, TriangleAlertIcon
 } from 'lucide-react';
 import { User } from '../interfaces/IUsers';
 
@@ -19,7 +18,7 @@ const Users: React.FC = () => {
     company: '',
     role: '',
     email: '',
-    phoneNumber: '',
+    phone: '',
     fullName: '',
   });
   const [error, setError] = useState('');
@@ -39,6 +38,9 @@ const Users: React.FC = () => {
   });
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newFullName, setNewFullName] = useState('');
   const [sortConfig, setSortConfig] = useState<{
     key: keyof User;
     direction: 'asc' | 'desc';
@@ -98,7 +100,7 @@ const Users: React.FC = () => {
         newUser,
         { withCredentials: true },
       );
-      setNewUser({ username: '', companyType: '', company: '', role: '', email: '', fullName: '', phoneNumber: '' });
+      setNewUser({ username: '', companyType: '', company: '', role: '', email: '', fullName: '', phone: '' });
       setSuccessMessage(
         `Usuario creado: ${response.data.username}, Contraseña: ${response.data.password}`,
       );
@@ -140,6 +142,15 @@ const Users: React.FC = () => {
       };
       if (newPassword) {
         updateData.password = newPassword;
+      }
+      if (newPhone) {
+        updateData.phone = newPhone;
+      }
+      if (newEmail) {
+        updateData.email = newEmail;
+      }
+      if (newFullName) {
+        updateData.fullName = newFullName;
       }
       await axios.put(
         `${import.meta.env.VITE_API_URL}/users/update-user/${editingUser.id}`,
@@ -262,9 +273,9 @@ const Users: React.FC = () => {
                 <input
                   type='text'
                   placeholder='Teléfono'
-                  value={newUser.phoneNumber}
+                  value={newUser.phone}
                   onChange={(e) =>
-                    setNewUser({ ...newUser, phoneNumber: e.target.value })
+                    setNewUser({ ...newUser, phone: e.target.value })
                   }
                   className='p-2 border rounded w-full'
                 />
@@ -391,8 +402,8 @@ const Users: React.FC = () => {
           disabled={loading}
           className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded flex items-center gap-2"
         >
-          <DownloadIcon />
-          {loading ? 'Actualizando...' : 'Actualizar Contraseñas'}
+          <TriangleAlertIcon />
+          {loading ? 'Reestableciendo...' : 'Reestablecer todas las contraseñas'}
         </button>
         </div>
         {error && <div className="text-red-500">{error}</div>}
@@ -408,6 +419,24 @@ const Users: React.FC = () => {
                 onClick={() => handleSort('username')}
               >
                 Username <SortIcon column="username" />
+              </th>
+              <th
+                className="py-2 px-4 border-b cursor-pointer"
+                onClick={() => handleSort('fullName')}
+              >
+                Full Name <SortIcon column="fullName" />
+              </th>
+              <th
+                className="py-2 px-4 border-b cursor-pointer"
+                onClick={() => handleSort('email')}
+              >
+                Email <SortIcon column="email" />
+              </th>
+              <th
+                className="py-2 px-4 border-b cursor-pointer"
+                onClick={() => handleSort('phone')}
+              >
+                Phone <SortIcon column="phone" />
               </th>
               <th
                 className="py-2 px-4 border-b cursor-pointer"
@@ -431,6 +460,15 @@ const Users: React.FC = () => {
                   {user.username}
                 </td>
                 <td className="py-2 px-4 border-b text-center">
+                  {user.fullName}
+                </td>
+                <td className="py-2 px-4 border-b text-center">
+                  {user.phone}
+                </td>
+                <td className="py-2 px-4 border-b text-center">
+                  {user.email}
+                </td>
+                <td className="py-2 px-4 border-b text-center">
                   {user.role}
                 </td>
                 <td className="py-2 px-4 border-b text-center">
@@ -443,13 +481,13 @@ const Users: React.FC = () => {
                   >
                     <Edit2Icon size={16} />
                   </button>
-                  {user.username !== "clagonjor" ? (
-                  <button
-                    onClick={() => handleDeleteUser(user.id)}
-                    className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    <Trash2Icon size={16} />
-                  </button>): null}
+                  {user.username !== 'clagonjor' ? (
+                    <button
+                      onClick={() => handleDeleteUser(user.id)}
+                      className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
+                    >
+                      <Trash2Icon size={16} />
+                    </button>) : null}
                 </td>
               </tr>
             ))}
@@ -464,38 +502,76 @@ const Users: React.FC = () => {
       {editingUser && (
         <div
           className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-          <div className='bg-white p-5 rounded-lg shadow-xl'>
+          <div className='bg-white w-1/3 p-5 rounded-lg shadow-xl'>
             <h3 className='text-lg font-bold mb-4'>Editar Usuario</h3>
-            <input
-              type='text'
-              value={editingUser.username}
-              onChange={(e) =>
-                setEditingUser({ ...editingUser, username: e.target.value })
-              }
-              className='p-2 border rounded mb-2 w-full'
-              placeholder='Nombre de usuario'
-            />
-            <input
-              type='text'
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className='p-2 border rounded mb-4 w-full'
-              placeholder='Nueva contraseña (dejar en blanco para no cambiar)'
-            />
-            <div className='flex justify-end'>
-              <button
-                onClick={() => setEditingUser(null)}
-                className='px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400 mr-2'
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleUpdateUser}
-                className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
-              >
-                Actualizar
-              </button>
-            </div>
+            <form>
+              <label className=' text-sm font-medium text-gray-700'>
+                Usuario
+              </label>
+              <input
+                type='text'
+                value={editingUser.username}
+                onChange={(e) =>
+                  setEditingUser({ ...editingUser, username: e.target.value })
+                }
+                className='p-2 border rounded mb-2 w-full'
+                placeholder='Nombre de usuario'
+              />
+              <label className=' text-sm font-medium text-gray-700'>
+                Contraseña
+              </label>
+              <input
+                type='text'
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className='p-2 border rounded mb-4 w-full'
+                placeholder='Nueva contraseña (dejar en blanco para no cambiar)'
+              />
+              <label className=' text-sm font-medium text-gray-700'>
+                Nombre Completo
+              </label>
+              <input
+                type='text'
+                value={newFullName}
+                onChange={(e) => setNewFullName(e.target.value)}
+                className='p-2 border rounded mb-4 w-full'
+                placeholder='Nuevo nombre (dejar en blanco para no cambiar)'
+              />
+              <label className=' text-sm font-medium text-gray-700'>
+                Teléfono
+              </label>
+              <input
+                type='text'
+                value={newPhone}
+                onChange={(e) => setNewPhone(e.target.value)}
+                className='p-2 border rounded mb-4 w-full'
+                placeholder='Nuevo número (dejar en blanco para no cambiar)'
+              />
+              <label className=' text-sm font-medium text-gray-700'>
+                Correo Electrónico
+              </label>
+              <input
+                type='text'
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                className='p-2 border rounded mb-4 w-full'
+                placeholder='Nuevo correo (dejar en blanco para no cambiar)'
+              />
+              <div className='flex justify-end'>
+                <button
+                  onClick={() => setEditingUser(null)}
+                  className='px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400 mr-2'
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleUpdateUser}
+                  className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
+                >
+                  Actualizar
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
