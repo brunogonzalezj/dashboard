@@ -9,7 +9,8 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'axios'],
-          charts: ['recharts']
+          charts: ['recharts'],
+          xlsx: ['xlsx-js-style', 'file-saver'],
         }
       }
     }

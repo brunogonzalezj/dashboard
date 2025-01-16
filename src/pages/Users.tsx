@@ -9,6 +9,7 @@ import {
   ChevronDownIcon, TriangleAlertIcon
 } from 'lucide-react';
 import { User } from '../interfaces/IUsers';
+import Swal from 'sweetalert2';
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -112,7 +113,23 @@ const Users: React.FC = () => {
   };
 
   const handleUpdatePasswords = async () => {
+    const result = await Swal.fire({
+      title: '¿Está seguro de que desea reestablecer TODAS las contraseñas de los clientes?',
+      text: 'Esto actualizará las contraseñas de los usuarios y generará un archivo CSV con las nuevas contraseñas.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, reestablecer',
+      cancelButtonText: 'Cancelar',
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
     setLoading(true);
+
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/users/update-passwords`,
@@ -122,8 +139,18 @@ const Users: React.FC = () => {
         type: 'text/csv;charset=utf-8;',
       });
       FileSaver.saveAs(blob, 'updated_clients_passwords.csv');
+      Swal.fire({
+        title: '¡Éxito!',
+        text: 'Las contraseñas se han reestablecido correctamente. El archivo CSV se ha descargado.',
+        icon: 'success',
+      });
     } catch (error) {
-      console.error('Error updating passwords', error);
+      console.error('Error al reestablecer las contraseñas:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'Ocurrió un problema al reestablecer las contraseñas. Por favor, inténtelo nuevamente.',
+        icon: 'error',
+      });
     } finally {
       setLoading(false);
     }

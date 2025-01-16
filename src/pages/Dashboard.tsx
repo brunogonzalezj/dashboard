@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import Current from '../components/dashboard/Current.tsx';
-import History from '../components/dashboard/History.tsx';
-
+const Current = React.lazy(() => import('../components/dashboard/Current.tsx'));
+const History = React.lazy(() => import('../components/dashboard/History.tsx'));
 
 
 

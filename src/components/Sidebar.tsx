@@ -34,7 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         >
           <div className="flex flex-col items-center gap-4 sm:gap-8 w-full">
             <div className="flex justify-between items-center w-full px-4 sm:px-0 sm:justify-center">
-              <img src="/soy_logo.png" alt="Soy Logo" className="w-10 h-10 sm:w-14 sm:h-14" />
+              <img src="/soy_logo.webp" alt="Soy Logo" className="w-10 h-10 sm:w-14 sm:h-14" />
               <button onClick={onClose} className="sm:hidden text-white">
                 <X size={24} />
               </button>
