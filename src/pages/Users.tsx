@@ -490,10 +490,10 @@ const Users: React.FC = () => {
                   {user.fullName}
                 </td>
                 <td className="py-2 px-4 border-b text-center">
-                  {user.phone}
+                  {user.email}
                 </td>
                 <td className="py-2 px-4 border-b text-center">
-                  {user.email}
+                  {user.phone}
                 </td>
                 <td className="py-2 px-4 border-b text-center">
                   {user.role}
