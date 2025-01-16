@@ -11,10 +11,12 @@ import {
   XAxis,
   YAxis
 } from 'recharts';
-import { ChevronDownIcon, ChevronUpIcon, Download } from 'lucide-react';
+import { ChevronDownIcon, ChevronUpIcon, Download, MailIcon } from 'lucide-react';
 import * as XLSX from 'xlsx-js-style';
 import { saveAs } from 'file-saver';
 import { DataItem } from '../../interfaces/IData.ts';
+import { Whatsapp } from '../WhatsappIcon.tsx';
+import { Link } from 'react-router-dom';
 
 enum FilterLabels {
   login = 'Sesion Iniciada',
@@ -395,6 +397,7 @@ const Current: React.FC = () => {
                 { key: 'business', label: 'Empresa' },
                 { key: 'stateOfCompleteness', label: 'Estado' },
                 { key: 'progressPercentage', label: '% de progreso' },
+                {key: 'contact', label: 'Contactar '},
               ].map(({ key, label }) => (
                 <th
                   key={key}
@@ -434,13 +437,32 @@ const Current: React.FC = () => {
                 <td className='py-2 px-4 border-b'>
                   {item.progressPercentage}
                 </td>
+                <td className='py-2 px-4 border-b'>
+                  <div className={"flex items-center justify-center space-x-2"}>
+                    <Link
+                      to={`https://api.whatsapp.com/send?phone=${item.phone}`}
+                      target="_blank"
+                    >
+                      <Whatsapp />
+                    </Link>
+                    <MailIcon
+                    onClick={() => {
+                      const subject = `Curso ${item.course} - ${item.name} ${item.lastName}`;
+                      const body = `Estimado/a ${item.name},\nLe informamos que su nota final en el curso de ${item.course} es: ${item.finalScore}, su porcentaje de avance es de ${item.progressPercentage} y el estado de finalización del curso es: ${item.stateOfCompleteness}.\nSaludos.`
+                      const mailto = `mailto:${item.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                      window.location.href = mailto;
+                    }}
+                    style={{cursor: 'pointer'}}
+                    />
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       {displayedData.length < filteredData.length && (
-        <div className='mt-4 flex justify-center'>
+        <div className="mt-4 flex justify-center">
           <button
             onClick={() => setCurrentPage((prev) => prev + 1)}
             className='bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm sm:text-base'
