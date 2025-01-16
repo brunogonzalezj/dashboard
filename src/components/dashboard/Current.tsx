@@ -12,7 +12,6 @@ import {
   YAxis
 } from 'recharts';
 import { Download} from 'lucide-react';
-import * as XLSX from 'xlsx-js-style';
 import { saveAs } from 'file-saver';
 import { DataItem } from '../../interfaces/IData.ts';
 const TableCurrent = React.lazy(() => import('../TableCurrent'));
@@ -187,68 +186,38 @@ const Current: React.FC = () => {
   }, [filteredData]);
 
 
-  const handleDownloadXLSX = () => {
-    const dataToExport = filteredData.map((item) => ({
-      Curso: item.course,
-      Nombre: item.name,
-      Apellido: item.lastName,
-      Correo: item.email,
-      'Sesion iniciada': item.login,
-      Empresa: item.business,
-      Estado: item.stateOfCompleteness,
-      '% de avance': item.progressPercentage,
-    }));
+  const handleDownloadXLSX = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/data/export-xlsx`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          dataToExport: filteredData.map((item) => ({
+            Curso: item.course,
+            Nombre: item.name,
+            Apellido: item.lastName,
+            Correo: item.email,
+            'Sesion iniciada': item.login,
+            Empresa: item.business,
+            Estado: item.stateOfCompleteness,
+            '% de avance': item.progressPercentage,
+          })),
+          username,
+        }),
+        credentials: 'include',
+      });
 
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
-    const wb = XLSX.utils.book_new();
-
-    // Aplicar estilos a la hoja de cálculo
-    const headerStyle = {
-      font: { bold: true, color: { rgb: '000000' } },
-      fill: { fgColor: { rgb: 'F59E0B' } }, // Color mostaza
-      alignment: { horizontal: 'center', vertical: 'center' },
-      border: {
-        top: { style: 'thin', color: { rgb: '000000' } },
-        bottom: { style: 'thin', color: { rgb: '000000' } },
-        left: { style: 'thin', color: { rgb: '000000' } },
-        right: { style: 'thin', color: { rgb: '000000' } },
-      },
-    };
-
-    // Obtener el rango de celdas para los encabezados
-    const range = XLSX.utils.decode_range(ws['!ref'] as string);
-    const headerRange = {
-      s: { r: range.s.r, c: range.s.c },
-      e: { r: range.s.r, c: range.e.c },
-    };
-
-    // Aplicar estilos a los encabezados
-    for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
-      const address = XLSX.utils.encode_cell({ r: headerRange.s.r, c: C });
-      if (!ws[address]) ws[address] = {};
-      ws[address].s = headerStyle;
+      if (response.ok) {
+        const blob = await response.blob();
+        saveAs(blob, `Reporte de participantes de ${username} de curos de SEC_${new Date().toISOString().split('T')[0]}.xlsx`);
+      } else {
+        console.error('Error al generar el archivo Excel');
+      }
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
     }
-
-    // Ajustar el ancho de las columnas
-    ws['!cols'] = [
-      { wch: 20 }, // Curso
-      { wch: 15 }, // Nombre
-      { wch: 15 }, // Apellido
-      { wch: 30 }, // Correo
-      { wch: 15 }, // Sesion iniciada
-      { wch: 35 }, // Empresa
-      { wch: 15 }, // Estado
-      { wch: 12 }, // % de avance
-    ];
-
-    XLSX.utils.book_append_sheet(wb, ws, `Datos de ${username}`);
-
-
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const data = new Blob([excelBuffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-    saveAs(data, `Reporte de participantes de ${username} en cursos SEC | ${new Date().toLocaleString().split('T')[0]}.xlsx`);
   };
 
   const getProgressRangeOptions = () => {

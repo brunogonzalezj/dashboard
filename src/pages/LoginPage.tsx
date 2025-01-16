@@ -31,7 +31,7 @@ const LoginPage: React.FC = () => {
       <div className="max-w-md w-full space-y-8 bg-white p-6 sm:p-10 rounded-xl shadow-2xl">
         <div>
           <div className="flex justify-center">
-            <img className="h-12 sm:h-16 w-auto" src="/soy_header.png" alt="Workflow"/>
+            <img className="h-12 sm:h-16 w-auto" src="/soy_header.webp" alt="Workflow"/>
           </div>
           <h2 className="mt-6 text-center text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900">
             Iniciar sesión
