@@ -38,6 +38,8 @@ const Current: React.FC = () => {
 
   const { username, userRole } = useAuth();
 
+  console.log([...new Set(data.map((item) => item.country))]);
+
   const [filters, setFilters] = useState({
     login: 'all',
     course: 'all',
@@ -82,6 +84,8 @@ const Current: React.FC = () => {
       setLoading(false);
     }
   };
+
+
 
   const fetchData = async () => {
     try {

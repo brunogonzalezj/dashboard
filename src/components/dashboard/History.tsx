@@ -1,52 +1,58 @@
-import React from 'react';
-import { PieChart } from '@mui/x-charts';
+import { useState, useEffect } from "react"
+import axios from "axios"
+import ChartsView from "../history/ChartsView"
+import InfoView from "../history/InfoView"
+import YearInfoView from "../history/YearInfoView"
+import type { DataItem } from "../../interfaces/IData"
 
-const History: React.FC = () => {
+enum ViewType {
+  Charts = "Charts",
+  Info = "Info",
+  YearInfo = "YearInfo",
+}
+
+export default function History() {
+  const [data, setData] = useState<DataItem[]>([])
+  const [currentView, setCurrentView] = useState<ViewType>(ViewType.Charts)
+  const [selectedCountry, setSelectedCountry] = useState<string>("all")
+
+  useEffect(() => {
+    axios
+      .get<DataItem[]>(`${import.meta.env.VITE_API_URL}/data/history-dashboard-data`, { withCredentials: true })
+      .then((res) => setData(res.data))
+      .catch((err) => console.error("Error fetching data:", err))
+  }, [])
+
+  const filteredData = selectedCountry === "all" ? data : data.filter((item) => item.country === selectedCountry)
+
   return (
+    <div className="h-full flex-1 flex flex-col overflow-hidden pt-2">
+      <div className="p-4 h-full flex flex-col">
+        <div className="mb-4">
+          <div className="inline-flex items-center bg-gray-100 rounded-xl p-1">
+            {Object.values(ViewType).map((view) => (
+              <button
+                key={view}
+                onClick={() => setCurrentView(view)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  currentView === view ? "bg-white text-gray-800 shadow-sm" : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                {view}
+              </button>
+            ))}
+          </div>
+        </div>
 
-    <div className="grid grid-cols-6 grid-rows-6 gap-4 bg-white shadow-2xl rounded-lg">
-      <div className="col-span-3 row-span-3 p-2 bg-white border rounded-lg m-2"><PieChart
-        series={[
-          {
-            data: [
-              { id: 0, value: 10, label: 'series A' },
-              { id: 1, value: 15, label: 'series B' },
-              { id: 2, value: 20, label: 'series C' },
-            ],
-          },
-        ]}
-        width={400}
-        height={200}
-      /></div>
-      <div className="col-span-3 row-span-3 col-start-4 bg-white border rounded-lg m-2"><PieChart
-        series={[
-          {
-            data: [
-              { id: 0, value: 10, label: 'series A' },
-              { id: 1, value: 15, label: 'series B' },
-              { id: 2, value: 20, label: 'series C' },
-            ],
-          },
-        ]}
-        width={400}
-        height={200}
-      /></div>
-      <div className="flex items-center justify-center col-span-4 row-span-3 col-start-2 row-start-4 mb-2 rounded-lg border"><PieChart
-        series={[
-          {
-            data: [
-              { id: 0, value: 10, label: 'series A' },
-              { id: 1, value: 15, label: 'series B' },
-              { id: 2, value: 20, label: 'series C' },
-            ],
-          },
-        ]}
-        width={400}
-        height={200}
-      /></div>
+        <div className="flex-1 overflow-hidden">
+          {currentView === ViewType.Charts && (
+            <ChartsView data={filteredData} selectedCountry={selectedCountry} onCountrySelect={setSelectedCountry} />
+          )}
+          {currentView === ViewType.Info && <InfoView data={filteredData} />}
+          {currentView === ViewType.YearInfo && <YearInfoView data={filteredData} />}
+        </div>
+      </div>
     </div>
-
   )
 }
 
-export default History;
