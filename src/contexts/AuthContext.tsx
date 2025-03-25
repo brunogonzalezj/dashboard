@@ -1,107 +1,103 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+"use client"
 
-interface AuthContextType {
-    isAuthenticated: boolean;
-    userRole: string | null;
-    username: string | null;
-    login: (username: string, password: string) => Promise<void>;
-    logout: () => Promise<void>;
+import type React from "react"
+import { createContext, useState, useEffect, useContext } from "react"
+import axios from "axios"
+
+interface AuthContextProps {
+    isAuthenticated: boolean
+    userRole: string | null
+    username: string | null
+    login: (username: string, password: string) => Promise<void>
+    logout: () => void
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextProps>({
+    isAuthenticated: false,
+    userRole: null,
+    username: null,
+    login: async () => {},
+    logout: () => {},
+})
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-        return localStorage.getItem('isAuthenticated') === 'true';
-    });
-    const [userRole, setUserRole] = useState<string | null>(() => {
-        return localStorage.getItem('userRole');
-    });
-    const [username, setUsername] = useState<string | null>(() => {
-        return localStorage.getItem('username');
-    });
+interface AuthProviderProps {
+    children: React.ReactNode
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+    const [userRole, setUserRole] = useState<string | null>(null)
+    const [username, setUsername] = useState<string | null>(null)
 
     useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const response = await axios.get(`${import.meta.env.VITE_API_URL}/auth/check-auth`, {
-                    withCredentials: true,
-                });
-                if (response.data.isAuthenticated) {
-                    setIsAuthenticated(true);
-                    setUserRole(response.data.role);
-                    setUsername(response.data.username);
+        const storedIsAuthenticated = localStorage.getItem("isAuthenticated")
+        const storedUserRole = localStorage.getItem("userRole")
+        const storedUsername = localStorage.getItem("username")
 
-                    localStorage.setItem('isAuthenticated', 'true');
-                    localStorage.setItem('userRole', response.data.role);
-                    localStorage.setItem('username', response.data.username);
-                }
-            } catch (error) {
-                console.error('Error checking auth:', error);
-                setIsAuthenticated(false);
-                setUserRole(null);
-                setUsername(null);
-
-                localStorage.removeItem('isAuthenticated');
-                localStorage.removeItem('userRole');
-                localStorage.removeItem('username');
-            }
-        };
-
-        checkAuth();
-    }, []);
+        if (storedIsAuthenticated === "true") {
+            setIsAuthenticated(true)
+        }
+        if (storedUserRole) {
+            setUserRole(storedUserRole)
+        }
+        if (storedUsername) {
+            setUsername(storedUsername)
+        }
+    }, [])
 
     const login = async (username: string, password: string) => {
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, { username, password }, {
-                withCredentials: true,
-            });
-            setIsAuthenticated(true);
-            setUserRole(response.data.role);
-            setUsername(response.data.username);
+            const response = await axios.post(
+              `${import.meta.env.VITE_API_URL}/auth/login`,
+              { username, password },
+              {
+                  withCredentials: true,
+              },
+            )
+            setIsAuthenticated(true)
+            setUserRole(response.data.role)
+            setUsername(response.data.username)
 
-            localStorage.setItem('isAuthenticated', 'true');
-            localStorage.setItem('userRole', response.data.role);
-            localStorage.setItem('username', response.data.username);
+            localStorage.setItem("isAuthenticated", "true")
+            localStorage.setItem("userRole", response.data.role)
+            localStorage.setItem("username", response.data.username)
         } catch (error) {
-            console.error('Login failed:', error);
-            setIsAuthenticated(false);
-            setUserRole(null);
-            setUsername(null);
+            console.error("Login failed:", error)
+            setIsAuthenticated(false)
+            setUserRole(null)
+            setUsername(null)
 
-            localStorage.removeItem('isAuthenticated');
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('username');
+            localStorage.removeItem("isAuthenticated")
+            localStorage.removeItem("userRole")
+            localStorage.removeItem("username")
+
+            // Rethrow the error so it can be caught by the LoginPage component
+            throw error
         }
-    };
+    }
 
-    const logout = async () => {
-        try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/auth/logout`, {}, { withCredentials: true });
-            setIsAuthenticated(false);
-            setUserRole(null);
-            setUsername(null);
+    const logout = () => {
+        setIsAuthenticated(false)
+        setUserRole(null)
+        setUsername(null)
 
-            localStorage.removeItem('isAuthenticated');
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('username');
-        } catch (error) {
-            console.error('Logout failed:', error);
-        }
-    };
+        localStorage.removeItem("isAuthenticated")
+        localStorage.removeItem("userRole")
+        localStorage.removeItem("username")
+    }
 
-    return (
-        <AuthContext.Provider value={{ isAuthenticated, username, userRole, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
-};
+    const value: AuthContextProps = {
+        isAuthenticated,
+        userRole,
+        username,
+        login,
+        logout,
+    }
+
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-};
+    return useContext(AuthContext)
+}
+

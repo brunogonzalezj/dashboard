@@ -202,6 +202,8 @@ const Current: React.FC = () => {
             course: item.course,
             name: item.name,
             lastName: item.lastName,
+            country: item.country,
+            city: item.city,
             email: item.email,
             login: item.login,
             business: item.business,

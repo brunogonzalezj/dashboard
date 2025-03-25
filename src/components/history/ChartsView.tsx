@@ -1,4 +1,4 @@
-import type React from "react"
+import React, { useEffect, useState } from 'react';
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer } from "recharts"
 import { ComposableMap, Geographies, Geography } from "react-simple-maps"
 import type { DataItem } from "../../interfaces/IData"
@@ -13,11 +13,19 @@ const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
 
 const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountrySelect }) => {
   const countries = Array.from(new Set(data.map((d) => d.country)))
+  const [mapData, setMapData] = useState<string | Record<string, any> | undefined>(undefined);
+
+  useEffect(() => {
+    fetch("/world-110m.json") // 📌 Ojo: la ruta es relativa a `public/`
+      .then((response) => response.json())
+      .then((data) => setMapData(data))
+      .catch((error) => console.error("Error cargando el mapa:", error));
+  }, []);
 
   return (
     <div className="mb-4 h-1/3">
       <ComposableMap projection="geoMercator">
-        <Geographies geography="/world-110m.json">
+        <Geographies geography={mapData}>
           {({ geographies }) =>
             geographies.map((geo: { rsmKey: any; properties: { NAME: string } }) => (
               <Geography
