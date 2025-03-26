@@ -187,10 +187,17 @@ const Users: React.FC = () => {
       setEditingUser(null);
       setNewPassword('');
       fetchUsers();
-      setSuccessMessage('Usuario actualizado exitosamente');
+      Swal.fire({
+        title: '¡Éxito!',
+        text: 'La contraseña se ha actualizado correctamente.',
+        icon: 'success',
+      });
     } catch (error) {
-      console.error('Error updating user:', error);
-      setError('Error al actualizar usuario');
+      Swal.fire({
+        title: 'Error',
+        text: 'Ocurrió un problema al reestablecer las contraseñas. Por favor, inténtelo nuevamente.',
+        icon: 'error',
+      });
     }
   };
 
