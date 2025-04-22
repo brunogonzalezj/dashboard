@@ -12,10 +12,8 @@
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
-    "@mui/material": "^6.1.7",
-    "@mui/x-charts": "^7.22.2",
     "@types/jsonwebtoken": "^9.0.7",
-    "axios": "^1.7.7",
+    "axios": "1.8.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
@@ -36,7 +34,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@types/react-simple-maps": "^3.0.6",
-    "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react": "^4.4.0",
     "autoprefixer": "^10.4.20",
     "daisyui": "^4.12.10",
     "eslint": "^9.9.0",
@@ -48,6 +46,6 @@
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "5.4.14"
+    "vite": "6.2.6"
   }
 }

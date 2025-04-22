@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer } from "recharts"
-import { ComposableMap, Geographies, Geography } from "react-simple-maps"
+import { ComposableMap, Geographies, Geography, ZoomableGroup } from "react-simple-maps"
 import type { DataItem } from "../../interfaces/IData"
 
 interface ChartsViewProps {
@@ -9,37 +9,139 @@ interface ChartsViewProps {
   onCountrySelect: (country: string) => void
 }
 
+interface Position {
+  coordinates: [number, number];
+  zoom: number;
+}
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
 
 const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountrySelect }) => {
   const countries = Array.from(new Set(data.map((d) => d.country)))
-  const [mapData, setMapData] = useState<string | Record<string, any> | undefined>(undefined);
+  const [countriesData, setCountriesData] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [position, setPosition] = useState<Position>({ coordinates: [0, 0], zoom: 1 });
+  const [tooltipContent, setTooltipContent] = useState("");
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+
+  const handleZoomIn = () => {
+    if (position.zoom >= 4) return;
+    setPosition(pos => ({ ...pos, zoom: pos.zoom * 1.5 }));
+  };
+
+  const handleZoomOut = () => {
+    if (position.zoom <= 1) return;
+    setPosition(pos => ({ ...pos, zoom: pos.zoom / 1.5 }));
+  };
+
+  const handleMoveEnd = (position: { coordinates: [number, number]; zoom: number }) => {
+    setPosition(position);
+  };
+
+  const handleWheel = useCallback((event: WheelEvent) => {
+    event.preventDefault();
+    const delta = event.deltaY;
+    if (delta > 0) {
+      handleZoomOut();
+    } else {
+      handleZoomIn();
+    }
+  }, []);
 
   useEffect(() => {
-    fetch("/world-110m.json") // 📌 Ojo: la ruta es relativa a `public/`
-      .then((response) => response.json())
-      .then((data) => setMapData(data))
-      .catch((error) => console.error("Error cargando el mapa:", error));
-  }, []);
+    // Cargar los datos de países desde una fuente confiable
+    fetch("/countries_es.geo.json")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("No se pudieron cargar los datos del mapa")
+        }
+        return response.json()
+      })
+      .then((data) => {
+        setCountriesData(data)
+      })
+      .catch((err) => {
+        console.error("Error cargando el mapa:", err)
+        setError("No se pudo cargar el mapa. Por favor, intenta de nuevo más tarde.")
+      })
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+    };
+  }, [handleWheel]);
 
   return (
     <div className="mb-4 h-1/3">
-      <ComposableMap projection="geoMercator">
-        <Geographies geography={mapData}>
-          {({ geographies }) =>
-            geographies.map((geo: { rsmKey: any; properties: { NAME: string } }) => (
-              <Geography
-                key={geo.rsmKey}
-                geography={geo}
-                fill={selectedCountry === geo.properties.NAME ? "#F53" : "#D6D6DA"}
-                stroke="#FFFFFF"
-                strokeWidth={0.5}
-                onClick={() => onCountrySelect(geo.properties.NAME)}
-              />
-            ))
-          }
-        </Geographies>
+      {error && <p className="text-red-500">{error}</p>}
+      {!countriesData && !error && <p>Cargando mapa...</p>}
+
+      <ComposableMap>
+        <ZoomableGroup
+          zoom={position.zoom}
+          center={position.coordinates}
+          onMoveEnd={handleMoveEnd}
+        >
+          <Geographies geography={countriesData}>
+            {({ geographies }) =>
+              geographies.map((geo: { rsmKey: any; properties: { name: string } }) => (
+                <Geography
+                  key={geo.rsmKey}
+                  geography={geo}
+                  fill={
+                    selectedCountry === geo.properties.name
+                      ? '#f59e0b'
+                      : countries.includes(geo.properties.name)
+                        ? '#9b9b9b'
+                        : '#E5E5E5'
+                  }
+                  stroke="#FFFFFF"
+                  strokeWidth={0.5}
+                  style={{
+                    default: { outline: 'none' },
+                    hover: {
+                      fill: countries.includes(geo.properties.name) ? '#f59e0b' : '#E5E5E5',
+                      cursor: countries.includes(geo.properties.name) ? 'pointer' : 'default'
+                    }
+                  }}
+                  onMouseEnter={(e) => {
+                    const { pageX, pageY } = e;
+                    setTooltipContent(geo.properties.name);
+                    setTooltipPosition({ x: pageX, y: pageY });
+                  }}
+                  onMouseLeave={() => {
+                    setTooltipContent("");
+                  }}
+                  onClick={() => {
+                    if (countries.includes(geo.properties.name)) {
+                      onCountrySelect(geo.properties.name);
+                    }
+                  }}
+                />
+              ))
+            }
+          </Geographies>
+        </ZoomableGroup>
       </ComposableMap>
+      {tooltipContent && (
+        <div
+          style={{
+            position: 'fixed',
+            top: tooltipPosition.y - 40,
+            left: tooltipPosition.x + 10,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            color: 'white',
+            padding: '5px 10px',
+            borderRadius: '4px',
+            fontSize: '14px',
+            pointerEvents: 'none',
+            zIndex: 1000
+          }}
+        >
+          {tooltipContent}
+        </div>
+      )}
       <select
         value={selectedCountry}
         onChange={(e) => onCountrySelect(e.target.value)}
@@ -59,10 +161,10 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
 const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountrySelect }) => {
   const genderData = Object.entries(
     data.reduce((acc: Record<string, number>, item) => {
-      acc[item.gender] = (acc[item.gender] || 0) + 1
-      return acc
-    }, {}),
-  ).map(([name, value]) => ({ name, value }))
+      acc[item.gender] = (acc[item.gender] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([name, value]) => ({ name, value }));
 
   const educationData = Object.entries(
     data.reduce((acc: Record<string, number>, item) => {

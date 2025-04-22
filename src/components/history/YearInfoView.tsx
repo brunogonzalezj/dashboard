@@ -28,6 +28,29 @@ const YearInfoView: React.FC<YearInfoViewProps> = ({ data }) => {
     ...courses,
   }))
 
+  // Define the course names and colors
+  const courseColors = {
+    "Alimento Balanceado": "#DDA338",
+    Avicultura: "#FFCE00",
+    Acuacultura: "#85D5FC",
+    Porcicultura: "#9E2A2B",
+    "Ganado Lechero": "#6E6059",
+  } as const
+
+  // Create a type from the keys of courseColors
+  type CourseName = keyof typeof courseColors
+
+  // Function to safely get color for a course
+  const getColorForCourse = (course: string) => {
+    // Check if the course is a valid key in courseColors
+    if (Object.keys(courseColors).includes(course)) {
+      // If it is, we can safely cast it and access the color
+      return courseColors[course as CourseName]
+    }
+    // If it's not, return a default color
+    return "#8884d8"
+  }
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Annual Historical Data</h2>
@@ -52,10 +75,10 @@ const YearInfoView: React.FC<YearInfoViewProps> = ({ data }) => {
         <Legend />
         {selectedCourse === "all" ? (
           courses.map((course) => (
-            <Bar key={course} dataKey={course} fill={`#${Math.floor(Math.random() * 16777215).toString(16)}`} />
+            <Bar key={course} dataKey={course} fill={getColorForCourse(course)} />
           ))
         ) : (
-          <Bar dataKey={selectedCourse} fill="#8884d8" />
+          <Bar dataKey={selectedCourse} fill={getColorForCourse(selectedCourse)} />
         )}
       </BarChart>
       </ResponsiveContainer>
