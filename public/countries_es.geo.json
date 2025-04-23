@@ -16195,7 +16195,7 @@
       "type": "Feature",
       "id": "DOM",
       "properties": {
-        "name": "Dominican Republic"
+        "name": "República Dominicana"
       },
       "geometry": {
         "type": "Polygon",
@@ -31941,7 +31941,7 @@
       "type": "Feature",
       "id": "PAN",
       "properties": {
-        "name": "Panama"
+        "name": "Panamá"
       },
       "geometry": {
         "type": "Polygon",
@@ -32163,7 +32163,7 @@
       "type": "Feature",
       "id": "PER",
       "properties": {
-        "name": "Peru"
+        "name": "Perú"
       },
       "geometry": {
         "type": "Polygon",

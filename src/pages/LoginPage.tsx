@@ -87,7 +87,7 @@ const LoginPage: React.FC = () => {
             {/* Changed from -space-y-px to space-y-4 for better spacing */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                Username
+                Usuario
               </label>
               <input
                 id="username"
@@ -95,12 +95,13 @@ const LoginPage: React.FC = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder= "Ingresa tu usuario"
                 required
               />
             </div>
             <div className="relative mt-4">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                Contraseña
               </label>
               <div className="relative">
                 <input
@@ -109,6 +110,7 @@ const LoginPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder= "Ingresa tu contraseña"
                   required
                 />
                 <button
