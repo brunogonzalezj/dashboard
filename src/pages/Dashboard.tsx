@@ -11,7 +11,7 @@ const Dashboard: React.FC = () => {
       <>
         <div className="h-full flex justify-between items-center overflow-hidden">
           {/*<h1 className="text-2xl font-bold mb-2">Cursos en progreso</h1>*/}
-          <h1 className="text-2xl font-bold mb-2">{dataType === 'actual' ? "Cursos en proceso" : "Histórico de cursos"}</h1>
+          <h1 className="text-2xl font-bold ">{dataType === 'actual' ? "Cursos en proceso" : "Histórico de cursos"}</h1>
           <div className="flex space-x-2 mb-2">
             <button
               onClick={() => setDataType('actual')}

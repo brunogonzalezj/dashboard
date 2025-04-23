@@ -241,7 +241,7 @@ const Current: React.FC = () => {
 
 
   return (
-    <div className='p-2 sm:p-4 md:p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto'>
+    <div className='p-2 mt-2 sm:p-4 md:p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto'>
       <div className='flex flex-col mb-4 lg:mb-8 gap-4'>
         <div className='flex flex-col items-center justify-center lg:flex-row w-full gap-4'>
           <div className='bg-[#3a69aa]/80 p-4 rounded-lg text-white'>

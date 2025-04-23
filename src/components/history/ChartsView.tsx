@@ -81,7 +81,7 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
                     onChange={(e) => onCountrySelect(e.target.value)}
                     className={`text-xs p-1 border rounded ${isMobile ? "w-full" : "w-auto"}`}
                 >
-                    <option value="all">All Countries</option>
+                    <option value="all">Todos los países</option>
                     {countries.map((country) => (
                         <option key={country} value={country}>
                             {country}
@@ -114,7 +114,7 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
                                                     ? "#9b9b9b"
                                                     : "#E5E5E5"
                                         }
-                                        stroke="#FFFFFF"
+                                        stroke="#000000"
                                         strokeWidth={0.5}
                                         style={{
                                             default: { outline: "none" },
@@ -202,10 +202,19 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
 
     const experienceData = Object.entries(
         data.reduce((acc: Record<string, number>, item) => {
-            acc[item.yearsExperience] = (acc[item.yearsExperience] || 0) + 1
-            return acc
-        }, {}),
+            // Convertimos el valor a número y redondeamos al rango de 5 más cercano
+            const yearsRange = Math.floor(Number(item.yearsExperience) / 5) * 5;
+            const rangeKey = `${yearsRange}-${yearsRange + 5}`;
+            acc[rangeKey] = (acc[rangeKey] || 0) + 1;
+            return acc;
+        }, {})
     ).map(([name, value]) => ({ name, value }))
+        .sort((a, b) => {
+            // Ordenamos por el primer número del rango
+            const aStart = parseInt(a.name.split('-')[0]);
+            const bStart = parseInt(b.name.split('-')[0]);
+            return aStart - bStart;
+        });
 
     const courseData = Object.entries(
         data.reduce((acc: Record<string, number>, item) => {
@@ -261,13 +270,13 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
     }
 
     return (
-        <div className={getGridLayout()}>
+        <div className={`${getGridLayout()} overflow-hidden`} >
             <div className={`${getMapClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
                 <ChoroplethMap data={data} selectedCountry={selectedCountry} onCountrySelect={onCountrySelect} />
             </div>
 
             <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
-                <h3 className="text-xs font-bold">Gender Distribution</h3>
+                <h3 className="text-xs font-bold">Géneros</h3>
                 <div className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={genderData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
@@ -281,7 +290,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
             </div>
 
             <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
-                <h3 className="text-xs font-bold">Education Level</h3>
+                <h3 className="text-xs font-bold">Nivel de Educación</h3>
                 <div className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
@@ -305,7 +314,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
             </div>
 
             <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
-                <h3 className="text-xs font-bold">Job Area Distribution</h3>
+                <h3 className="text-xs font-bold">Distribución de puesto de trabajo</h3>
                 <div className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={jobAreaData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
@@ -319,7 +328,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
             </div>
 
             <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
-                <h3 className="text-xs font-bold">Years of Experience</h3>
+                <h3 className="text-xs font-bold">Años de experiencia</h3>
                 <div className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
@@ -343,7 +352,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
             </div>
 
             <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
-                <h3 className="text-xs font-bold">Course Distribution</h3>
+                <h3 className="text-xs font-bold">Distribución de los cursos</h3>
                 <div className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>

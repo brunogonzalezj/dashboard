@@ -20,9 +20,9 @@ const InfoView: React.FC<InfoViewProps> = ({ data }) => {
   return (
     <div className="flex flex-col w-full h-full items-center justify-center">
       <div className="flex flex-col w-full h-full rounded-lg shadow-xl p-4 bg-white">
-        <h2 className="text-2xl font-bold mb-4">Course Funnel</h2>
-        <ResponsiveContainer width={"100%"} height={450}>
-          <BarChart data={funnelData} layout="vertical" margin={{ left: 30, right: 30, top: 20, bottom: 20 }}>
+        <h2 className="text-2xl font-bold mb-4">Funnel de Cursos</h2>
+        <ResponsiveContainer width={"100%"} height={350}>
+          <BarChart data={funnelData} layout="vertical" >
             <XAxis type="number" />
             <YAxis dataKey="name" type="category" width={90} tick={{ fontSize: 14 }} />
             <Tooltip />
@@ -31,7 +31,7 @@ const InfoView: React.FC<InfoViewProps> = ({ data }) => {
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-        <div className="flex-1 p-4 text-center space-y-2 mt-4 bg-gray-100 rounded-lg">
+        <div className="flex flex-col justify-center p-4 text-center space-y-2 mt-4 bg-gray-100 rounded-lg">
           <p>Registered: {totalRegistered} (100%)</p>
           <p>
             Logged In: {loggedIn} ({((loggedIn / totalRegistered) * 100).toFixed(2)}%)
