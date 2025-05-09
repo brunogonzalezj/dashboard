@@ -26887,7 +26887,7 @@
       "type": "Feature",
       "id": "MEX",
       "properties": {
-        "name": "Mexico"
+        "name": "México"
       },
       "geometry": {
         "type": "Polygon",

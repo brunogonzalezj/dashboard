@@ -54,7 +54,7 @@ const YearInfoView: React.FC<YearInfoViewProps> = ({ data }) => {
   return (
     <div>
         <div className={"flex flex-col  bg-white rounded-lg shadow-xl p-4"}>
-            <h2 className="text-2xl font-bold mb-4 text-left">Annual Historical Data</h2>
+            <h2 className="text-2xl font-bold mb-4 text-left">Información Histórica Anual</h2>
             <div className={"flex-col"}>
             <select
                 value={selectedCourse}
@@ -69,7 +69,7 @@ const YearInfoView: React.FC<YearInfoViewProps> = ({ data }) => {
                 ))}
             </select>
             </div>
-            <ResponsiveContainer width={"100%"} height={350} className={"m-4 p-4"}>
+            <ResponsiveContainer width={"100%"} height={450} className={"m-4 p-4"}>
                 <BarChart data={chartData}>
                     <XAxis dataKey="year"/>
                     <YAxis/>

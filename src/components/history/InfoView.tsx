@@ -21,7 +21,7 @@ const InfoView: React.FC<InfoViewProps> = ({ data }) => {
     <div className="flex flex-col w-full h-full items-center justify-center">
       <div className="flex flex-col w-full h-full rounded-lg shadow-xl p-4 bg-white">
         <h2 className="text-2xl font-bold mb-4">Funnel de Cursos</h2>
-        <ResponsiveContainer width={"100%"} height={350}>
+        <ResponsiveContainer width={"100%"} height={450}>
           <BarChart data={funnelData} layout="vertical" >
             <XAxis type="number" />
             <YAxis dataKey="name" type="category" width={90} tick={{ fontSize: 14 }} />

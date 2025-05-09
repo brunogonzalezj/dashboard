@@ -1,11 +1,9 @@
-"use client"
-
-import type React from "react"
+import React from 'react';
 import { useEffect, useState } from "react"
-import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer } from "recharts"
-import { ComposableMap, Geographies, Geography, ZoomableGroup } from "react-simple-maps"
+import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer } from 'recharts';
+import { ComposableMap, Geographies, Geography } from "react-simple-maps"
 import type { DataItem } from "../../interfaces/IData"
-import { MinusIcon, PlusIcon } from "lucide-react"
+
 
 interface ChartsViewProps {
     data: DataItem[]
@@ -13,43 +11,16 @@ interface ChartsViewProps {
     onCountrySelect: (country: string) => void
 }
 
-interface Position {
-    coordinates: [number, number]
-    zoom: number
-}
+
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
 
 const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountrySelect }) => {
     const countries = Array.from(new Set(data.map((d) => d.country)))
     const [countriesData, setCountriesData] = useState<any>(null)
     const [error, setError] = useState<string | null>(null)
-    const [position, setPosition] = useState<Position>({ coordinates: [0, 0], zoom: 1 })
     const [tooltipContent, setTooltipContent] = useState("")
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
-    const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200)
-
-    useEffect(() => {
-        const handleResize = () => {
-            setWindowWidth(window.innerWidth)
-        }
-
-        window.addEventListener("resize", handleResize)
-        return () => window.removeEventListener("resize", handleResize)
-    }, [])
-
-    const handleZoomIn = () => {
-        if (position.zoom >= 4) return
-        setPosition((pos) => ({ ...pos, zoom: pos.zoom * 1.5 }))
-    }
-
-    const handleZoomOut = () => {
-        if (position.zoom <= 1) return
-        setPosition((pos) => ({ ...pos, zoom: pos.zoom / 1.5 }))
-    }
-
-    const handleMoveEnd = (position: { coordinates: [number, number]; zoom: number }) => {
-        setPosition(position)
-    }
+    const [windowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200)
 
     useEffect(() => {
         // Cargar los datos de países desde una fuente confiable
@@ -88,59 +59,57 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
                         </option>
                     ))}
                 </select>
-                <div className="hidden lg:flex ">
-                    <button onClick={handleZoomIn} className="border rounded p-1 mr-1 hover:bg-gray-100">
-                        <PlusIcon className="h-3 w-3" />
-                    </button>
-                    <button onClick={handleZoomOut} className="border rounded p-1 hover:bg-gray-100">
-                        <MinusIcon className="h-3 w-3" />
-                    </button>
-                </div>
             </div>
 
-            <div className="flex-1 min-h-0 relative">
-                <ComposableMap className="rounded h-full w-full absolute inset-0">
-                    <ZoomableGroup zoom={position.zoom} center={position.coordinates} onMoveEnd={handleMoveEnd}>
+            <div className="flex-1 min-h-0 relative" style={{ touchAction: "none" }}>
+                <ComposableMap className="rounded h-full w-full absolute inset-0"
+                >
+                    <g transform={`translate(-90, -300) scale(2.5)`}>
                         <Geographies geography={countriesData}>
                             {({ geographies }) =>
-                                geographies.map((geo: { rsmKey: any; properties: { name: string } }) => (
-                                    <Geography
-                                        key={geo.rsmKey}
-                                        geography={geo}
-                                        fill={
-                                            selectedCountry === geo.properties.name
-                                                ? "#f59e0b"
-                                                : countries.includes(geo.properties.name)
-                                                    ? "#9b9b9b"
-                                                    : "#E5E5E5"
-                                        }
-                                        stroke="#000000"
-                                        strokeWidth={0.5}
-                                        style={{
-                                            default: { outline: "none" },
-                                            hover: {
-                                                fill: countries.includes(geo.properties.name) ? "#f59e0b" : "#E5E5E5",
-                                                cursor: countries.includes(geo.properties.name) ? "pointer" : "default",
-                                            },
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            const { pageX, pageY } = e
-                                            setTooltipContent(geo.properties.name)
-                                            setTooltipPosition({ x: pageX, y: pageY })
-                                        }}
-                                        onMouseLeave={() => {
-                                            setTooltipContent("")
-                                        }}
-                                        onClick={() => {
-                                            if (countries.includes(geo.properties.name)) {
-                                                onCountrySelect(geo.properties.name)
-                                            }
-                                        }}
-                                    />
-                                ))
+                              geographies.map((geo: { rsmKey: any; properties: { name: string } }) => (
+                                <Geography
+                                  key={geo.rsmKey}
+                                  geography={geo}
+                                  fill={
+                                      selectedCountry === geo.properties.name
+                                        ? '#f59e0b'
+                                        : countries.includes(geo.properties.name)
+                                          ? '#9b9b9b'
+                                          : geo.properties.name === "Bermuda"
+                                            ? '#ffffff'
+                                            : '#E5E5E5'
+                                  }
+                                  stroke="#FFFFFF"
+                                  style={{
+                                      default: { outline: 'none' },
+                                      hover: {
+                                          fill: geo.properties.name === "Bermuda"
+                                            ? "#FFFFFF" // Mantener blanco incluso en hover
+                                            : countries.includes(geo.properties.name)
+                                              ? '#f59e0b'
+                                              : '#E5E5E5',
+                                          cursor: countries.includes(geo.properties.name) ? 'pointer' : 'default'
+                                      }
+                                  }}
+                                  onMouseEnter={(e) => {
+                                      const { pageX, pageY } = e;
+                                      setTooltipContent(geo.properties.name);
+                                      setTooltipPosition({ x: pageX, y: pageY });
+                                  }}
+                                  onMouseLeave={() => {
+                                      setTooltipContent('');
+                                  }}
+                                  onClick={() => {
+                                      if (countries.includes(geo.properties.name)) {
+                                          onCountrySelect(geo.properties.name);
+                                      }
+                                  }}
+                                />
+                              ))
                             }
                         </Geographies>
-                    </ZoomableGroup>
+                    </g>
                 </ComposableMap>
             </div>
             {tooltipContent && (
@@ -187,34 +156,47 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
     ).map(([name, value]) => ({ name, value }))
 
     const educationData = Object.entries(
-        data.reduce((acc: Record<string, number>, item) => {
-            acc[item.education] = (acc[item.education] || 0) + 1
-            return acc
-        }, {}),
+      data.reduce((acc: Record<string, number>, item) => {
+          if (item.education !== null) {
+              acc[item.education] = (acc[item.education] || 0) + 1
+          }
+          return acc
+      }, {}),
     ).map(([name, value]) => ({ name, value }))
 
     const jobAreaData = Object.entries(
-        data.reduce((acc: Record<string, number>, item) => {
-            acc[item.jobArea] = (acc[item.jobArea] || 0) + 1
-            return acc
-        }, {}),
+      data.reduce((acc: Record<string, number>, item) => {
+          if (item.jobArea !== null) {
+              acc[item.jobArea] = (acc[item.jobArea] || 0) + 1
+          }
+          return acc
+      }, {}),
     ).map(([name, value]) => ({ name, value }))
 
     const experienceData = Object.entries(
-        data.reduce((acc: Record<string, number>, item) => {
-            // Convertimos el valor a número y redondeamos al rango de 5 más cercano
-            const yearsRange = Math.floor(Number(item.yearsExperience) / 5) * 5;
-            const rangeKey = `${yearsRange}-${yearsRange + 5}`;
-            acc[rangeKey] = (acc[rangeKey] || 0) + 1;
-            return acc;
-        }, {})
+      data.reduce((acc: Record<string, number>, item) => {
+          const yearsExperience = Number(item.yearsExperience);
+          if (!isNaN(yearsExperience) && yearsExperience !== null) {
+              if (yearsExperience >= 25) {
+                  // Agrupar todos los valores de 25 o más años en la categoría "25+"
+                  acc["25+"] = (acc["25+"] || 0) + 1;
+              } else {
+                  // Mantener la agrupación original para valores menores a 25
+                  const yearsRange = Math.floor(yearsExperience / 5) * 5;
+                  const rangeKey = `${yearsRange}-${yearsRange + 5}`;
+                  acc[rangeKey] = (acc[rangeKey] || 0) + 1;
+              }
+          }
+          return acc;
+      }, {}),
     ).map(([name, value]) => ({ name, value }))
-        .sort((a, b) => {
-            // Ordenamos por el primer número del rango
-            const aStart = parseInt(a.name.split('-')[0]);
-            const bStart = parseInt(b.name.split('-')[0]);
-            return aStart - bStart;
-        });
+      .sort((a, b) => {
+          if (a.name === "25+") return 1; // Colocar "25+" al final
+          if (b.name === "25+") return -1;
+          const aStart = parseInt(a.name.split('-')[0]);
+          const bStart = parseInt(b.name.split('-')[0]);
+          return aStart - bStart;
+      });
 
     const courseData = Object.entries(
         data.reduce((acc: Record<string, number>, item) => {
@@ -244,7 +226,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
         } else if (windowWidth < 1024) {
             return "col-span-2 row-span-1"
         } else {
-            return "col-span-2 row-span-2"
+            return "col-span-1 row-span-1"
         }
     }
 
@@ -259,18 +241,46 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
     }
 
     // Ajustar el tamaño del radio del gráfico circular según el tamaño de la pantalla
-    const getPieRadius = () => {
-        if (windowWidth < 640) {
-            return 30
-        } else if (windowWidth < 1024) {
-            return 35
-        } else {
-            return 40
-        }
+  const getPieRadius = () => {
+    if (windowWidth < 640) {
+      return windowWidth * 0.15; // 15% del ancho en móviles
+    } else if (windowWidth < 1024) {
+      return windowWidth * 0.12; // 12% del ancho en tablets
+    } else {
+      return 80; // Tamaño fijo en escritorio
     }
+  }
+
+  {/*const getLegendConfig = () => {
+    if (windowWidth < 640) {
+      // En móviles, leyenda horizontal abajo
+      return {
+        layout: "horizontal",
+        verticalAlign: "bottom",
+        align: "center",
+        wrapperStyle: { fontSize: "8px" }
+      };
+    } else if (windowWidth < 1024) {
+      // En tablets, leyenda horizontal abajo pero con más espacio
+      return {
+        layout: "horizontal",
+        verticalAlign: "bottom",
+        align: "center",
+        wrapperStyle: { fontSize: "10px" }
+      };
+    } else {
+      // En escritorio, leyenda vertical a la derecha
+      return {
+        layout: "vertical",
+        verticalAlign: "middle",
+        align: "right",
+        wrapperStyle: { fontSize: "12px" }
+      };
+    }
+  };**/}
 
     return (
-        <div className={`${getGridLayout()} overflow-hidden`} >
+        <div className={`${getGridLayout()} overflow-y-auto`} >
             <div className={`${getMapClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
                 <ChoroplethMap data={data} selectedCountry={selectedCountry} onCountrySelect={onCountrySelect} />
             </div>
@@ -283,7 +293,11 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                             <YAxis tick={{ fontSize: 10 }} />
                             <Tooltip />
-                            <Bar dataKey="value" fill="#8884d8" />
+                          {/*<Legend fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 12}
+                                    iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 10}
+                                    iconType="circle"
+                                    {...getLegendConfig()}/>*/}
+                            <Bar dataKey="value" name="Personas" fill="#8884d8" />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -293,7 +307,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                 <h3 className="text-xs font-bold">Nivel de Educación</h3>
                 <div className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
-                        <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                        <PieChart  margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                             <Pie
                                 data={educationData}
                                 cx="50%"
@@ -308,6 +322,11 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                 ))}
                             </Pie>
                             <Tooltip />
+                          {/*<Legend
+                            {...getLegendConfig()}
+                            iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 10}
+                            iconType="circle"
+                          />*/}
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
@@ -315,13 +334,18 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
 
             <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
                 <h3 className="text-xs font-bold">Distribución de puesto de trabajo</h3>
-                <div className="flex-1 min-h-0">
+                <div className="flex-1 min-h-0" >
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={jobAreaData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                             <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                             <YAxis tick={{ fontSize: 10 }} />
                             <Tooltip />
-                            <Bar dataKey="value" fill="#82ca9d" />
+                          {/*<Legend fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
+                                    iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
+                                    iconType="circle"
+                                    {...getLegendConfig()}
+                            />*/}
+                            <Bar dataKey="value" name={"Personas"} fill="#82ca9d" />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -346,6 +370,12 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                 ))}
                             </Pie>
                             <Tooltip />
+                          {/*<Legend
+                            fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
+                            iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
+                            iconType="circle"
+                            {...getLegendConfig()}
+                          />*/}
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
@@ -370,6 +400,13 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                 ))}
                             </Pie>
                             <Tooltip />
+                          {/*<Legend
+                            fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
+                            iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
+                            iconType="circle"
+                            {...getLegendConfig()}
+                            wrapperStyle={{ fontSize: "10px" }}
+                          />*/}
                         </PieChart>
                     </ResponsiveContainer>
                 </div>

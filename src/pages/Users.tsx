@@ -6,7 +6,7 @@ import {
   Edit2Icon,
   Trash2Icon,
   ChevronUpIcon,
-  ChevronDownIcon, TriangleAlertIcon
+  ChevronDownIcon, TriangleAlertIcon, DownloadIcon
 } from 'lucide-react';
 import { User } from '../interfaces/IUsers';
 import Swal from 'sweetalert2';
@@ -69,6 +69,21 @@ const Users: React.FC = () => {
       setUserLoading(false);
     }
   };
+  const fetchPasswords = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/users/get_passwords`,
+        { withCredentials: true },
+      );
+      const blob = new Blob([response.data.csv], {
+        type: 'text/csv;charset=utf-8;',
+      });
+      FileSaver.saveAs(blob, 'clients_passwords.csv');
+    } catch (error) {
+      console.error('Error fetching passwords:', error);
+      setError('Error al obtener contraseñas');
+    }
+  }
 
   const fetchCompanyOptions = async () => {
     try {
@@ -438,6 +453,13 @@ const Users: React.FC = () => {
         >
           <TriangleAlertIcon />
           {loading ? 'Reestableciendo...' : 'Reestablecer todas las contraseñas'}
+        </button>
+        <button
+          onClick={fetchPasswords}
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
+        >
+          <DownloadIcon />
+          Descargar contraseñas
         </button>
         </div>
         {error && <div className="text-red-500">{error}</div>}

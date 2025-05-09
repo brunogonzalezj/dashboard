@@ -6,9 +6,9 @@ import YearInfoView from "../history/YearInfoView"
 import type { DataItem } from "../../interfaces/IData"
 
 enum ViewType {
-  Charts = "Charts",
-  Info = "Info",
-  YearInfo = "YearInfo",
+  Charts = "Gráficos",
+  Info = "Funnel",
+  YearInfo = "Info Anual",
 }
 
 export default function History() {
@@ -44,7 +44,7 @@ export default function History() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 h-full overflow-hidden">
           {currentView === ViewType.Charts && (
             <ChartsView data={filteredData} selectedCountry={selectedCountry} onCountrySelect={setSelectedCountry} />
           )}
