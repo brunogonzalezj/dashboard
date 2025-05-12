@@ -148,32 +148,43 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
         return () => window.removeEventListener("resize", handleResize)
     }, [])
 
-    const genderData = Object.entries(
-        data.reduce((acc: Record<string, number>, item) => {
-            acc[item.gender] = (acc[item.gender] || 0) + 1
-            return acc
-        }, {}),
-    ).map(([name, value]) => ({ name, value }))
+  const calculatePercentages = (rawData: { name: string; value: number }[]) => {
+    const total = rawData.reduce((sum, item) => sum + item.value, 0);
+    return rawData.map(item => ({
+      name: item.name,
+      value: Number(((item.value / total) * 100).toFixed(1)), // Valor en porcentaje con 1 decimal
+      absoluteValue: item.value // Mantener el valor absoluto para mostrarlo en tooltips
+    }));
+  };
 
-    const educationData = Object.entries(
+  const genderData = calculatePercentages(
+    Object.entries(
+      data.reduce((acc: Record<string, number>, item) => {
+        acc[item.gender] = (acc[item.gender] || 0) + 1
+        return acc
+      }, {}),
+    ).map(([name, value]) => ({ name, value }))
+  );
+
+    const educationData = calculatePercentages(Object.entries(
       data.reduce((acc: Record<string, number>, item) => {
           if (item.education !== null) {
               acc[item.education] = (acc[item.education] || 0) + 1
           }
           return acc
       }, {}),
-    ).map(([name, value]) => ({ name, value }))
+    ).map(([name, value]) => ({ name, value })))
 
-    const jobAreaData = Object.entries(
+    const jobAreaData = calculatePercentages(Object.entries(
       data.reduce((acc: Record<string, number>, item) => {
           if (item.jobArea !== null) {
               acc[item.jobArea] = (acc[item.jobArea] || 0) + 1
           }
           return acc
       }, {}),
-    ).map(([name, value]) => ({ name, value }))
+    ).map(([name, value]) => ({ name, value })))
 
-    const experienceData = Object.entries(
+    const experienceData = calculatePercentages(Object.entries(
       data.reduce((acc: Record<string, number>, item) => {
           const yearsExperience = Number(item.yearsExperience);
           if (!isNaN(yearsExperience) && yearsExperience !== null) {
@@ -196,14 +207,14 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
           const aStart = parseInt(a.name.split('-')[0]);
           const bStart = parseInt(b.name.split('-')[0]);
           return aStart - bStart;
-      });
+      }));
 
-    const courseData = Object.entries(
+    const courseData = calculatePercentages(Object.entries(
         data.reduce((acc: Record<string, number>, item) => {
             acc[item.course] = (acc[item.course] || 0) + 1
             return acc
         }, {}),
-    ).map(([name, value]) => ({ name, value }))
+    ).map(([name, value]) => ({ name, value })))
 
     // Determinar el layout basado en el ancho de la ventana
     const getGridLayout = () => {
@@ -291,13 +302,20 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={genderData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                             <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                            <YAxis tick={{ fontSize: 10 }} />
-                            <Tooltip />
+                            <YAxis tick={{ fontSize: 10 }}
+                                   domain={[0, 100]}
+                            tickFormatter={(value) => `${value}%`}
+                            />
+                            <Tooltip
+                            formatter={(value: number, name: string, props: any) => [
+                                `${value}% (${props.payload.absoluteValue})`,
+                                  name]}
+                            />
                           <Legend fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 12}
                                     iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 10}
                                     iconType="circle"
                                     {...getLegendConfig()}/>
-                            <Bar dataKey="value" name="Personas" fill="#8884d8" />
+                            <Bar dataKey="value" name="Usuarios" fill="#8884d8" />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -316,12 +334,17 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                 outerRadius={getPieRadius()}
                                 fill="#8884d8"
                                 dataKey="value"
+                                nameKey={"name"}
                             >
                                 {educationData.map((_entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
-                            <Tooltip />
+                            <Tooltip
+                            formatter={(value: number, name: string, props: any) => [
+                                `${value}% (${props.payload.absoluteValue})`,
+                                  name]}
+                            />
                           <Legend
                             {...getLegendConfig()}
                             iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 10}
@@ -338,14 +361,18 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={jobAreaData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                             <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                            <YAxis tick={{ fontSize: 10 }} />
-                            <Tooltip />
+                            <YAxis tick={{ fontSize: 10 }} domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                            <Tooltip
+                            formatter={(value: number, name: string, props: any) => [
+                                `${value}% (${props.payload.absoluteValue})`,
+                                  name]}
+                            />
                           <Legend fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
                                     iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
                                     iconType="circle"
                                     {...getLegendConfig()}
                             />
-                            <Bar dataKey="value" name={"Personas"} fill="#82ca9d" />
+                            <Bar dataKey="value" name={"Usuarios"} fill="#82ca9d" />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -364,12 +391,17 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                 outerRadius={getPieRadius()}
                                 fill="#8884d8"
                                 dataKey="value"
+                                nameKey={"name"}
                             >
                                 {experienceData.map((_entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
-                            <Tooltip />
+                            <Tooltip
+                            formatter={(value: number, name: string, props: any) => [
+                                `${value}% (${props.payload.absoluteValue})`,
+                                  name]}
+                            />
                           <Legend
                             fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
                             iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
@@ -394,12 +426,17 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                 outerRadius={getPieRadius()}
                                 fill="#8884d8"
                                 dataKey="value"
+                                nameKey={"name"}
                             >
                                 {courseData.map((_entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
-                            <Tooltip />
+                            <Tooltip
+                            formatter={(value: number, name: string, props: any) => [
+                                `${value}% (${props.payload.absoluteValue})`,
+                                  name]}
+                            />
                           <Legend
                             fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
                             iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}

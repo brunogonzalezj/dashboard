@@ -6,11 +6,11 @@ const History = React.lazy(() => import('../components/dashboard/History.tsx'));
 
 
 const Dashboard: React.FC = () => {
-  const [dataType] = useState<string>('actual');
+  const [dataType, setDataType] = useState<string>('actual');
     return (
       <>
         <div className="h-full flex justify-between items-center overflow-hidden">
-          {/*<h1 className="text-2xl font-bold mb-2">Cursos en progreso</h1>
+          {/*<h1 className="text-2xl font-bold mb-2">Cursos en progreso</h1>*/}
           <h1 className="text-2xl font-bold ">{dataType === 'actual' ? "Cursos en proceso" : "Histórico de cursos"}</h1>
           <div className="flex space-x-2 mb-2">
             <button
@@ -25,7 +25,7 @@ const Dashboard: React.FC = () => {
             >
               Histórico
             </button>
-          </div>*/}
+          </div>
         </div>
         {dataType === 'actual' ? <Current/> : <History/>}
       </>
