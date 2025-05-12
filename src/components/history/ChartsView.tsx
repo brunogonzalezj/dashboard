@@ -1,6 +1,6 @@
 import React from 'react';
 import { useEffect, useState } from "react"
-import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer, Legend } from 'recharts';
 import { ComposableMap, Geographies, Geography } from "react-simple-maps"
 import type { DataItem } from "../../interfaces/IData"
 
@@ -251,33 +251,33 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
     }
   }
 
-  {/*const getLegendConfig = () => {
+  const getLegendConfig = () => {
     if (windowWidth < 640) {
       // En móviles, leyenda horizontal abajo
       return {
-        layout: "horizontal",
-        verticalAlign: "bottom",
-        align: "center",
+        layout: "horizontal" as const,
+        verticalAlign: "bottom" as const,
+        align: "center" as const,
         wrapperStyle: { fontSize: "8px" }
       };
     } else if (windowWidth < 1024) {
       // En tablets, leyenda horizontal abajo pero con más espacio
       return {
-        layout: "horizontal",
-        verticalAlign: "bottom",
-        align: "center",
+        layout: "horizontal" as const,
+        verticalAlign: "bottom" as const,
+        align: "center" as const,
         wrapperStyle: { fontSize: "10px" }
       };
     } else {
       // En escritorio, leyenda vertical a la derecha
       return {
-        layout: "vertical",
-        verticalAlign: "middle",
-        align: "right",
+        layout: "vertical" as const,
+        verticalAlign: "middle" as const,
+        align: "right" as const,
         wrapperStyle: { fontSize: "12px" }
       };
     }
-  };**/}
+  };
 
     return (
         <div className={`${getGridLayout()} overflow-y-auto`} >
@@ -293,10 +293,10 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                             <YAxis tick={{ fontSize: 10 }} />
                             <Tooltip />
-                          {/*<Legend fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 12}
+                          <Legend fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 12}
                                     iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 10}
                                     iconType="circle"
-                                    {...getLegendConfig()}/>*/}
+                                    {...getLegendConfig()}/>
                             <Bar dataKey="value" name="Personas" fill="#8884d8" />
                         </BarChart>
                     </ResponsiveContainer>
@@ -322,11 +322,11 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                 ))}
                             </Pie>
                             <Tooltip />
-                          {/*<Legend
+                          <Legend
                             {...getLegendConfig()}
                             iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 10}
                             iconType="circle"
-                          />*/}
+                          />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
@@ -340,11 +340,11 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                             <YAxis tick={{ fontSize: 10 }} />
                             <Tooltip />
-                          {/*<Legend fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
+                          <Legend fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
                                     iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
                                     iconType="circle"
                                     {...getLegendConfig()}
-                            />*/}
+                            />
                             <Bar dataKey="value" name={"Personas"} fill="#82ca9d" />
                         </BarChart>
                     </ResponsiveContainer>
@@ -370,12 +370,12 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                 ))}
                             </Pie>
                             <Tooltip />
-                          {/*<Legend
+                          <Legend
                             fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
                             iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
                             iconType="circle"
                             {...getLegendConfig()}
-                          />*/}
+                          />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
@@ -400,13 +400,13 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                 ))}
                             </Pie>
                             <Tooltip />
-                          {/*<Legend
+                          <Legend
                             fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
                             iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
                             iconType="circle"
                             {...getLegendConfig()}
                             wrapperStyle={{ fontSize: "10px" }}
-                          />*/}
+                          />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
