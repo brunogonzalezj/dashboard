@@ -8,8 +8,8 @@ interface InfoViewProps {
 
 const InfoView: React.FC<InfoViewProps> = ({ data }) => {
   const totalRegistered = data.length
-  const loggedIn = data.filter((item) => item.login === "true").length
-  const completed = data.filter((item) => item.stateOfCompleteness === "Completed").length
+  const loggedIn = data.filter((item) => item.login === "SI").length
+  const completed = data.filter((item) => item.stateOfCompleteness === "Completado").length
 
   const funnelData = [
     { name: "Registered", value: totalRegistered },
