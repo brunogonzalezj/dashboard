@@ -8665,7 +8665,7 @@
       "type": "Feature",
       "id": "CAN",
       "properties": {
-        "name": "Canada"
+        "name": "Canadá"
       },
       "geometry": {
         "type": "MultiPolygon",
@@ -42145,7 +42145,7 @@
       "type": "Feature",
       "id": "USA",
       "properties": {
-        "name": "United States of America"
+        "name": "Estados Unidos"
       },
       "geometry": {
         "type": "MultiPolygon",
