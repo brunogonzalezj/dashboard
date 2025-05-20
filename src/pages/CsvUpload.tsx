@@ -136,6 +136,26 @@ export default function CsvUpload() {
     }
   };
 
+  const handleDownloadFormData = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/data/getFormData`,
+        {
+          withCredentials: true,
+          responseType: 'blob',
+        },
+      );
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'Formulario.xlsx');
+      document.body.appendChild(link);
+      link.click();
+    } catch (error) {
+      console.error('Error downloading form data:', error);
+    }
+  }
+
   return (
     <div className='flex-row items-center justify-center h-full'>
       <div className={'flex gap-x-2 items-center justify-center h-full '}>
@@ -299,7 +319,7 @@ export default function CsvUpload() {
       <div className={'flex justify-center mt-6'}>
         <div className='flex flex-col w-[20%] items-center justify-center bg-white rounded-lg shadow-md p-4 '>
           <h2 className='text-xl font-bold text-center text-gray-900 mb-4'>
-            Migración de Datos
+            Utilidades
           </h2>
           <button
             onClick={handleMigrate}
@@ -315,8 +335,14 @@ export default function CsvUpload() {
                 <span className='loading loading-ring loading-lg'></span>
               </div>
             ) : (
-              'Migrar Datos'
+              'Migrar Datos Históricos'
             )}
+          </button>
+          <button
+            onClick={handleDownloadFormData}
+            className={`mt-2 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+          >
+            Descargar Formulario
           </button>
           {migrationMessage && (
             <div
