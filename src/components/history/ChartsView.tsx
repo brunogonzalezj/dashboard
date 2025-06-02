@@ -47,7 +47,7 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
                 <select
                     value={selectedCountry}
                     onChange={(e) => onCountrySelect(e.target.value)}
-                    className={`text-xs p-1 border rounded ${isMobile ? "w-full" : "w-auto"}`}
+                    className="text-sm p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:w-auto bg-white"
                 >
                     <option value="all">Todos los países</option>
                     {countries.map((country) => (
@@ -136,10 +136,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
     const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200)
 
     useEffect(() => {
-        const handleResize = () => {
-            setWindowWidth(window.innerWidth)
-        }
-
+        const handleResize = () => setWindowWidth(window.innerWidth)
         window.addEventListener("resize", handleResize)
         return () => window.removeEventListener("resize", handleResize)
     }, [])
@@ -158,174 +155,108 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
             data.reduce((acc: Record<string, number>, item) => {
                 acc[item.gender] = (acc[item.gender] || 0) + 1
                 return acc
-            }, {}),
+            }, {})
         ).map(([name, value]) => ({ name, value }))
     );
 
-    const educationData = calculatePercentages(Object.entries(
-        data.reduce((acc: Record<string, number>, item) => {
-            if (item.education !== null) {
-                acc[item.education] = (acc[item.education] || 0) + 1
-            }
-            return acc
-        }, {}),
-    ).map(([name, value]) => ({ name, value })))
-
-    const jobAreaData = calculatePercentages(Object.entries(
-        data.reduce((acc: Record<string, number>, item) => {
-            if (item.jobArea !== null) {
-                acc[item.jobArea] = (acc[item.jobArea] || 0) + 1
-            }
-            return acc
-        }, {}),
-    ).map(([name, value]) => ({ name, value })))
-
-    const experienceData = calculatePercentages(Object.entries(
-        data.reduce((acc: Record<string, number>, item) => {
-            const yearsExperience = Number(item.yearsExperience);
-            if (!isNaN(yearsExperience) && yearsExperience !== null) {
-                if (yearsExperience >= 25) {
-                    acc["25+"] = (acc["25+"] || 0) + 1;
-                } else {
-                    const yearsRange = Math.floor(yearsExperience / 5) * 5;
-                    const rangeKey = `${yearsRange}-${yearsRange + 5}`;
-                    acc[rangeKey] = (acc[rangeKey] || 0) + 1;
+    const educationData = calculatePercentages(
+        Object.entries(
+            data.reduce((acc: Record<string, number>, item) => {
+                if (item.education !== null) {
+                    acc[item.education] = (acc[item.education] || 0) + 1
                 }
-            }
-            return acc;
-        }, {}),
-    ).map(([name, value]) => ({ name, value }))
+                return acc
+            }, {})
+        ).map(([name, value]) => ({ name, value }))
+    );
+
+    const jobAreaData = calculatePercentages(
+        Object.entries(
+            data.reduce((acc: Record<string, number>, item) => {
+                if (item.jobArea !== null) {
+                    acc[item.jobArea] = (acc[item.jobArea] || 0) + 1
+                }
+                return acc
+            }, {})
+        ).map(([name, value]) => ({ name, value }))
+    );
+
+    const experienceData = calculatePercentages(
+        Object.entries(
+            data.reduce((acc: Record<string, number>, item) => {
+                const yearsExperience = Number(item.yearsExperience);
+                if (!isNaN(yearsExperience) && yearsExperience !== null) {
+                    if (yearsExperience >= 25) {
+                        acc["25+"] = (acc["25+"] || 0) + 1;
+                    } else {
+                        const yearsRange = Math.floor(yearsExperience / 5) * 5;
+                        const rangeKey = `${yearsRange}-${yearsRange + 5}`;
+                        acc[rangeKey] = (acc[rangeKey] || 0) + 1;
+                    }
+                }
+                return acc;
+            }, {})
+        ).map(([name, value]) => ({ name, value }))
         .sort((a, b) => {
             if (a.name === "25+") return 1;
             if (b.name === "25+") return -1;
             const aStart = parseInt(a.name.split('-')[0]);
             const bStart = parseInt(b.name.split('-')[0]);
             return aStart - bStart;
-        }));
+        })
+    );
 
-    const courseData = calculatePercentages(Object.entries(
-        data.reduce((acc: Record<string, number>, item) => {
-            acc[item.course] = (acc[item.course] || 0) + 1
-            return acc
-        }, {}),
-    ).map(([name, value]) => ({ name, value })))
+    const courseData = calculatePercentages(
+        Object.entries(
+            data.reduce((acc: Record<string, number>, item) => {
+                acc[item.course] = (acc[item.course] || 0) + 1
+                return acc
+            }, {})
+        ).map(([name, value]) => ({ name, value }))
+    );
 
-    const getGridLayout = () => {
-        if (windowWidth < 640) {
-            return "h-[calc(100vh-180px)] max-h-[768px] grid grid-cols-1 gap-2 p-1 overflow-auto"
-        } else if (windowWidth < 1024) {
-            return "h-[calc(100vh-180px)] max-h-[768px] grid grid-cols-2 gap-2 p-1 overflow-auto"
-        } else {
-            return "h-[calc(100vh-180px)] max-h-[768px] grid grid-cols-6 gap-2 p-1 overflow-auto"
-        }
-    }
-
-    const getMapClasses = () => {
-        if (windowWidth < 640) {
-            return "col-span-1 row-span-1"
-        } else if (windowWidth < 1024) {
-            return "col-span-2 row-span-1"
-        } else {
-            return "col-span-1 row-span-1"
-        }
-    }
-
-    const getChartClasses = () => {
-        if (windowWidth < 640) {
-            return "col-span-1"
-        } else if (windowWidth < 1024) {
-            return "col-span-1"
-        } else {
-            return "col-span-2"
-        }
-    }
-
-    const getPieRadius = () => {
-        if (windowWidth < 640) {
-            return windowWidth * 0.15;
-        } else if (windowWidth < 1024) {
-            return windowWidth * 0.12;
-        } else {
-            return 80;
-        }
-    }
-
-    const getLegendConfig = () => {
-        if (windowWidth < 640) {
-            return {
-                layout: "horizontal" as const,
-                verticalAlign: "bottom" as const,
-                align: "center" as const,
-                wrapperStyle: { fontSize: "8px" }
-            };
-        } else if (windowWidth < 1024) {
-            return {
-                layout: "horizontal" as const,
-                verticalAlign: "bottom" as const,
-                align: "center" as const,
-                wrapperStyle: { fontSize: "10px" }
-            };
-        } else {
-            return {
-                layout: "vertical" as const,
-                verticalAlign: "middle" as const,
-                align: "right" as const,
-                wrapperStyle: { fontSize: "12px" }
-            };
-        }
-    };
+    const chartContainerStyle = "bg-white rounded-xl shadow-md p-4 transition-all duration-200";
+    const chartTitleStyle = "text-base font-semibold text-gray-800 mb-4";
 
     return (
-        <div className={`${getGridLayout()} overflow-y-auto`}>
-            <div className={`${getMapClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+            <div className={`${chartContainerStyle} lg:col-span-1`}>
                 <ChoroplethMap data={data} selectedCountry={selectedCountry} onCountrySelect={onCountrySelect} />
             </div>
 
-            <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
-                <h3 className="text-xs font-bold">Géneros</h3>
-                <div className="flex-1 min-h-0">
+            <div className={chartContainerStyle}>
+                <h3 className={chartTitleStyle}>Géneros</h3>
+                <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={genderData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                            <YAxis
-                                tick={{ fontSize: 10 }}
-                                domain={[0, 100]}
-                                tickFormatter={(value) => `${value}%`}
-                            />
+                        <BarChart data={genderData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                            <XAxis dataKey="name" />
+                            <YAxis tickFormatter={(value) => `${value}%`} />
                             <Tooltip
                                 formatter={(value: number, name: string, props: any) => [
                                     `${value}% (${props.payload.absoluteValue})`,
-                                    name
+                                    'Usuarios'
                                 ]}
                             />
-                            <Legend
-                                fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 12}
-                                iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 10}
-                                iconType="circle"
-                                {...getLegendConfig()}
-                            />
-                            <Bar dataKey="value" name="Usuarios" fill="#8884d8" />
+                            <Bar dataKey="value" fill="#8884d8" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
             </div>
 
-            <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
-                <h3 className="text-xs font-bold">Nivel de Educación</h3>
-                <div className="flex-1 min-h-0">
+            <div className={chartContainerStyle}>
+                <h3 className={chartTitleStyle}>Nivel de Educación</h3>
+                <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                        <PieChart>
                             <Pie
                                 data={educationData}
                                 cx="50%"
                                 cy="50%"
-                                labelLine={false}
-                                outerRadius={getPieRadius()}
-                                fill="#8884d8"
+                                outerRadius={100}
                                 dataKey="value"
-                                nameKey={"name"}
+                                nameKey="name"
                             >
-                                {educationData.map((_entry, index) => (
+                                {educationData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
@@ -335,57 +266,45 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                     name
                                 ]}
                             />
-                            <Legend
-                                {...getLegendConfig()}
-                                iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 10}
-                                iconType="circle"
-                            />
+                            <Legend layout="vertical" align="right" verticalAlign="middle" />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
             </div>
 
-            <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
-                <h3 className="text-xs font-bold">Distribución de puesto de trabajo</h3>
-                <div className="flex-1 min-h-0">
+            <div className={chartContainerStyle}>
+                <h3 className={chartTitleStyle}>Distribución de puesto de trabajo</h3>
+                <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={jobAreaData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                            <YAxis tick={{ fontSize: 10 }} domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                        <BarChart data={jobAreaData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                            <XAxis dataKey="name" />
+                            <YAxis tickFormatter={(value) => `${value}%`} />
                             <Tooltip
                                 formatter={(value: number, name: string, props: any) => [
                                     `${value}% (${props.payload.absoluteValue})`,
-                                    name
+                                    'Usuarios'
                                 ]}
                             />
-                            <Legend
-                                fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
-                                iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
-                                iconType="circle"
-                                {...getLegendConfig()}
-                            />
-                            <Bar dataKey="value" name={"Usuarios"} fill="#82ca9d" />
+                            <Bar dataKey="value" fill="#82ca9d" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
             </div>
 
-            <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
-                <h3 className="text-xs font-bold">Años de experiencia</h3>
-                <div className="flex-1 min-h-0">
+            <div className={chartContainerStyle}>
+                <h3 className={chartTitleStyle}>Años de experiencia</h3>
+                <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                        <PieChart>
                             <Pie
                                 data={experienceData}
                                 cx="50%"
                                 cy="50%"
-                                labelLine={false}
-                                outerRadius={getPieRadius()}
-                                fill="#8884d8"
+                                outerRadius={100}
                                 dataKey="value"
-                                nameKey={"name"}
+                                nameKey="name"
                             >
-                                {experienceData.map((_entry, index) => (
+                                {experienceData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
@@ -395,33 +314,26 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                     name
                                 ]}
                             />
-                            <Legend
-                                fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
-                                iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
-                                iconType="circle"
-                                {...getLegendConfig()}
-                            />
+                            <Legend layout="vertical" align="right" verticalAlign="middle" />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
             </div>
 
-            <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
-                <h3 className="text-xs font-bold">Distribución de los cursos</h3>
-                <div className="flex-1 min-h-0">
+            <div className={chartContainerStyle}>
+                <h3 className={chartTitleStyle}>Distribución de los cursos</h3>
+                <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                        <PieChart>
                             <Pie
                                 data={courseData}
                                 cx="50%"
                                 cy="50%"
-                                labelLine={false}
-                                outerRadius={getPieRadius()}
-                                fill="#8884d8"
+                                outerRadius={100}
                                 dataKey="value"
-                                nameKey={"name"}
+                                nameKey="name"
                             >
-                                {courseData.map((_entry, index) => (
+                                {courseData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
@@ -431,19 +343,13 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                     name
                                 ]}
                             />
-                            <Legend
-                                fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
-                                iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
-                                iconType="circle"
-                                {...getLegendConfig()}
-                                wrapperStyle={{ fontSize: "10px" }}
-                            />
+                            <Legend layout="vertical" align="right" verticalAlign="middle" />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
 export default ChartsView
