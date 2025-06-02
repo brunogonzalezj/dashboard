@@ -19,23 +19,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     closed: { x: "-100%", transition: { type: "spring", stiffness: 300, damping: 30 } }
   };
 
-  const NavLink = ({ to, icon: Icon, label }: { to: string; icon: typeof Home; label: string }) => (
-    <div className="tooltip tooltip-right" data-tip={label}>
-      <Link
-        to={to}
-        onClick={onClose}
-        className={`flex items-center space-x-4 sm:space-x-0 p-3 rounded-lg transition-all duration-200 ${
-          isActive(to)
-            ? 'bg-primary-100 text-primary-600'
-            : 'hover:bg-white/10 text-gray-100 hover:text-white'
-        }`}
-      >
-        <Icon className="w-6 h-6" />
-        <span className="sm:hidden font-medium">{label}</span>
-      </Link>
-    </div>
-  );
-
   return (
     <>
       {isOpen && (
@@ -53,7 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         animate={isOpen ? "open" : "closed"}
         initial={false}
         className={`
-          fixed sm:static inset-y-0 left-0 z-30 w-64 sm:w-20 bg-gradient-to-b from-primary-600 to-primary-800
+          fixed sm:static inset-y-0 left-0 z-30 w-64 sm:w-20 bg-amber-500
           transform sm:transform-none transition-transform duration-300 ease-in-out
           flex flex-col items-center justify-between py-6 px-2
         `}
@@ -67,11 +50,52 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </div>
 
           <nav className="flex flex-col space-y-2 w-full">
-            <NavLink to="/" icon={Home} label="Home" />
+            <div className="tooltip tooltip-right" data-tip="Home">
+              <Link
+                to="/"
+                onClick={onClose}
+                className={`flex items-center space-x-4 sm:space-x-0 p-3 rounded-lg transition-all duration-200 ${
+                  isActive('/')
+                    ? 'bg-white/80 text-amber-500'
+                    : 'hover:bg-white/20 text-white'
+                }`}
+              >
+                <Home className="w-6 h-6" />
+                <span className="sm:hidden font-medium">Home</span>
+              </Link>
+            </div>
+
             {userRole === 'admin' && (
               <>
-                <NavLink to="/users\" icon={Users} label="Usuarios" />
-                <NavLink to="/csv-upload" icon={FileSpreadsheet} label="CSV" />
+                <div className="tooltip tooltip-right" data-tip="Usuarios">
+                  <Link
+                    to="/users"
+                    onClick={onClose}
+                    className={`flex items-center space-x-4 sm:space-x-0 p-3 rounded-lg transition-all duration-200 ${
+                      isActive('/users')
+                        ? 'bg-white/80 text-amber-500'
+                        : 'hover:bg-white/20 text-white'
+                    }`}
+                  >
+                    <Users className="w-6 h-6" />
+                    <span className="sm:hidden font-medium">Usuarios</span>
+                  </Link>
+                </div>
+
+                <div className="tooltip tooltip-right" data-tip="CSV">
+                  <Link
+                    to="/csv-upload"
+                    onClick={onClose}
+                    className={`flex items-center space-x-4 sm:space-x-0 p-3 rounded-lg transition-all duration-200 ${
+                      isActive('/csv-upload')
+                        ? 'bg-white/80 text-amber-500'
+                        : 'hover:bg-white/20 text-white'
+                    }`}
+                  >
+                    <FileSpreadsheet className="w-6 h-6" />
+                    <span className="sm:hidden font-medium">CSV</span>
+                  </Link>
+                </div>
               </>
             )}
           </nav>
@@ -82,7 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             logout();
             onClose();
           }}
-          className="flex items-center space-x-4 sm:space-x-0 p-3 rounded-lg hover:bg-white/10 text-gray-100 hover:text-white w-full sm:justify-center transition-colors duration-200"
+          className="flex items-center space-x-4 sm:space-x-0 p-3 rounded-lg hover:bg-white/20 text-white w-full sm:justify-center transition-colors duration-200"
         >
           <LogOut className="w-6 h-6" />
           <span className="sm:hidden font-medium">Cerrar Sesión</span>
