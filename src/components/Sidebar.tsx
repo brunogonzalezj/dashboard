@@ -2,95 +2,92 @@ import { Link, useLocation } from "react-router-dom";
 import { FileSpreadsheet, Home, LogOut, Users, X } from 'lucide-react';
 import { useAuth } from "../contexts/AuthContext";
 import React from "react";
+import { motion } from 'framer-motion';
 
 interface SidebarProps {
-    isOpen: boolean;
-    onClose: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-    const { logout, userRole } = useAuth();
-    const location = useLocation();
-    const isActive = (path: string) => location.pathname === path;
+  const { logout, userRole } = useAuth();
+  const location = useLocation();
+  const isActive = (path: string) => location.pathname === path;
 
-    return (
-      <>
-          {/* Overlay */}
-          {isOpen && (
-            <div
-              className="fixed inset-0 z-20 bg-black bg-opacity-50 sm:hidden"
-              onClick={onClose}
-            ></div>
-          )}
+  const sidebarVariants = {
+    open: { x: 0, transition: { type: "spring", stiffness: 300, damping: 30 } },
+    closed: { x: "-100%", transition: { type: "spring", stiffness: 300, damping: 30 } }
+  };
 
-          {/* Sidebar */}
-        <aside
-          className={`
-                    fixed sm:static inset-y-0 left-0 z-30 w-64 sm:w-20 bg-amber-500 text-white 
-                    transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
-                    sm:translate-x-0 transition-transform duration-300 ease-in-out
-                    flex flex-col items-center justify-between py-4 sm:py-8
-                `}
-        >
-          <div className="flex flex-col items-center gap-4 sm:gap-8 w-full">
-            <div className="flex justify-between items-center w-full px-4 sm:px-0 sm:justify-center">
-              <img src="/soy_logo.webp" alt="Soy Logo" className="w-10 h-10 sm:w-14 sm:h-14" />
-              <button onClick={onClose} className="sm:hidden text-white">
-                <X size={24} />
-              </button>
-            </div>
+  const NavLink = ({ to, icon: Icon, label }: { to: string; icon: typeof Home; label: string }) => (
+    <div className="tooltip tooltip-right" data-tip={label}>
+      <Link
+        to={to}
+        onClick={onClose}
+        className={`flex items-center space-x-4 sm:space-x-0 p-3 rounded-lg transition-all duration-200 ${
+          isActive(to)
+            ? 'bg-primary-100 text-primary-600'
+            : 'hover:bg-white/10 text-gray-100 hover:text-white'
+        }`}
+      >
+        <Icon className="w-6 h-6" />
+        <span className="sm:hidden font-medium">{label}</span>
+      </Link>
+    </div>
+  );
 
-            <nav className="flex flex-col sm:items-center space-y-4 w-full px-4 sm:px-0">
-              <div className="tooltip tooltip-right" data-tip="Home">
-                <Link
-                  to="/"
-                  className={`flex items-center space-x-4 sm:space-x-0 p-2 rounded-md ${isActive('/') ? 'bg-white/80 text-amber-500' : 'hover:bg-white/20'}`}
-                  onClick={onClose}
-                >
-                  <Home size={20} />
-                  <span className="sm:hidden">Home</span>
-                </Link>
-              </div>
-              {userRole === 'admin' && (
-                <>
-                  <div className="tooltip tooltip-right" data-tip="Usuarios">
-                    <Link
-                      to="/users"
-                      className={`flex items-center space-x-4 sm:space-x-0 p-2 rounded-md ${isActive('/users') ? 'bg-white/80 text-amber-500' : 'hover:bg-white/20'}`}
-                      onClick={onClose}
-                    >
-                      <Users size={20} />
-                      <span className="sm:hidden">Usuarios</span>
-                    </Link>
-                  </div>
-                  <div className="tooltip tooltip-right" data-tip="CSV">
-                    <Link
-                      to="/csv-upload"
-                      className={`flex items-center space-x-4 sm:space-x-0 p-2 rounded-md ${isActive('/csv-upload') ? 'bg-white/80 text-amber-500' : 'hover:bg-white/20'}`}
-                      onClick={onClose}
-                    >
-                      <FileSpreadsheet size={20} />
-                      <span className="sm:hidden">CSV</span>
-                    </Link>
-                  </div>
-                </>
-              )}
-            </nav>
-          </div>
-          <div className="tooltip tooltip-right" data-tip="Cerrar Sesión">
-            <button
-              onClick={() => {
-                logout();
-                onClose();
-              }}
-              className="flex items-center space-x-4 sm:space-x-0 p-2 rounded-md hover:bg-white/20 w-full px-4 sm:justify-center sm:px-3"
-            >
-              <LogOut size={20} />
-              <span className="sm:hidden">Cerrar Sesión</span>
+  return (
+    <>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-20 bg-black bg-opacity-50 sm:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      <motion.aside
+        variants={sidebarVariants}
+        animate={isOpen ? "open" : "closed"}
+        initial={false}
+        className={`
+          fixed sm:static inset-y-0 left-0 z-30 w-64 sm:w-20 bg-gradient-to-b from-primary-600 to-primary-800
+          transform sm:transform-none transition-transform duration-300 ease-in-out
+          flex flex-col items-center justify-between py-6 px-2
+        `}
+      >
+        <div className="flex flex-col items-center gap-8 w-full">
+          <div className="flex justify-between items-center w-full px-4 sm:px-0 sm:justify-center">
+            <img src="/soy_logo.webp" alt="Logo" className="w-12 h-12 sm:w-14 sm:h-14 rounded-full" />
+            <button onClick={onClose} className="sm:hidden text-white hover:text-gray-200">
+              <X size={24} />
             </button>
           </div>
-        </aside>
-      </>
-);
-};
 
+          <nav className="flex flex-col space-y-2 w-full">
+            <NavLink to="/" icon={Home} label="Home" />
+            {userRole === 'admin' && (
+              <>
+                <NavLink to="/users" icon={Users} label="Usuarios" />
+                <NavLink to="/csv-upload" icon={FileSpreadsheet} label="CSV" />
+              </>
+            )}
+          </nav>
+        </div>
+
+        <button
+          onClick={() => {
+            logout();
+            onClose();
+          }}
+          className="flex items-center space-x-4 sm:space-x-0 p-3 rounded-lg hover:bg-white/10 text-gray-100 hover:text-white w-full sm:justify-center transition-colors duration-200"
+        >
+          <LogOut className="w-6 h-6" />
+          <span className="sm:hidden font-medium">Cerrar Sesión</span>
+        </button>
+      </motion.aside>
+    </>
+  );
+};
