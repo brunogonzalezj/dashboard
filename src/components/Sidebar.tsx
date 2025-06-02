@@ -2,7 +2,6 @@ import { Link, useLocation } from "react-router-dom";
 import { FileSpreadsheet, Home, LogOut, Users, X } from 'lucide-react';
 import { useAuth } from "../contexts/AuthContext";
 import React from "react";
-import { motion } from 'framer-motion';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -14,31 +13,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
 
-  const sidebarVariants = {
-    open: { x: 0, transition: { type: "spring", stiffness: 300, damping: 30 } },
-    closed: { x: "-100%", transition: { type: "spring", stiffness: 300, damping: 30 } }
-  };
-
   return (
     <>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+        <div
           className="fixed inset-0 z-20 bg-black bg-opacity-50 sm:hidden"
           onClick={onClose}
         />
       )}
 
-      <motion.aside
-        variants={sidebarVariants}
-        animate={isOpen ? "open" : "closed"}
-        initial={false}
+      <aside
         className={`
           fixed sm:static inset-y-0 left-0 z-30 w-64 sm:w-20 bg-amber-500
-          transform sm:transform-none transition-transform duration-300 ease-in-out
-          flex flex-col h-screen
+          transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          sm:translate-x-0 transition-transform duration-300 ease-in-out
+          flex flex-col h-full
         `}
       >
         <div className="flex flex-col items-center gap-8 w-full py-6">
@@ -107,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <span className="sm:hidden font-medium">Cerrar Sesión</span>
           </button>
         </div>
-      </motion.aside>
+      </aside>
     </>
   );
 };

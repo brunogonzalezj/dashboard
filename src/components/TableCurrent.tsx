@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { MailIcon } from 'lucide-react';
 import { Whatsapp } from './WhatsappIcon';
 import { DataItem } from '../interfaces/IData.ts';
-import { motion } from 'framer-motion';
 
 interface TableProps {
   data: DataItem[];
@@ -25,83 +24,60 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig }) => {
 
   const SortIcon = ({ column }: { column: string }) => {
     if (sortConfig?.key !== column) return null;
-    return (
-      <motion.span
-        initial={{ rotate: 0 }}
-        animate={{ rotate: sortConfig.direction === 'asc' ? 0 : 180 }}
-        transition={{ duration: 0.2 }}
-        className="inline-block ml-1"
-      >
-        ▲
-      </motion.span>
-    );
+    return sortConfig.direction === 'asc' ? '🔼' : '🔽';
   };
 
   return (
-    <div className="overflow-x-auto rounded-lg shadow-lg">
+    <div className="overflow-x-auto">
       <table className="w-full min-w-[640px] bg-white">
-        <thead className="bg-gray-50">
+        <thead>
           <tr>
             {headers.map(({ key, label }) => (
               <th
                 key={key}
                 onClick={() => key !== 'contact' && onSort(key as keyof DataItem)}
-                className={`
-                  py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider
-                  ${key !== 'contact' ? 'cursor-pointer hover:bg-gray-100' : ''}
-                `}
+                className="py-2 px-4 border-b cursor-pointer text-left"
               >
-                <div className="flex items-center space-x-1">
-                  <span>{label}</span>
-                  {key !== 'contact' && <SortIcon column={key} />}
-                </div>
+                {label} {key !== 'contact' && <SortIcon column={key} />}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200">
-          {data.map((item, index) => (
-            <motion.tr
-              key={item.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="hover:bg-gray-50 transition-colors"
-            >
-              <td className="py-3 px-4">{item.course}</td>
-              <td className="py-3 px-4">{item.name}</td>
-              <td className="py-3 px-4">{item.lastName}</td>
-              <td className="py-3 px-4">{item.email}</td>
-              <td className="py-3 px-4">{item.business}</td>
-              <td className="py-3 px-4">
-                <span
-                  className={`
-                    inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-                    ${
-                      item.stateOfCompleteness === 'Completado'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }
-                  `}
+        <tbody>
+          {data.map((item) => (
+            <tr key={item.id} className="hover:bg-gray-50">
+              <td className="py-2 px-4 border-b">{item.course}</td>
+              <td className="py-2 px-4 border-b">{item.name}</td>
+              <td className="py-2 px-4 border-b">{item.lastName}</td>
+              <td className="py-2 px-4 border-b">{item.email}</td>
+              <td className="py-2 px-4 border-b">{item.business}</td>
+              <td className="py-2 px-4 border-b">
+                <div
+                  className={`badge p-2 sm:p-4 justify-center ${
+                    item.stateOfCompleteness === 'Completado'
+                      ? 'badge-success'
+                      : 'badge-error'
+                  } text-white text-nowrap text-xs sm:text-sm`}
                 >
-                  {item.stateOfCompleteness === 'Completado' ? 'Completado' : 'No completado'}
-                </span>
+                  {item.stateOfCompleteness === 'Completado'
+                    ? 'Completado'
+                    : 'No completado'}
+                </div>
               </td>
-              <td className="py-3 px-4">
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <td className="py-2 px-4 border-b">
+                <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-primary-600 h-2.5 rounded-full transition-all duration-500"
-                    style={{ width: `${parseFloat(item.progressPercentage)}%` }}
+                    className="bg-amber-500 h-2 rounded-full"
+                    style={{ width: `${item.progressPercentage}` }}
                   ></div>
                 </div>
-                <span className="text-xs text-gray-500 mt-1">{parseFloat(item.progressPercentage).toFixed(1)}%</span>
+                <span className="text-xs text-gray-500 mt-1">{item.progressPercentage}</span>
               </td>
-              <td className="py-3 px-4">
+              <td className="py-2 px-4 border-b">
                 <div className="flex items-center justify-center space-x-2">
                   <Link
                     to={`https://api.whatsapp.com/send?phone=${item.phone}`}
                     target="_blank"
-                    className="text-green-600 hover:text-green-700 transition-colors"
                   >
                     <Whatsapp />
                   </Link>
@@ -109,16 +85,18 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig }) => {
                     onClick={() => {
                       const subject = `Curso ${item.course} - ${item.name} ${item.lastName}`;
                       const body = `Estimado/a ${item.name},\nLe informamos que su nota final en el curso de ${item.course} es: ${item.finalScore}, su porcentaje de avance es de ${item.progressPercentage} y el estado de finalización del curso es: ${item.stateOfCompleteness}.\nSaludos.`;
-                      const mailto = `mailto:${item.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                      const mailto = `mailto:${item.email}?subject=${encodeURIComponent(
+                        subject
+                      )}&body=${encodeURIComponent(body)}`;
                       window.location.href = mailto;
                     }}
-                    className="text-primary-600 hover:text-primary-700 transition-colors"
+                    className="text-gray-600 hover:text-gray-800"
                   >
                     <MailIcon className="w-5 h-5" />
                   </button>
                 </div>
               </td>
-            </motion.tr>
+            </tr>
           ))}
         </tbody>
       </table>
