@@ -11,7 +11,8 @@ import {
   Cell, 
   ResponsiveContainer, 
   Legend,
-  Label 
+  Label,
+  Sector 
 } from 'recharts';
 import { ComposableMap, Geographies, Geography } from "react-simple-maps"
 import type { DataItem } from "../../interfaces/IData"
@@ -24,7 +25,7 @@ interface ChartsViewProps {
 
 const COLORS = {
     gender: "#8884d8",
-    education: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"],
+    education: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
     jobArea: "#82ca9d",
     experience: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82ca9d"],
     courses: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
@@ -148,6 +149,8 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
 }
 
 const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountrySelect }) => {
+    const [activeEducationIndex, setActiveEducationIndex] = useState<number | undefined>();
+
     const calculatePercentages = (rawData: { name: string; value: number }[]) => {
         const total = rawData.reduce((sum, item) => sum + item.value, 0);
         return rawData.map(item => ({
@@ -244,6 +247,51 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
         );
     };
 
+    const renderActiveShape = (props: any) => {
+        const RADIAN = Math.PI / 180;
+        const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+        const sin = Math.sin(-RADIAN * midAngle);
+        const cos = Math.cos(-RADIAN * midAngle);
+        const sx = cx + (outerRadius + 10) * cos;
+        const sy = cy + (outerRadius + 10) * sin;
+        const mx = cx + (outerRadius + 30) * cos;
+        const my = cy + (outerRadius + 30) * sin;
+        const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+        const ey = my;
+        const textAnchor = cos >= 0 ? 'start' : 'end';
+
+        return (
+            <g>
+                <Sector
+                    cx={cx}
+                    cy={cy}
+                    innerRadius={innerRadius}
+                    outerRadius={outerRadius}
+                    startAngle={startAngle}
+                    endAngle={endAngle}
+                    fill={fill}
+                />
+                <Sector
+                    cx={cx}
+                    cy={cy}
+                    startAngle={startAngle}
+                    endAngle={endAngle}
+                    innerRadius={outerRadius + 6}
+                    outerRadius={outerRadius + 10}
+                    fill={fill}
+                />
+                <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none"/>
+                <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none"/>
+                <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#333" className="text-xs">
+                    {`${payload.name}`}
+                </text>
+                <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999" className="text-xs">
+                    {`${value.toFixed(1)}% (${payload.absoluteValue})`}
+                </text>
+            </g>
+        );
+    };
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 p-6">
             <div className="bg-white rounded-xl shadow-md p-6">
@@ -279,21 +327,44 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                 <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                         <Pie
+                            activeIndex={activeEducationIndex}
+                            activeShape={renderActiveShape}
                             data={educationData}
                             cx="50%"
                             cy="50%"
-                            labelLine={false}
-                            label={renderCustomizedLabel}
-                            outerRadius={100}
+                            innerRadius={60}
+                            outerRadius={80}
                             fill="#8884d8"
                             dataKey="value"
+                            onMouseEnter={(_, index) => setActiveEducationIndex(index)}
+                            onMouseLeave={() => setActiveEducationIndex(undefined)}
                         >
                             {educationData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS.education[index % COLORS.education.length]} />
+                                <Cell 
+                                    key={`cell-${index}`} 
+                                    fill={COLORS.education[index % COLORS.education.length]}
+                                    className="transition-all duration-200"
+                                />
                             ))}
                         </Pie>
-                        <Tooltip formatter={(value: any) => [`${value}%`, 'Porcentaje']} />
-                        <Legend formatter={(value) => <span className="text-xs">{value}</span>} />
+                        <Tooltip 
+                            formatter={(value: any, name: any, props: any) => [
+                                `${value}% (${props.payload.absoluteValue})`,
+                                name
+                            ]}
+                            contentStyle={{
+                                backgroundColor: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                            }}
+                        />
+                        <Legend 
+                            formatter={(value) => <span className="text-xs">{value}</span>}
+                            layout="vertical"
+                            align="right"
+                            verticalAlign="middle"
+                        />
                     </PieChart>
                 </ResponsiveContainer>
             </div>
