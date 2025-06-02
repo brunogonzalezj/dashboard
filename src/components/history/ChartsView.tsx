@@ -40,14 +40,14 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
     const isMobile = windowWidth < 768
 
     return (
-        <div className="h-full flex flex-col bg-white rounded-lg p-4">
+        <div className="h-full flex flex-col">
             {error && <p className="text-red-500 text-xs">{error}</p>}
             {!countriesData && !error && <p className="text-xs">Cargando mapa...</p>}
-            <div className={`flex ${isMobile ? "flex-col space-y-2" : "flex-row items-center"} justify-between mb-4`}>
+            <div className={`flex ${isMobile ? "flex-col space-y-2" : "flex-row items-center"} justify-between mb-1`}>
                 <select
                     value={selectedCountry}
                     onChange={(e) => onCountrySelect(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
+                    className={`text-xs p-1 border rounded ${isMobile ? "w-full" : "w-auto"}`}
                 >
                     <option value="all">Todos los países</option>
                     {countries.map((country) => (
@@ -58,8 +58,8 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
                 </select>
             </div>
 
-            <div className="flex-1 min-h-0 relative">
-                <ComposableMap className="rounded-lg h-full w-full absolute inset-0">
+            <div className="flex-1 min-h-0 relative" style={{ touchAction: "none" }}>
+                <ComposableMap className="rounded h-full w-full absolute inset-0">
                     <g transform={`translate(-90, -300) scale(2.5)`}>
                         <Geographies geography={countriesData}>
                             {({ geographies }) =>
@@ -85,8 +85,7 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
                                                     : countries.includes(geo.properties.name)
                                                         ? '#f59e0b'
                                                         : '#E5E5E5',
-                                                cursor: countries.includes(geo.properties.name) ? 'pointer' : 'default',
-                                                transition: 'all 0.3s ease'
+                                                cursor: countries.includes(geo.properties.name) ? 'pointer' : 'default'
                                             }
                                         }}
                                         onMouseEnter={(e) => {
@@ -111,10 +110,19 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
             </div>
             {tooltipContent && (
                 <div
-                    className="fixed bg-black/80 text-white px-3 py-1 rounded text-sm pointer-events-none z-50"
                     style={{
+                        position: "fixed",
                         top: tooltipPosition.y - 40,
                         left: tooltipPosition.x + 10,
+                        backgroundColor: "rgba(0, 0, 0, 0.8)",
+                        color: "white",
+                        padding: "5px 10px",
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                        pointerEvents: "none",
+                        zIndex: 1000,
+                        maxWidth: "200px",
+                        wordBreak: "break-word",
                     }}
                 >
                     {tooltipContent}
@@ -204,11 +212,31 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
 
     const getGridLayout = () => {
         if (windowWidth < 640) {
-            return "grid-cols-1 gap-4"
+            return "h-[calc(100vh-180px)] max-h-[768px] grid grid-cols-1 gap-2 p-1 overflow-auto"
         } else if (windowWidth < 1024) {
-            return "grid-cols-2 gap-4"
+            return "h-[calc(100vh-180px)] max-h-[768px] grid grid-cols-2 gap-2 p-1 overflow-auto"
         } else {
-            return "grid-cols-3 gap-6"
+            return "h-[calc(100vh-180px)] max-h-[768px] grid grid-cols-6 gap-2 p-1 overflow-auto"
+        }
+    }
+
+    const getMapClasses = () => {
+        if (windowWidth < 640) {
+            return "col-span-1 row-span-1"
+        } else if (windowWidth < 1024) {
+            return "col-span-2 row-span-1"
+        } else {
+            return "col-span-1 row-span-1"
+        }
+    }
+
+    const getChartClasses = () => {
+        if (windowWidth < 640) {
+            return "col-span-1"
+        } else if (windowWidth < 1024) {
+            return "col-span-1"
+        } else {
+            return "col-span-2"
         }
     }
 
@@ -228,7 +256,14 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                 layout: "horizontal" as const,
                 verticalAlign: "bottom" as const,
                 align: "center" as const,
-                wrapperStyle: { fontSize: "10px", paddingTop: "1rem" }
+                wrapperStyle: { fontSize: "8px" }
+            };
+        } else if (windowWidth < 1024) {
+            return {
+                layout: "horizontal" as const,
+                verticalAlign: "bottom" as const,
+                align: "center" as const,
+                wrapperStyle: { fontSize: "10px" }
             };
         } else {
             return {
@@ -240,57 +275,57 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
         }
     };
 
-    const ChartContainer: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-        <div className="bg-white rounded-lg shadow-lg p-4 h-[400px]">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
-            <div className="h-[calc(100%-2rem)]">
-                {children}
-            </div>
-        </div>
-    );
-
     return (
-        <div className="space-y-6">
-            <div className="h-[400px]">
+        <div className={`${getGridLayout()} overflow-y-auto`}>
+            <div className={`${getMapClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
                 <ChoroplethMap data={data} selectedCountry={selectedCountry} onCountrySelect={onCountrySelect} />
             </div>
 
-            <div className={`grid ${getGridLayout()}`}>
-                <ChartContainer title="Distribución por Género">
+            <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
+                <h3 className="text-xs font-bold">Géneros</h3>
+                <div className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={genderData} margin={{ top: 20, right: 30, bottom: 20, left: 20 }}>
-                            <XAxis dataKey="name" />
-                            <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                        <BarChart data={genderData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                            <YAxis
+                                tick={{ fontSize: 10 }}
+                                domain={[0, 100]}
+                                tickFormatter={(value) => `${value}%`}
+                            />
                             <Tooltip
                                 formatter={(value: number, name: string, props: any) => [
                                     `${value}% (${props.payload.absoluteValue})`,
                                     name
                                 ]}
-                                contentStyle={{
-                                    backgroundColor: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                                }}
                             />
-                            <Bar dataKey="value" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                            <Legend
+                                fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 12}
+                                iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 10}
+                                iconType="circle"
+                                {...getLegendConfig()}
+                            />
+                            <Bar dataKey="value" name="Usuarios" fill="#8884d8" />
                         </BarChart>
                     </ResponsiveContainer>
-                </ChartContainer>
+                </div>
+            </div>
 
-                <ChartContainer title="Nivel de Educación">
+            <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
+                <h3 className="text-xs font-bold">Nivel de Educación</h3>
+                <div className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
+                        <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                             <Pie
                                 data={educationData}
                                 cx="50%"
                                 cy="50%"
+                                labelLine={false}
                                 outerRadius={getPieRadius()}
+                                fill="#8884d8"
                                 dataKey="value"
-                                nameKey="name"
-                                label={({ name, value }) => `${name}: ${value}%`}
+                                nameKey={"name"}
                             >
-                                {educationData.map((_, index) => (
+                                {educationData.map((_entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
@@ -299,64 +334,58 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                     `${value}% (${props.payload.absoluteValue})`,
                                     name
                                 ]}
-                                contentStyle={{
-                                    backgroundColor: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                                }}
                             />
-                            <Legend {...getLegendConfig()} />
+                            <Legend
+                                {...getLegendConfig()}
+                                iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 10}
+                                iconType="circle"
+                            />
                         </PieChart>
                     </ResponsiveContainer>
-                </ChartContainer>
+                </div>
+            </div>
 
-                <ChartContainer title="Área de Trabajo">
+            <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
+                <h3 className="text-xs font-bold">Distribución de puesto de trabajo</h3>
+                <div className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie
-                                data={jobAreaData}
-                                cx="50%"
-                                cy="50%"
-                                outerRadius={getPieRadius()}
-                                dataKey="value"
-                                nameKey="name"
-                                label={({ name, value }) => `${name}: ${value}%`}
-                            >
-                                {jobAreaData.map((_, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
+                        <BarChart data={jobAreaData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                            <YAxis tick={{ fontSize: 10 }} domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
                             <Tooltip
                                 formatter={(value: number, name: string, props: any) => [
                                     `${value}% (${props.payload.absoluteValue})`,
                                     name
                                 ]}
-                                contentStyle={{
-                                    backgroundColor: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                                }}
                             />
-                            <Legend {...getLegendConfig()} />
-                        </PieChart>
+                            <Legend
+                                fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
+                                iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
+                                iconType="circle"
+                                {...getLegendConfig()}
+                            />
+                            <Bar dataKey="value" name={"Usuarios"} fill="#82ca9d" />
+                        </BarChart>
                     </ResponsiveContainer>
-                </ChartContainer>
+                </div>
+            </div>
 
-                <ChartContainer title="Años de Experiencia">
+            <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
+                <h3 className="text-xs font-bold">Años de experiencia</h3>
+                <div className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
+                        <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                             <Pie
                                 data={experienceData}
                                 cx="50%"
                                 cy="50%"
+                                labelLine={false}
                                 outerRadius={getPieRadius()}
+                                fill="#8884d8"
                                 dataKey="value"
-                                nameKey="name"
-                                label={({ name, value }) => `${name}: ${value}%`}
+                                nameKey={"name"}
                             >
-                                {experienceData.map((_, index) => (
+                                {experienceData.map((_entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
@@ -365,31 +394,34 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                     `${value}% (${props.payload.absoluteValue})`,
                                     name
                                 ]}
-                                contentStyle={{
-                                    backgroundColor: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                                }}
                             />
-                            <Legend {...getLegendConfig()} />
+                            <Legend
+                                fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
+                                iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
+                                iconType="circle"
+                                {...getLegendConfig()}
+                            />
                         </PieChart>
                     </ResponsiveContainer>
-                </ChartContainer>
+                </div>
+            </div>
 
-                <ChartContainer title="Distribución de Cursos">
+            <div className={`${getChartClasses()} rounded-lg shadow-sm p-1 bg-white flex flex-col`}>
+                <h3 className="text-xs font-bold">Distribución de los cursos</h3>
+                <div className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
+                        <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                             <Pie
                                 data={courseData}
                                 cx="50%"
                                 cy="50%"
+                                labelLine={false}
                                 outerRadius={getPieRadius()}
+                                fill="#8884d8"
                                 dataKey="value"
-                                nameKey="name"
-                                label={({ name, value }) => `${name}: ${value}%`}
+                                nameKey={"name"}
                             >
-                                {courseData.map((_, index) => (
+                                {courseData.map((_entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
@@ -398,17 +430,17 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                     `${value}% (${props.payload.absoluteValue})`,
                                     name
                                 ]}
-                                contentStyle={{
-                                    backgroundColor: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                                }}
                             />
-                            <Legend {...getLegendConfig()} />
+                            <Legend
+                                fontSize={windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 16}
+                                iconSize={windowWidth < 640 ? 6 : windowWidth < 1024 ? 8 : 14}
+                                iconType="circle"
+                                {...getLegendConfig()}
+                                wrapperStyle={{ fontSize: "10px" }}
+                            />
                         </PieChart>
                     </ResponsiveContainer>
-                </ChartContainer>
+                </div>
             </div>
         </div>
     )
