@@ -14,7 +14,6 @@ import {
 import { Download } from 'lucide-react';
 import { saveAs } from 'file-saver';
 import { DataItem } from '../../interfaces/IData.ts';
-import { motion } from 'framer-motion';
 const TableCurrent = React.lazy(() => import('../TableCurrent'));
 
 enum FilterLabels {
@@ -93,8 +92,6 @@ const Current: React.FC = () => {
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setData([]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -236,64 +233,49 @@ const Current: React.FC = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="p-6 bg-white rounded-xl shadow-xl space-y-6"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="bg-amber-500 p-6 rounded-xl text-white"
-        >
-          <h2 className="text-xl font-semibold mb-3">Usuarios que iniciaron sesión</h2>
-          {!loading ? (
-            <p className="text-3xl font-bold">
-              {getLoginStats.loggedInCount} de {getLoginStats.totalCount} usuarios ({getLoginStats.rate}%)
-            </p>
-          ) : (
-            <div className="flex justify-center">
+    <div className="p-2 mt-2 sm:p-4 md:p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto">
+      <div className="flex flex-col mb-4 lg:mb-8 gap-4">
+        <div className="flex flex-col items-center justify-center lg:flex-row w-full gap-4">
+          <div className="bg-amber-500 p-4 rounded-lg text-white">
+            <h2 className="text-base sm:text-lg font-semibold mb-2">
+              Usuarios que iniciaron sesión
+            </h2>
+            {!loading ? (
+              <p className="text-2xl sm:text-3xl font-bold">
+                {getLoginStats.loggedInCount} de {getLoginStats.totalCount} usuarios ({getLoginStats.rate}%)
+              </p>
+            ) : (
               <span className="loading loading-ring loading-lg"></span>
-            </div>
-          )}
-        </motion.div>
-
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="bg-amber-500 p-6 rounded-xl text-white"
-        >
-          <h2 className="text-xl font-semibold mb-3">Usuarios que completaron el curso</h2>
-          {!loading ? (
-            <p className="text-3xl font-bold">
-              {getCompletionStats.completedCount} de {getCompletionStats.totalCount} usuarios ({getCompletionStats.rate}%)
-            </p>
-          ) : (
-            <div className="flex justify-center">
+            )}
+          </div>
+          <div className="bg-amber-500 p-4 rounded-lg text-white">
+            <h2 className="text-base sm:text-lg font-semibold mb-2">
+              Usuarios que completaron el curso
+            </h2>
+            {!loading ? (
+              <p className="flex text-nowrap text-2xl sm:text-3xl font-bold">
+                {getCompletionStats.completedCount} de {getCompletionStats.totalCount} usuarios ({getCompletionStats.rate}%)
+              </p>
+            ) : (
               <span className="loading loading-ring loading-lg"></span>
-            </div>
-          )}
-        </motion.div>
-      </div>
-
-      <div className="bg-white rounded-xl p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-          <h2 className="text-xl font-semibold">Distribución de Progreso</h2>
-          <p className="text-sm text-gray-600">
-            Ultima modificación:{' '}
-            <span className="badge badge-warning font-semibold">
-              {new Date(lastDate).toLocaleString()}
-            </span>
-          </p>
+            )}
+          </div>
         </div>
 
-        {!loading ? (
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
+        <div className="flex items-center justify-center flex-col w-full lg:flex-1">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 w-full">
+            <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">
+              Distribución de Progreso
+            </h2>
+            <p className="text-sm sm:text-base">
+              Ultima modificación:{' '}
+              <span className="badge badge-warning font-semibold">
+                {new Date(lastDate).toLocaleString()}
+              </span>
+            </p>
+          </div>
+          {!loading ? (
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={getProgressData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="progress" />
@@ -303,75 +285,78 @@ const Current: React.FC = () => {
                 <Bar dataKey="count" name="Nro de Usuarios" fill="#f59e0b" />
               </BarChart>
             </ResponsiveContainer>
-          </div>
-        ) : (
-          <div className="flex justify-center h-[300px] items-center">
+          ) : (
             <span className="loading loading-ring loading-lg"></span>
-          </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+        <h1 className="text-lg sm:text-xl font-bold">Datos de Usuario</h1>
+        <button
+          onClick={handleDownloadXLSX}
+          className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center text-sm"
+        >
+          <Download className="mr-2" size={18} />
+          Descargar Excel
+        </button>
+      </div>
+
+      <h2 className="text-lg sm:text-xl font-semibold mb-2">Filtros</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {Object.entries(filters).map(
+          ([key, value]) =>
+            (userRole === 'admin' ||
+              !['association', 'businessGroup', 'business'].includes(key)) && (
+              <div key={key}>
+                <label
+                  htmlFor={`${key}-filter`}
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  {FilterLabels[key as keyof typeof FilterLabels]
+                    .charAt(0)
+                    .toUpperCase() +
+                    FilterLabels[key as keyof typeof FilterLabels].slice(1)}
+                </label>
+                <select
+                  id={`${key}-filter`}
+                  value={value}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, [key]: e.target.value }))
+                  }
+                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 text-sm"
+                >
+                  <option value="all">Todos</option>
+                  {getUniqueValues(key as keyof DataItem).map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )
         )}
       </div>
 
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-xl font-semibold">Datos de Usuario</h2>
-          <button
-            onClick={handleDownloadXLSX}
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-          >
-            <Download className="w-5 h-5" />
-            Descargar Excel
-          </button>
-        </div>
-
-        <div className="bg-gray-50 p-6 rounded-xl">
-          <h3 className="text-lg font-semibold mb-4">Filtros</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Object.entries(filters).map(
-              ([key, value]) =>
-                (userRole === 'admin' ||
-                  !['association', 'businessGroup', 'business'].includes(key)) && (
-                  <div key={key}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {FilterLabels[key as keyof typeof FilterLabels]}
-                    </label>
-                    <select
-                      value={value}
-                      onChange={(e) =>
-                        setFilters((prev) => ({ ...prev, [key]: e.target.value }))
-                      }
-                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                    >
-                      <option value="all">Todos</option>
-                      {getUniqueValues(key as keyof DataItem).map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )
-            )}
-          </div>
-        </div>
-
+      <div className="overflow-x-auto w-full">
         <TableCurrent
           data={displayedData}
           onSort={handleSort}
           sortConfig={sortConfig}
         />
-
-        {displayedData.length < filteredData.length && (
-          <div className="flex justify-center mt-6">
-            <button
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-              className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg transition-colors"
-            >
-              Cargar más
-            </button>
-          </div>
-        )}
       </div>
-    </motion.div>
+
+      {displayedData.length < filteredData.length && (
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded text-sm sm:text-base"
+          >
+            Cargar más
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 
