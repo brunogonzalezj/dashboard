@@ -360,10 +360,21 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             }}
                         />
                         <Legend 
-                            formatter={(value) => <span className="text-xs">{value}</span>}
-                            layout="vertical"
-                            align="right"
-                            verticalAlign="middle"
+                            layout="horizontal"
+                            align="center"
+                            verticalAlign="bottom"
+                            wrapperStyle={{
+                                paddingTop: '20px',
+                                fontSize: '11px',
+                                width: '100%'
+                            }}
+                            formatter={(value) => {
+                                // Truncate long education names
+                                if (value.length > 20) {
+                                    return `${value.substring(0, 20)}...`;
+                                }
+                                return value;
+                            }}
                         />
                     </PieChart>
                 </ResponsiveContainer>
