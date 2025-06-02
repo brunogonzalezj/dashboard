@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar.tsx';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 const Layout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -10,7 +10,7 @@ const Layout: React.FC = () => {
 
   return (
     <div className='flex h-screen bg-gray-100'>
-      <div className="hidden sm:block h-full">
+      <div className="hidden sm:block sm:h-full h-full">
         <Sidebar isOpen={true} onClose={() => setIsSidebarOpen(false)} />
       </div>
       

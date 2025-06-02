@@ -236,7 +236,7 @@ const Current: React.FC = () => {
     <div className="p-2 mt-2 sm:p-4 md:p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto">
       <div className="flex flex-col mb-4 lg:mb-8 gap-4">
         <div className="flex flex-col items-center justify-center lg:flex-row w-full gap-4">
-          <div className="bg-amber-500 p-4 rounded-lg text-white">
+          <div className="bg-[#3A69AA] p-4 rounded-lg text-white">
             <h2 className="text-base sm:text-lg font-semibold mb-2">
               Usuarios que iniciaron sesión
             </h2>
@@ -248,7 +248,7 @@ const Current: React.FC = () => {
               <span className="loading loading-ring loading-lg"></span>
             )}
           </div>
-          <div className="bg-amber-500 p-4 rounded-lg text-white">
+          <div className="bg-[#3A69AA] p-4 rounded-lg text-white">
             <h2 className="text-base sm:text-lg font-semibold mb-2">
               Usuarios que completaron el curso
             </h2>
@@ -282,7 +282,7 @@ const Current: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="count" name="Nro de Usuarios" fill="#f59e0b" />
+                <Bar dataKey="count" name="Nro de Usuarios" fill="#3A69AA" />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -328,7 +328,7 @@ const Current: React.FC = () => {
                 >
                   <option value="all">Todos</option>
                   {getUniqueValues(key as keyof DataItem).map((option) => (
-                    <option key={option} value={option}>
+                    <option key={option?.toString()} value={option?.toString()}>
                       {option}
                     </option>
                   ))}
