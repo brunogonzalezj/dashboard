@@ -91,10 +91,10 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig }) => {
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div
                     className="bg-primary-600 h-2.5 rounded-full transition-all duration-500"
-                    style={{ width: `${item.progressPercentage}%` }}
+                    style={{ width: `${parseFloat(item.progressPercentage)}%` }}
                   ></div>
                 </div>
-                <span className="text-xs text-gray-500 mt-1">{item.progressPercentage}%</span>
+                <span className="text-xs text-gray-500 mt-1">{parseFloat(item.progressPercentage).toFixed(1)}%</span>
               </td>
               <td className="py-3 px-4">
                 <div className="flex items-center justify-center space-x-2">

@@ -10,7 +10,12 @@ const Layout: React.FC = () => {
 
   return (
     <div className='flex h-screen bg-gradient-to-br from-gray-50 to-gray-100'>
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <div className="hidden sm:block">
+        <Sidebar isOpen={true} onClose={() => setIsSidebarOpen(false)} />
+      </div>
+      <div className="sm:hidden">
+        {isSidebarOpen && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
+      </div>
       <main className='flex-1 overflow-hidden'>
         <header className='sticky top-0 z-10 backdrop-blur-sm bg-white/50'>
           <div className='max-w-7xl mx-auto py-3 px-4 sm:px-6 lg:px-8'>
