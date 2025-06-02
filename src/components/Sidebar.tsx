@@ -70,7 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <NavLink to="/" icon={Home} label="Home" />
             {userRole === 'admin' && (
               <>
-                <NavLink to="/users" icon={Users} label="Usuarios" />
+                <NavLink to="/users\" icon={Users} label="Usuarios" />
                 <NavLink to="/csv-upload" icon={FileSpreadsheet} label="CSV" />
               </>
             )}
