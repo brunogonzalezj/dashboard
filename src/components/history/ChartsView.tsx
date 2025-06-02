@@ -215,36 +215,33 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
         ).map(([name, value]) => ({ name, value }))
     );
 
-    const chartContainerStyle = "bg-white rounded-xl shadow-md p-4 transition-all duration-200";
-    const chartTitleStyle = "text-base font-semibold text-gray-800 mb-4";
-
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
-            <div className={`${chartContainerStyle} lg:col-span-1`}>
+            <div className="bg-white rounded-lg p-4">
                 <ChoroplethMap data={data} selectedCountry={selectedCountry} onCountrySelect={onCountrySelect} />
             </div>
 
-            <div className={chartContainerStyle}>
-                <h3 className={chartTitleStyle}>Géneros</h3>
+            <div className="bg-white rounded-lg p-4">
+                <h3 className="text-base font-semibold mb-4">Géneros</h3>
                 <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={genderData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                        <BarChart data={genderData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                             <XAxis dataKey="name" />
-                            <YAxis tickFormatter={(value) => `${value}%`} />
+                            <YAxis tickFormatter={(value) => `${value}%`} domain={[0, 100]} />
                             <Tooltip
                                 formatter={(value: number, name: string, props: any) => [
                                     `${value}% (${props.payload.absoluteValue})`,
                                     'Usuarios'
                                 ]}
                             />
-                            <Bar dataKey="value" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="value" fill="#8884d8" />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
             </div>
 
-            <div className={chartContainerStyle}>
-                <h3 className={chartTitleStyle}>Nivel de Educación</h3>
+            <div className="bg-white rounded-lg p-4">
+                <h3 className="text-base font-semibold mb-4">Nivel de Educación</h3>
                 <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
@@ -252,9 +249,10 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                 data={educationData}
                                 cx="50%"
                                 cy="50%"
-                                outerRadius={100}
+                                outerRadius={80}
                                 dataKey="value"
                                 nameKey="name"
+                                label
                             >
                                 {educationData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -266,33 +264,33 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                     name
                                 ]}
                             />
-                            <Legend layout="vertical" align="right" verticalAlign="middle" />
+                            <Legend verticalAlign="bottom" height={36} />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
             </div>
 
-            <div className={chartContainerStyle}>
-                <h3 className={chartTitleStyle}>Distribución de puesto de trabajo</h3>
+            <div className="bg-white rounded-lg p-4">
+                <h3 className="text-base font-semibold mb-4">Distribución de puesto de trabajo</h3>
                 <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={jobAreaData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                        <BarChart data={jobAreaData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                             <XAxis dataKey="name" />
-                            <YAxis tickFormatter={(value) => `${value}%`} />
+                            <YAxis tickFormatter={(value) => `${value}%`} domain={[0, 100]} />
                             <Tooltip
                                 formatter={(value: number, name: string, props: any) => [
                                     `${value}% (${props.payload.absoluteValue})`,
                                     'Usuarios'
                                 ]}
                             />
-                            <Bar dataKey="value" fill="#82ca9d" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="value" fill="#82ca9d" />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
             </div>
 
-            <div className={chartContainerStyle}>
-                <h3 className={chartTitleStyle}>Años de experiencia</h3>
+            <div className="bg-white rounded-lg p-4">
+                <h3 className="text-base font-semibold mb-4">Años de experiencia</h3>
                 <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
@@ -300,9 +298,10 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                 data={experienceData}
                                 cx="50%"
                                 cy="50%"
-                                outerRadius={100}
+                                outerRadius={80}
                                 dataKey="value"
                                 nameKey="name"
+                                label
                             >
                                 {experienceData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -314,14 +313,14 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                     name
                                 ]}
                             />
-                            <Legend layout="vertical" align="right" verticalAlign="middle" />
+                            <Legend verticalAlign="bottom" height={36} />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
             </div>
 
-            <div className={chartContainerStyle}>
-                <h3 className={chartTitleStyle}>Distribución de los cursos</h3>
+            <div className="bg-white rounded-lg p-4">
+                <h3 className="text-base font-semibold mb-4">Distribución de los cursos</h3>
                 <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
@@ -329,9 +328,10 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                 data={courseData}
                                 cx="50%"
                                 cy="50%"
-                                outerRadius={100}
+                                outerRadius={80}
                                 dataKey="value"
                                 nameKey="name"
+                                label
                             >
                                 {courseData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -343,7 +343,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                     name
                                 ]}
                             />
-                            <Legend layout="vertical" align="right" verticalAlign="middle" />
+                            <Legend verticalAlign="bottom" height={36} />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
