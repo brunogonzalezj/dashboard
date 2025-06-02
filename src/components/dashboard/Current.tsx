@@ -5,6 +5,7 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 import { ChevronDownIcon, ChevronUpIcon, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { motion } from 'framer-motion';
 
 interface DataItem {
   id: number;
@@ -91,7 +92,7 @@ const Current: React.FC = () => {
       console.error('Error fetching dashboard data:', error);
       setData([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
 
@@ -183,142 +184,177 @@ const Current: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto">
-      <div className="flex flex-row mb-8">
-        <div className="flex flex-col w-1/4 gap-y-4">
-          <div className="bg-[#3a69aa]/80 p-4 rounded-lg text-white">
-            <h2 className="text-lg font-semibold mb-2">Progreso Promedio</h2>
-            {!loading ? (
-              <p className="text-3xl font-bold">{getAverageProgress}%</p>
-            ) : (
-              <span className="loading loading-ring loading-lg"></span>
-            )}
-          </div>
-          <div className="bg-[#3a69aa]/80 p-4 rounded-lg text-white">
-            <h2 className="text-lg font-semibold mb-2">Tasa de Completados</h2>
-            {!loading ? (
-              <p className="text-3xl font-bold">{getCompletionRate}%</p>
-            ) : (
-              <span className="loading loading-ring loading-lg"></span>
-            )}
-          </div>
-          <div className="bg-[#3a69aa]/80 p-4 rounded-lg text-white">
-            <h2 className="text-lg font-semibold mb-2">Puntaje Promedio</h2>
-            {!loading ? (
-              <p className="text-3xl font-bold">{getAverageScore}%</p>
-            ) : (
-              <span className="loading loading-ring loading-lg"></span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center flex-col w-full">
-          <h2 className="text-xl font-semibold mb-4">Distribución de Progreso</h2>
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="stat-card"
+        >
+          <h2 className="text-lg font-medium mb-2">Progreso Promedio</h2>
           {!loading ? (
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={getProgressData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="progress" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" fill="#3a69aa" />
-              </BarChart>
-            </ResponsiveContainer>
+            <p className="text-4xl font-bold">{getAverageProgress}%</p>
           ) : (
             <span className="loading loading-ring loading-lg"></span>
           )}
-        </div>
-      </div>
+        </motion.div>
 
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">Datos de Usuario</h1>
-        <button
-          onClick={handleDownloadXLSX}
-          className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center"
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="stat-card"
         >
-          <Download className="mr-2" size={18} />
-          Descargar Excel
-        </button>
+          <h2 className="text-lg font-medium mb-2">Tasa de Completados</h2>
+          {!loading ? (
+            <p className="text-4xl font-bold">{getCompletionRate}%</p>
+          ) : (
+            <span className="loading loading-ring loading-lg"></span>
+          )}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="stat-card"
+        >
+          <h2 className="text-lg font-medium mb-2">Puntaje Promedio</h2>
+          {!loading ? (
+            <p className="text-4xl font-bold">{getAverageScore}%</p>
+          ) : (
+            <span className="loading loading-ring loading-lg"></span>
+          )}
+        </motion.div>
       </div>
 
-      <h2 className="text-xl font-semibold">Filtros</h2>
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        {Object.entries(filters).map(([key, value]) => (
-          <div key={key}>
-            <label htmlFor={`${key}-filter`} className="block text-sm font-medium text-gray-700">
-              {FilterLabels[key as keyof typeof FilterLabels].charAt(0).toUpperCase() + FilterLabels[key as keyof typeof FilterLabels].slice(1)}
-            </label>
-            <select
-              id={`${key}-filter`}
-              value={value}
-              onChange={(e) => setFilters(prev => ({ ...prev, [key]: e.target.value }))}
-              className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            >
-              <option value="all">Todos</option>
-              {getUniqueValues(key as keyof DataItem).map((option) => (
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                //@ts-expect-error
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </div>
-        ))}
-      </div>
-
-      <div className="overflow-x-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="dashboard-card"
+      >
+        <h2 className="text-xl font-semibold mb-6">Distribución de Progreso</h2>
         {!loading ? (
-          <table className="min-w-full overflow-hidden">
-            <thead>
-            <tr>
-              {['curso', 'nombre', 'apellido', 'correo', 'empresa', 'estado', '% de progreso'].map((column) => (
-                <th
-                  key={column}
-                  className="py-2 px-4 border-b cursor-pointer"
-                  onClick={() => handleSort(column as keyof DataItem)}
-                >
-                  {column.charAt(0).toUpperCase() + column.slice(1)} <SortIcon column={column as keyof DataItem} />
-                </th>
-              ))}
-            </tr>
-            </thead>
-            <tbody>
-            {displayedData.map((item) => (
-              <tr key={item.id} className="text-center">
-                <td className="py-2 px-4 border-b">{item.course}</td>
-                <td className="py-2 px-4 border-b text-left">{item.name}</td>
-                <td className="py-2 px-4 border-b text-left">{item.lastName}</td>
-                <td className="py-2 px-4 border-b text-left">{item.email}</td>
-                <td className="py-2 px-4 border-b text-left">{item.business}</td>
-                <td className="py-2 px-4 border-b">
-                  <div
-                    className={`badge p-4 justify-center ${item.stateOfCompleteness === 'Completado' ? 'badge-success' : 'badge-error'} text-white`}>
-                    {item.stateOfCompleteness === 'Completado' ? 'Completado' : 'No completado'}
-                  </div>
-                </td>
-                <td className="py-2 px-4 border-b">{item.progressPercentage}</td>
-              </tr>
-            ))}
-            </tbody>
-          </table>
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart data={getProgressData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+              <XAxis dataKey="progress" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="count" fill="var(--primary)" />
+            </BarChart>
+          </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center">
+          <div className="flex justify-center items-center h-[350px]">
             <span className="loading loading-ring loading-lg"></span>
           </div>
         )}
-      </div>
-      {displayedData.length < filteredData.length && (
-        <div className="mt-4 flex justify-center">
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="dashboard-card"
+      >
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">Datos de Usuario</h2>
           <button
-            onClick={() => setCurrentPage(prev => prev + 1)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+            onClick={handleDownloadXLSX}
+            className="btn-secondary flex items-center space-x-2"
           >
-            Cargar más
+            <Download className="w-4 h-4" />
+            <span>Descargar Excel</span>
           </button>
         </div>
-      )}
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Object.entries(filters).map(([key, value]) => (
+              <div key={key}>
+                <label htmlFor={`${key}-filter`} className="block text-sm font-medium text-gray-700 mb-1">
+                  {FilterLabels[key as keyof typeof FilterLabels]}
+                </label>
+                <select
+                  id={`${key}-filter`}
+                  value={value}
+                  onChange={(e) => setFilters(prev => ({ ...prev, [key]: e.target.value }))}
+                  className="input-field"
+                >
+                  <option value="all">Todos</option>
+                  {getUniqueValues(key as keyof DataItem).map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
+          </div>
+
+          <div className="overflow-x-auto">
+            {!loading ? (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    {['curso', 'nombre', 'apellido', 'correo', 'empresa', 'estado', '% de progreso'].map((column) => (
+                      <th
+                        key={column}
+                        onClick={() => handleSort(column as keyof DataItem)}
+                        className="cursor-pointer hover:bg-gray-100 transition-colors duration-150"
+                      >
+                        {column.charAt(0).toUpperCase() + column.slice(1)}
+                        <SortIcon column={column as keyof DataItem} />
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayedData.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-150">
+                      <td>{item.course}</td>
+                      <td>{item.name}</td>
+                      <td>{item.lastName}</td>
+                      <td>{item.email}</td>
+                      <td>{item.business}</td>
+                      <td>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            item.stateOfCompleteness === 'Completado'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {item.stateOfCompleteness === 'Completado' ? 'Completado' : 'No completado'}
+                        </span>
+                      </td>
+                      <td>{item.progressPercentage}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="flex justify-center py-8">
+                <span className="loading loading-ring loading-lg"></span>
+              </div>
+            )}
+          </div>
+
+          {displayedData.length < filteredData.length && (
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={() => setCurrentPage(prev => prev + 1)}
+                className="btn-primary"
+              >
+                Cargar más
+              </button>
+            </div>
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 };

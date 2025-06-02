@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import FileSaver from 'file-saver';
-import { DownloadIcon } from 'lucide-react';
+import { Download, Plus, RefreshCw } from 'lucide-react';
 import { User } from '../interfaces/IUsers';
+import { motion } from 'framer-motion';
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -15,7 +16,8 @@ const Users: React.FC = () => {
   const { userRole, isAuthenticated } = useAuth();
   const [companyOptions, setCompanyOptions] = useState<{ businessGroups: string[], associations: string[], business: string[] }>({
     businessGroups: [],
-    associations: [], business: [],
+    associations: [],
+    business: [],
   });
 
   useEffect(() => {
@@ -30,11 +32,11 @@ const Users: React.FC = () => {
       setUserLoading(true);
       const response = await axios.get('http://excelenciadelasoya.org/api/users', { withCredentials: true });
       setUsers(response.data);
-      setUserLoading(false);
-
     } catch (error) {
       console.error('Error fetching users:', error);
       setError('Error al obtener usuarios');
+    } finally {
+      setUserLoading(false);
     }
   };
 
@@ -74,113 +76,157 @@ const Users: React.FC = () => {
   };
 
   if (!isAuthenticated || userRole !== 'admin') {
-    return <div className="p-6 bg-white rounded-lg shadow-md">Acceso no autorizado</div>;
+    return <div className="dashboard-card">Acceso no autorizado</div>;
   }
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h2 className="text-2xl font-bold mb-4">Gestión de Usuarios</h2>
-      <div className="space-y-4">
-        <div className="flex flex-col space-y-4">
+    <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="dashboard-card"
+      >
+        <h2 className="text-2xl font-bold mb-6">Crear Nuevo Usuario</h2>
+        <div className="space-y-4">
           <input
             type="text"
             placeholder="Nombre de usuario"
             value={newUser.username}
             onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-            className="p-2 border rounded"
+            className="input-field"
           />
-          <div className="flex items-center space-x-4">
-            <label className="inline-flex items-center">
+
+          <div className="flex flex-wrap gap-4">
+            <label className="flex items-center space-x-2">
               <input
                 type="radio"
-                className="form-radio"
+                className="form-radio text-primary"
                 name="companyType"
                 value="businessGroup"
                 checked={newUser.companyType === 'businessGroup'}
                 onChange={(e) => setNewUser({ ...newUser, companyType: e.target.value, company: '' })}
               />
-              <span className="ml-2">Grupo Empresarial</span>
+              <span>Grupo Empresarial</span>
             </label>
-            <label className="inline-flex items-center">
+            <label className="flex items-center space-x-2">
               <input
                 type="radio"
-                className="form-radio"
+                className="form-radio text-primary"
                 name="companyType"
                 value="association"
                 checked={newUser.companyType === 'association'}
                 onChange={(e) => setNewUser({ ...newUser, companyType: e.target.value, company: '' })}
               />
-              <span className="ml-2">Asociación</span>
+              <span>Asociación</span>
             </label>
-            <label className="inline-flex items-center">
+            <label className="flex items-center space-x-2">
               <input
                 type="radio"
-                className="form-radio"
+                className="form-radio text-primary"
                 name="companyType"
                 value="business"
                 checked={newUser.companyType === 'business'}
                 onChange={(e) => setNewUser({ ...newUser, companyType: e.target.value, company: '' })}
               />
-              <span className="ml-2">Empresa</span>
+              <span>Empresa</span>
             </label>
           </div>
+
           {newUser.companyType && (
             <select
               value={newUser.company}
               onChange={(e) => setNewUser({ ...newUser, company: e.target.value })}
-              className="p-2 border rounded"
+              className="input-field"
             >
               <option value="">Seleccione una opción</option>
-              {newUser.companyType === 'businessGroup'
-                && (companyOptions.businessGroups.map((group: string) => (
-                  <option key={group} value={group}>{group}</option>
-                )))}
-              {newUser.companyType === 'association'
-                && (companyOptions.associations.map((association: string) => (
-                  <option key={association} value={association}>{association}</option>
-                )))
-              }
-              {newUser.companyType === 'business' && (
-              companyOptions.business.map((business: string) => (
+              {newUser.companyType === 'businessGroup' && companyOptions.businessGroups.map((group) => (
+                <option key={group} value={group}>{group}</option>
+              ))}
+              {newUser.companyType === 'association' && companyOptions.associations.map((association) => (
+                <option key={association} value={association}>{association}</option>
+              ))}
+              {newUser.companyType === 'business' && companyOptions.business.map((business) => (
                 <option key={business} value={business}>{business}</option>
-              )))}
+              ))}
             </select>
           )}
-          <button
-            onClick={createUser}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Crear Usuario
-          </button>
+
+          <div className="flex space-x-4">
+            <button
+              onClick={createUser}
+              className="btn-primary flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Crear Usuario</span>
+            </button>
+
+            <button
+              onClick={handleUpdatePasswords}
+              disabled={loading}
+              className="btn-secondary flex items-center space-x-2"
+            >
+              {loading ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span>{loading ? 'Actualizando...' : 'Actualizar Contraseñas'}</span>
+            </button>
+          </div>
+
+          {error && (
+            <div className="p-4 bg-red-100 border border-red-200 text-red-700 rounded-lg">
+              {error}
+            </div>
+          )}
+          {successMessage && (
+            <div className="p-4 bg-green-100 border border-green-200 text-green-700 rounded-lg">
+              {successMessage}
+            </div>
+          )}
         </div>
-        <button onClick={handleUpdatePasswords} disabled={loading}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded flex items-center gap-2">
-          <DownloadIcon />{loading ? 'Actualizando...' : 'Actualizar Contraseñas'}
-        </button>
-        {error && <div className="text-red-500">{error}</div>}
-        {successMessage && <div className="text-green-500">{successMessage}</div>}
-        {!userLoading ?
-          <table className="min-w-full bg-white">
-            <thead>
-            <tr>
-              <th className="py-2 px-4 border-b">Username</th>
-              <th className="py-2 px-4 border-b">Role</th>
-              <th className="py-2 px-4 border-b">Company</th>
-            </tr>
-            </thead>
-            <tbody>
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td className="py-2 px-4 border-b text-center">{user.username}</td>
-                <td className="py-2 px-4 border-b text-center">{user.role}</td>
-                <td className="py-2 px-4 border-b text-center">{user.company}</td>
-              </tr>
-            ))}
-            </tbody>
-          </table> : <div className={'flex items-center justify-center'}>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="dashboard-card"
+      >
+        <h2 className="text-2xl font-bold mb-6">Lista de Usuarios</h2>
+        {!userLoading ? (
+          <div className="overflow-x-auto">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Rol</th>
+                  <th>Empresa</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50 transition-colors duration-150">
+                    <td>{user.username}</td>
+                    <td>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td>{user.company}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="flex justify-center py-8">
             <span className="loading loading-ring loading-lg"></span>
-          </div>}
-      </div>
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 };
