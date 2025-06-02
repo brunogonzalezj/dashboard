@@ -1,6 +1,18 @@
 import React from 'react';
 import { useEffect, useState } from "react"
-import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer, Legend } from 'recharts';
+import { 
+  PieChart, 
+  Pie, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
+  Cell, 
+  ResponsiveContainer, 
+  Legend,
+  Label 
+} from 'recharts';
 import { ComposableMap, Geographies, Geography } from "react-simple-maps"
 import type { DataItem } from "../../interfaces/IData"
 
@@ -249,7 +261,14 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             labelStyle={{ color: '#666' }}
                         />
                         <Bar dataKey="value" fill={COLORS.gender}>
-                            <LabelList dataKey="percentage" position="top" />
+                            {genderData.map((entry, index) => (
+                                <Cell key={`cell-${index}`}>
+                                    <Label
+                                        position="top"
+                                        content={({ value }) => `${value}%`}
+                                    />
+                                </Cell>
+                            ))}
                         </Bar>
                     </BarChart>
                 </ResponsiveContainer>
@@ -290,7 +309,14 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             labelStyle={{ color: '#666' }}
                         />
                         <Bar dataKey="value" fill={COLORS.jobArea}>
-                            <LabelList dataKey="percentage" position="top" />
+                            {jobAreaData.map((entry, index) => (
+                                <Cell key={`cell-${index}`}>
+                                    <Label
+                                        position="top"
+                                        content={({ value }) => `${value}%`}
+                                    />
+                                </Cell>
+                            ))}
                         </Bar>
                     </BarChart>
                 </ResponsiveContainer>
