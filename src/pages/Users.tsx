@@ -332,7 +332,7 @@ const Users: React.FC = () => {
           </button>
           <button
             onClick={fetchPasswords}
-            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors duration-200 flex items-center gap-2"
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200 flex items-center gap-2"
           >
             <DownloadIcon className="w-5 h-5" />
             <span className="hidden sm:inline">Descargar contraseñas</span>
@@ -424,8 +424,8 @@ const Users: React.FC = () => {
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         user.role === 'admin'
-                          ? 'bg-purple-100 text-purple-800'
-                          : 'bg-green-100 text-green-800'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-amber-100 text-amber-800'
                       }`}
                     >
                       {user.role}
@@ -436,12 +436,14 @@ const Users: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex space-x-2">
+                      {user.username !== 'clagonjor' && (
                       <button
                         onClick={() => handleEditUser(user)}
                         className="text-amber-500 hover:text-amber-600 transition-colors duration-150"
                       >
                         <Edit2Icon className="w-5 h-5" />
                       </button>
+                      )}
                       {user.username !== 'clagonjor' && (
                         <button
                           onClick={() => handleDeleteUser(user.id)}

@@ -76,7 +76,7 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
 
             <div className="flex-1 min-h-0 relative" style={{ touchAction: "none" }}>
                 <ComposableMap className="rounded h-full w-full absolute inset-0">
-                    <g transform={`translate(-90, -300) scale(2.5)`}>
+                    <g transform={`translate(20, -250) scale(2.2)`}>
                         <Geographies geography={countriesData}>
                             {({ geographies }) =>
                                 geographies.map((geo: { rsmKey: any; properties: { name: string } }) => (
@@ -227,7 +227,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
     );
 
     const renderCustomizedLabel = (props: any) => {
-        const { cx, cy, midAngle, innerRadius, outerRadius, value, name } = props;
+        const { cx, cy, midAngle, innerRadius, outerRadius, value } = props;
         const RADIAN = Math.PI / 180;
         const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
         const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -249,7 +249,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
 
     const renderActiveShape = (props: any) => {
         const RADIAN = Math.PI / 180;
-        const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+        const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, value } = props;
         const sin = Math.sin(-RADIAN * midAngle);
         const cos = Math.cos(-RADIAN * midAngle);
         const sx = cx + (outerRadius + 10) * cos;
@@ -309,7 +309,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             labelStyle={{ color: '#666' }}
                         />
                         <Bar dataKey="value" fill={COLORS.gender}>
-                            {genderData.map((entry, index) => (
+                            {genderData.map((_entry, index) => (
                                 <Cell key={`cell-${index}`}>
                                     <Label
                                         position="top"
@@ -339,7 +339,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             onMouseEnter={(_, index) => setActiveEducationIndex(index)}
                             onMouseLeave={() => setActiveEducationIndex(undefined)}
                         >
-                            {educationData.map((entry, index) => (
+                            {educationData.map((_entry, index) => (
                                 <Cell 
                                     key={`cell-${index}`} 
                                     fill={COLORS.education[index % COLORS.education.length]}
@@ -391,7 +391,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             labelStyle={{ color: '#666' }}
                         />
                         <Bar dataKey="value" fill={COLORS.jobArea}>
-                            {jobAreaData.map((entry, index) => (
+                            {jobAreaData.map((_entry, index) => (
                                 <Cell key={`cell-${index}`}>
                                     <Label
                                         position="top"
@@ -418,7 +418,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             fill="#8884d8"
                             dataKey="value"
                         >
-                            {experienceData.map((entry, index) => (
+                            {experienceData.map((_entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS.experience[index % COLORS.experience.length]} />
                             ))}
                         </Pie>
@@ -442,7 +442,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             fill="#8884d8"
                             dataKey="value"
                         >
-                            {courseData.map((entry, index) => (
+                            {courseData.map((_entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS.courses[index % COLORS.courses.length]} />
                             ))}
                         </Pie>
