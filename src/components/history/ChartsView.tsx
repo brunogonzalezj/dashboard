@@ -161,14 +161,16 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
         }));
     };
 
-    const genderData = calculatePercentages(
-        Object.entries(
-            data.reduce((acc: Record<string, number>, item) => {
-                acc[item.gender] = (acc[item.gender] || 0) + 1
-                return acc
-            }, {})
-        ).map(([name, value]) => ({ name, value }))
-    );
+  const genderData = calculatePercentages(
+    Object.entries(
+      data.reduce((acc: Record<string, number>, item) => {
+        if (item.gender !== null) {
+          acc[item.gender] = (acc[item.gender] || 0) + 1;
+        }
+        return acc;
+      }, {})
+    ).map(([name, value]) => ({ name, value }))
+  );
 
     const educationData = calculatePercentages(
         Object.entries(
