@@ -17,19 +17,25 @@ const Dashboard: React.FC = () => {
   // Si no hay vista seleccionada, mostrar el selector principal
   if (!selectedView) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
-          <div className="text-center mb-8">
-            <img src="/soy_logo.webp" alt="Logo" className="w-16 h-16 mx-auto mb-4 rounded-full" />
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-amber-50 flex items-center justify-center p-3 sm:p-4 lg:p-6">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl sm:shadow-2xl p-4 sm:p-6 lg:p-8 max-w-xs sm:max-w-2xl lg:max-w-4xl xl:max-w-5xl w-full">
+          {/* Header Section */}
+          <div className="text-center mb-6 sm:mb-8">
+            <img 
+              src="/soy_logo.webp" 
+              alt="Logo" 
+              className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-full shadow-md" 
+            />
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
               Dashboard de Cursos
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600 px-2">
               Selecciona el tipo de datos que deseas visualizar
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
             {Object.values(ViewType).map((view) => {
               const getViewInfo = (viewType: ViewType) => {
                 switch (viewType) {
@@ -38,28 +44,36 @@ const Dashboard: React.FC = () => {
                       icon: '📊',
                       title: 'Datos Actuales',
                       description: 'Cursos en proceso, estadísticas en tiempo real y gestión de participantes activos',
-                      color: 'from-blue-500 to-blue-600'
+                      shortDescription: 'Cursos en proceso y estadísticas actuales',
+                      color: 'from-blue-500 to-blue-600',
+                      hoverColor: 'hover:from-blue-600 hover:to-blue-700'
                     };
                   case ViewType.Historic:
                     return {
                       icon: '📈',
                       title: 'Datos Históricos',
                       description: 'Análisis completo de cursos pasados con filtros avanzados y reportes detallados',
-                      color: 'from-green-500 to-green-600'
+                      shortDescription: 'Análisis de cursos pasados y reportes',
+                      color: 'from-green-500 to-green-600',
+                      hoverColor: 'hover:from-green-600 hover:to-green-700'
                     };
                   case ViewType.Charts:
                     return {
                       icon: '📋',
                       title: 'Gráficos y Análisis',
                       description: 'Visualizaciones interactivas, mapas geográficos y análisis demográfico',
-                      color: 'from-amber-500 to-amber-600'
+                      shortDescription: 'Visualizaciones y análisis demográfico',
+                      color: 'from-amber-500 to-amber-600',
+                      hoverColor: 'hover:from-amber-600 hover:to-amber-700'
                     };
                   default:
                     return {
                       icon: '📊',
                       title: view,
                       description: 'Descripción no disponible',
-                      color: 'from-gray-500 to-gray-600'
+                      shortDescription: 'Descripción no disponible',
+                      color: 'from-gray-500 to-gray-600',
+                      hoverColor: 'hover:from-gray-600 hover:to-gray-700'
                     };
                 }
               };
@@ -70,24 +84,33 @@ const Dashboard: React.FC = () => {
                 <div
                   key={view}
                   onClick={() => setSelectedView(view)}
-                  className="group cursor-pointer transform transition-all duration-300 hover:scale-105"
+                  className="group cursor-pointer transform transition-all duration-300 hover:scale-102 sm:hover:scale-105 active:scale-95"
                 >
-                  <div className="bg-white border-2 border-gray-200 rounded-xl p-6 h-full hover:border-transparent hover:shadow-xl transition-all duration-300">
-                    <div className={`w-full h-2 bg-gradient-to-r ${viewInfo.color} rounded-full mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                  <div className="bg-white border-2 border-gray-200 rounded-lg sm:rounded-xl p-4 sm:p-5 lg:p-6 h-full hover:border-transparent hover:shadow-lg sm:hover:shadow-xl transition-all duration-300 min-h-[200px] sm:min-h-[240px] lg:min-h-[280px] flex flex-col">
+                    {/* Progress bar */}
+                    <div className={`w-full h-1 sm:h-2 bg-gradient-to-r ${viewInfo.color} rounded-full mb-3 sm:mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
                     
-                    <div className="text-center">
-                      <div className="text-4xl mb-4">{viewInfo.icon}</div>
-                      <h3 className="text-xl font-bold text-gray-800 mb-3">
-                        {viewInfo.title}
-                      </h3>
-                      <p className="text-gray-600 text-sm leading-relaxed">
-                        {viewInfo.description}
-                      </p>
-                    </div>
+                    {/* Content */}
+                    <div className="text-center flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="text-2xl sm:text-3xl lg:text-4xl mb-2 sm:mb-3 lg:mb-4">
+                          {viewInfo.icon}
+                        </div>
+                        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-2 sm:mb-3 leading-tight">
+                          {viewInfo.title}
+                        </h3>
+                        {/* Descripción adaptativa */}
+                        <p className="text-gray-600 text-xs sm:text-sm lg:text-base leading-relaxed px-1 sm:px-0">
+                          <span className="sm:hidden">{viewInfo.shortDescription}</span>
+                          <span className="hidden sm:inline">{viewInfo.description}</span>
+                        </p>
+                      </div>
 
-                    <div className="mt-6">
-                      <div className={`w-full py-3 px-4 bg-gradient-to-r ${viewInfo.color} text-white rounded-lg text-center font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0`}>
-                        Acceder
+                      {/* Button */}
+                      <div className="mt-4 sm:mt-6">
+                        <div className={`w-full py-2 sm:py-3 px-3 sm:px-4 bg-gradient-to-r ${viewInfo.color} ${viewInfo.hoverColor} text-white rounded-md sm:rounded-lg text-center font-medium text-sm sm:text-base opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 shadow-md`}>
+                          Acceder
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -96,8 +119,9 @@ const Dashboard: React.FC = () => {
             })}
           </div>
 
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-500">
+          {/* Footer */}
+          <div className="mt-6 sm:mt-8 text-center">
+            <p className="text-xs sm:text-sm text-gray-500">
               Bienvenido, <span className="font-semibold text-gray-700">{username}</span>
             </p>
           </div>
@@ -134,29 +158,32 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-4">
+    <div className="h-full flex flex-col space-y-4 sm:space-y-6">
+      {/* Header con navegación */}
+      <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={() => setSelectedView(null)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200"
+            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 text-sm sm:text-base"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Volver al menú
+            <span className="hidden sm:inline">Volver al menú</span>
+            <span className="sm:hidden">Menú</span>
           </button>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+          <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-800 truncate">
             {getTitle()}
           </h1>
         </div>
         
-        <div className="inline-flex items-center bg-gray-100 rounded-xl p-1">
+        {/* Tabs de navegación */}
+        <div className="inline-flex items-center bg-gray-100 rounded-lg sm:rounded-xl p-1 w-full sm:w-auto overflow-x-auto">
           {Object.values(ViewType).map((view) => (
             <button
               key={view}
               onClick={() => setSelectedView(view)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                 selectedView === view 
                   ? 'bg-amber-500 text-white shadow-md transform scale-105' 
                   : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
@@ -168,6 +195,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
       
+      {/* Contenido principal */}
       <div className="flex-1 overflow-hidden">
         {renderContent()}
       </div>
