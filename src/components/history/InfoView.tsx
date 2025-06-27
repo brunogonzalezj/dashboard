@@ -19,16 +19,16 @@ const InfoView: React.FC<InfoViewProps> = ({ data }) => {
 
   return (
     <div className="flex flex-col w-full h-full items-center justify-center gap-6">
-      <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-6">
+      <div className="w-full  bg-white rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold mb-6 text-gray-800">Funnel de Progreso</h2>
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={funnelData} layout="vertical">
             <XAxis type="number" />
-            <YAxis 
-              dataKey="name" 
-              type="category" 
-              width={120} 
-              tick={{ fontSize: 14, fill: '#4B5563' }} 
+            <YAxis
+              dataKey="name"
+              type="category"
+              width={120}
+              tick={{ fontSize: 14, fill: '#4B5563' }}
             />
             <Tooltip 
               contentStyle={{ 

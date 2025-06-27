@@ -29,7 +29,7 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig }) => {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[640px] bg-white">
+      <table className="w-full min-w-[640px] bg-white shadow-md rounded-lg p-8">
         <thead>
           <tr>
             {headers.map(({ key, label }) => (

@@ -47,7 +47,7 @@ const Layout: React.FC = () => {
         </header>
         
         <div className='h-[calc(100vh-4rem)] overflow-auto px-4 py-6 sm:px-6 lg:px-8'>
-          <div className='max-w-7xl mx-auto'>
+          <div className='w-auto mx-auto'>
             <Outlet />
           </div>
         </div>
