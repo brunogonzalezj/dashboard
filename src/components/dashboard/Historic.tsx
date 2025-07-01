@@ -1,16 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis
-} from 'recharts';
 import { Download } from 'lucide-react';
 import { saveAs } from 'file-saver';
 import { DataItem } from '../../interfaces/IData.ts';
@@ -129,43 +119,6 @@ const Historic: React.FC = () => {
     );
   };
 
-  const getLoginStats = useMemo(() => {
-    if (filteredData.length === 0) return { loggedInCount: 0, totalCount: 0, rate: 0 };
-
-    const loggedInCount = filteredData.filter((item) => item.login === 'SI').length;
-    const totalCount = filteredData.length;
-    const rate = ((loggedInCount / totalCount) * 100).toFixed(0);
-
-    return { loggedInCount, totalCount, rate };
-  }, [filteredData]);
-
-  const getCompletionStats = useMemo(() => {
-    if (filteredData.length === 0) return { completedCount: 0, totalCount: 0, rate: 0 };
-
-    const completedCount = filteredData.filter(
-      (item) => item.stateOfCompleteness === 'Completado'
-    ).length;
-    const totalCount = filteredData.length;
-    const rate = ((completedCount / totalCount) * 100).toFixed(0);
-
-    return { completedCount, totalCount, rate };
-  }, [filteredData]);
-
-  const getProgressData = useMemo(() => {
-    const progressCounts = filteredData.reduce((acc, item) => {
-      const progress = Math.floor(parseFloat(item.progressPercentage) / 10) * 10;
-      acc[progress] = (acc[progress] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>);
-
-    return Object.entries(progressCounts)
-      .map(([progress, count]) => ({
-        progress: `${progress}-${parseInt(progress) + 10}%`,
-        count,
-      }))
-      .sort((a, b) => parseInt(a.progress) - parseInt(b.progress));
-  }, [filteredData]);
-
   const handleDownloadXLSX = async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/data/export-xlsx`, {
@@ -231,44 +184,6 @@ const Historic: React.FC = () => {
 
   return (
     <div className="p-2 mt-2 sm:p-4 md:p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto">
-      <div className="flex flex-col mb-4 lg:mb-8 gap-4">
-        <div className="flex flex-col items-center justify-center lg:flex-row w-full gap-4">
-          <div className="bg-[#3A69AA] p-4 rounded-lg text-white">
-            <h2 className="text-base sm:text-lg font-semibold mb-2">
-              Usuarios que iniciaron sesión
-            </h2>
-            <p className="text-2xl sm:text-3xl font-bold">
-              {getLoginStats.loggedInCount} de {getLoginStats.totalCount} usuarios ({getLoginStats.rate}%)
-            </p>
-          </div>
-          <div className="bg-[#3A69AA] p-4 rounded-lg text-white">
-            <h2 className="text-base sm:text-lg font-semibold mb-2">
-              Usuarios que completaron el curso
-            </h2>
-            <p className="flex text-nowrap text-2xl sm:text-3xl font-bold">
-              {getCompletionStats.completedCount} de {getCompletionStats.totalCount} usuarios ({getCompletionStats.rate}%)
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center flex-col w-full lg:flex-1">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 w-full">
-            <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">
-              Distribución de Progreso Histórico
-            </h2>
-          </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={getProgressData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="progress" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="count" name="Nro de Usuarios" fill="#3A69AA" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <h1 className="text-lg sm:text-xl font-bold">Datos Históricos de Usuario</h1>

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext.tsx';
+import {ChartLineIcon, LayoutDashboardIcon, NotepadTextDashedIcon } from 'lucide-react';
+
 const Current = React.lazy(() => import('../components/dashboard/Current.tsx'));
 const Historic = React.lazy(() => import('../components/dashboard/Historic.tsx'));
 const History = React.lazy(() => import('../components/dashboard/History.tsx'));
@@ -27,10 +29,10 @@ const Dashboard: React.FC = () => {
               className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-full shadow-md" 
             />
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
-              Dashboard de Cursos
+              Menú principal
             </h1>
             <p className="text-sm sm:text-base text-gray-600 px-2">
-              Selecciona el tipo de datos que deseas visualizar
+              Selecciona el módulo que deseas visualizar
             </p>
           </div>
 
@@ -41,8 +43,8 @@ const Dashboard: React.FC = () => {
                 switch (viewType) {
                   case ViewType.Current:
                     return {
-                      icon: '📊',
-                      title: 'Datos Actuales',
+                      icon: <NotepadTextDashedIcon/>,
+                      title: 'Cursos Activos',
                       description: 'Cursos en proceso, estadísticas en tiempo real y gestión de participantes activos',
                       shortDescription: 'Cursos en proceso y estadísticas actuales',
                       color: 'from-blue-500 to-blue-600',
@@ -50,8 +52,8 @@ const Dashboard: React.FC = () => {
                     };
                   case ViewType.Historic:
                     return {
-                      icon: '📈',
-                      title: 'Datos Históricos',
+                      icon: <ChartLineIcon/>,
+                      title: 'Histórico de Cursos',
                       description: 'Análisis completo de cursos pasados con filtros avanzados y reportes detallados',
                       shortDescription: 'Análisis de cursos pasados y reportes',
                       color: 'from-green-500 to-green-600',
@@ -59,7 +61,7 @@ const Dashboard: React.FC = () => {
                     };
                   case ViewType.Charts:
                     return {
-                      icon: '📋',
+                      icon: <LayoutDashboardIcon/>,
                       title: 'Gráficos y Análisis',
                       description: 'Visualizaciones interactivas, mapas geográficos y análisis demográfico',
                       shortDescription: 'Visualizaciones y análisis demográfico',
@@ -175,23 +177,6 @@ const Dashboard: React.FC = () => {
           <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-800 truncate">
             {getTitle()}
           </h1>
-        </div>
-        
-        {/* Tabs de navegación */}
-        <div className="inline-flex items-center bg-gray-100 rounded-lg sm:rounded-xl p-1 w-full sm:w-auto overflow-x-auto">
-          {Object.values(ViewType).map((view) => (
-            <button
-              key={view}
-              onClick={() => setSelectedView(view)}
-              className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
-                selectedView === view 
-                  ? 'bg-amber-500 text-white shadow-md transform scale-105' 
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
-              }`}
-            >
-              {view}
-            </button>
-          ))}
         </div>
       </div>
       
