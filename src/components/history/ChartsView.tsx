@@ -31,6 +31,19 @@ const COLORS = {
     courses: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
 }
 
+const courseColors = {
+    "Alimento Balanceado": "#DDA338",
+    Avicultura: "#FFCE00",
+    Acuacultura: "#85D5FC",
+    Porcicultura: "#9E2A2B",
+    "Ganado Lechero": "#6E6059",
+}
+
+const genderColors = {
+    Hombre:  "#1F7BC2",
+    Mujer: "#C97FBB"
+}
+
 const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountrySelect }) => {
     const countries = Array.from(new Set(data.map((d) => d.country)))
     const [countriesData, setCountriesData] = useState<any>(null)
@@ -310,9 +323,9 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             formatter={(value: any) => [`${value}%`, 'Porcentaje']}
                             labelStyle={{ color: '#666' }}
                         />
-                        <Bar dataKey="value" fill={COLORS.gender}>
-                            {genderData.map((_entry, index) => (
-                                <Cell key={`cell-${index}`}>
+                        <Bar dataKey="value">
+                            {genderData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={genderColors[entry.name] || "#8884d8"}>
                                     <Label
                                         position="top"
                                         content={({ value }) => `${value}%`}
@@ -444,8 +457,11 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             fill="#8884d8"
                             dataKey="value"
                         >
-                            {courseData.map((_entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS.courses[index % COLORS.courses.length]} />
+                            {courseData.map((entry, index) => (
+                                <Cell
+                                    key={`cell-${index}`}
+                                    fill={courseColors[entry.name] || "#8884d8"}
+                                />
                             ))}
                         </Pie>
                         <Tooltip formatter={(value: any) => [`${value}%`, 'Porcentaje']} />

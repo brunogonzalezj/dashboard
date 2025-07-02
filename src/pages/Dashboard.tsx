@@ -95,11 +95,12 @@ const Dashboard: React.FC = () => {
                     {/* Content */}
                     <div className="text-center flex-1 flex flex-col justify-between">
                       <div>
-                        <div className="text-2xl sm:text-3xl lg:text-4xl mb-2 sm:mb-3 lg:mb-4">
+                        <div
+                            className="flex justify-center items-center text-2xl sm:text-3xl lg:text-4xl mb-2 sm:mb-3 lg:mb-4">
                           {viewInfo.icon}
                         </div>
                         <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-2 sm:mb-3 leading-tight">
-                          {viewInfo.title}
+                        {viewInfo.title}
                         </h3>
                         {/* Descripción adaptativa */}
                         <p className="text-gray-600 text-xs sm:text-sm lg:text-base leading-relaxed px-1 sm:px-0">
