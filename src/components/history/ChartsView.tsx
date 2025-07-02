@@ -24,9 +24,8 @@ interface ChartsViewProps {
 }
 
 const COLORS = {
-    gender: "#8884d8",
     education: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
-    jobArea: "#82ca9d",
+    jobArea: "#EEAC48",
     experience: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82ca9d"],
     courses: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
 }
@@ -42,6 +41,23 @@ const courseColors = {
 const genderColors = {
     Hombre:  "#1F7BC2",
     Mujer: "#C97FBB"
+}
+
+const educationColors = {
+  "Sin Formacion": "#8A6B60",
+  "Primaria Completa": "#D7CCC8",
+  "Secundaria Completa": "#A1887F",
+  "Tecnico o Tecnologo": "#AED581",
+  "Universitario": "#81D4D5",
+  "Posgrado": "#81ABD5"
+}
+
+const experienceColors = {
+  "0-5": "#A8DADC",
+  "5-10": "#457B9D",
+  "10-15": "#1D3557",
+  "15-20": "#B78AC2",
+  "20+": "#F4A261"
 }
 
 const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountrySelect }) => {
@@ -212,8 +228,8 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
             data.reduce((acc: Record<string, number>, item) => {
                 const yearsExperience = Number(item.yearsExperience);
                 if (!isNaN(yearsExperience) && yearsExperience !== null) {
-                    if (yearsExperience >= 25) {
-                        acc["25+"] = (acc["25+"] || 0) + 1;
+                    if (yearsExperience >= 20) {
+                        acc["20+"] = (acc["20+"] || 0) + 1;
                     } else {
                         const yearsRange = Math.floor(yearsExperience / 5) * 5;
                         const rangeKey = `${yearsRange}-${yearsRange + 5}`;
@@ -224,8 +240,8 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
             }, {})
         ).map(([name, value]) => ({ name, value }))
         .sort((a, b) => {
-            if (a.name === "25+") return 1;
-            if (b.name === "25+") return -1;
+            if (a.name === "20+") return 1;
+            if (b.name === "20+") return -1;
             const aStart = parseInt(a.name.split('-')[0]);
             const bStart = parseInt(b.name.split('-')[0]);
             return aStart - bStart;
@@ -325,7 +341,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                         />
                         <Bar dataKey="value">
                             {genderData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={genderColors[entry.name] || "#8884d8"}>
+                                <Cell key={`cell-${index}`} fill={genderColors[entry.name as keyof typeof genderColors] || "#8884d8"}>
                                     <Label
                                         position="top"
                                         content={({ value }) => `${value}%`}
@@ -354,10 +370,10 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             onMouseEnter={(_, index) => setActiveEducationIndex(index)}
                             onMouseLeave={() => setActiveEducationIndex(undefined)}
                         >
-                            {educationData.map((_entry, index) => (
+                            {educationData.map((entry, index) => (
                                 <Cell 
-                                    key={`cell-${index}`} 
-                                    fill={COLORS.education[index % COLORS.education.length]}
+                                    key={`cell-${index}`}
+                                    fill={educationColors[entry.name as keyof typeof educationColors] || "#8884d8"}
                                     className="transition-all duration-200"
                                 />
                             ))}
@@ -433,8 +449,8 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             fill="#8884d8"
                             dataKey="value"
                         >
-                            {experienceData.map((_entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS.experience[index % COLORS.experience.length]} />
+                            {experienceData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={experienceColors[entry.name as keyof typeof experienceColors] || "#8884d8"} />
                             ))}
                         </Pie>
                         <Tooltip formatter={(value: any) => [`${value}%`, 'Porcentaje']} />
@@ -460,7 +476,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             {courseData.map((entry, index) => (
                                 <Cell
                                     key={`cell-${index}`}
-                                    fill={courseColors[entry.name] || "#8884d8"}
+                                    fill={courseColors[entry.name as keyof typeof courseColors] || "#8884d8"}
                                 />
                             ))}
                         </Pie>
