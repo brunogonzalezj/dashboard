@@ -253,16 +253,17 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
         }));
     };
 
-    const genderData = calculatePercentages(
-        Object.entries(
-            filteredData.reduce((acc: Record<string, number>, item) => {
-                if (item.gender !== null) {
-                    acc[item.gender] = (acc[item.gender] || 0) + 1;
-                }
-                return acc;
-            }, {})
-        ).map(([name, value]) => ({ name, value }))
-    );
+  const genderOrder = ["Hombre", "Mujer"];
+  const genderData = calculatePercentages(
+    Object.entries(
+      filteredData.reduce((acc: Record<string, number>, item) => {
+        if (item.gender !== null && item.gender !== "Prefiero no decirlo") {
+          acc[item.gender] = (acc[item.gender] || 0) + 1;
+        }
+        return acc;
+      }, {})
+    ).map(([name, value]) => ({ name, value }))
+  ).sort((a, b) => genderOrder.indexOf(a.name) - genderOrder.indexOf(b.name));
 
     const educationData = calculatePercentages(
         Object.entries(
@@ -529,6 +530,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                             boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                                         }}
                                     />
+                                  <Legend formatter={(value) => <span className="text-xs">{value}</span>} />
                                 </PieChart>
                             </ResponsiveContainer>
                         </div>

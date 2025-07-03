@@ -186,7 +186,6 @@ const Historic: React.FC = () => {
     <div className="p-2 mt-2 sm:p-4 md:p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto">
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-        <h1 className="text-lg sm:text-xl font-bold">Datos Históricos de Usuario</h1>
         <button
           onClick={handleDownloadXLSX}
           className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center text-sm"

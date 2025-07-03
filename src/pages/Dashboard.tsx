@@ -141,7 +141,7 @@ const Dashboard: React.FC = () => {
       case ViewType.Historic:
         return 'Datos históricos de cursos';
       case ViewType.Charts:
-        return 'Gráficos y análisis histórico';
+        return 'Gráficos sociolaborales';
       default:
         return 'Dashboard';
     }
