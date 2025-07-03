@@ -16,12 +16,17 @@ import {
 } from 'recharts';
 import { ComposableMap, Geographies, Geography } from "react-simple-maps"
 import type { DataItem } from "../../interfaces/IData"
+import { useAuth } from '../../contexts/AuthContext.tsx';
 
 interface ChartsViewProps {
     data: DataItem[]
     selectedCountry: string
     onCountrySelect: (country: string) => void
 }
+
+
+
+
 
 enum FilterLabels {
   login = 'Sesion Iniciada',
@@ -88,6 +93,8 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
     const [tooltipContent, setTooltipContent] = useState("")
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
 
+
+
     useEffect(() => {
         fetch("/countries_es.geo.json")
             .then((response) => {
@@ -126,7 +133,7 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
 
             <div className="flex-1 min-h-0 relative" style={{ touchAction: "none" }}>
                 <ComposableMap className="rounded h-full w-full absolute inset-0">
-                    <g transform={`translate(20, -250) scale(2.2)`}>
+                    <g transform={`translate(-80, -400) scale(2.7)`}>
                         <Geographies geography={countriesData}>
                             {({ geographies }) =>
                                 geographies.map((geo: { rsmKey: any; properties: { name: string } }) => (
@@ -201,7 +208,7 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
 const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountrySelect }) => {
     const [activeEducationIndex, setActiveEducationIndex] = useState<number | undefined>();
     const [filteredData, setFilteredData] = useState<DataItem[]>(data);
-
+  const {userRole} = useAuth();
     const [filters, setFilters] = useState({
         login: 'all',
         course: 'all',
@@ -418,62 +425,66 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
         );
     };
 
+  const visibleFilters = Object.entries(filters).filter(
+    ([key]) => userRole?.toLowerCase() === "admin" || key !== "year"
+  );
+
+
+
     return (
         <div className="h-full flex flex-col">
             {/* Filtros */}
-            <div className="bg-white rounded-xl shadow-md p-4 mb-6">
-                <h2 className="text-lg font-semibold mb-4">Filtros</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.entries(filters).map(([key, value]) => (
-                        <div key={key}>
-                            <label
-                                htmlFor={`${key}-filter`}
-                                className="block text-sm font-medium text-gray-700"
-                            >
-                                {FilterLabels[key as keyof typeof FilterLabels]
-                                    .charAt(0)
-                                    .toUpperCase() +
-                                    FilterLabels[key as keyof typeof FilterLabels].slice(1)}
-                            </label>
-                            <select
-                                id={`${key}-filter`}
-                                value={value}
-                                onChange={(e) =>
-                                    setFilters((prev) => ({ ...prev, [key]: e.target.value }))
-                                }
-                                className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 text-sm"
-                            >
-                                <option value="all">Todos</option>
-                                {getUniqueValues(key as keyof DataItem).map((option) => (
-                                    <option key={option?.toString()} value={option?.toString()}>
-                                        {option}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+          <div className="bg-white rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-lg font-semibold mb-4">Filtros</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              {visibleFilters.map(([key, value]) => (
+                <div key={key}>
+                  <label htmlFor={`${key}-filter`} className="block text-sm font-medium text-gray-700">
+                    {FilterLabels[key as keyof typeof FilterLabels]
+                        .charAt(0)
+                        .toUpperCase() +
+                      FilterLabels[key as keyof typeof FilterLabels].slice(1)}
+                  </label>
+                  <select
+                    id={`${key}-filter`}
+                    value={value}
+                    onChange={(e) =>
+                      setFilters((prev) => ({ ...prev, [key]: e.target.value }))
+                    }
+                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 text-sm"
+                  >
+                    <option value="all">Todos</option>
+                    {getUniqueValues(key as keyof DataItem).map((option) => (
+                      <option key={option?.toString()} value={option?.toString()}>
+                        {option}
+                      </option>
                     ))}
+                  </select>
                 </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Layout según el diseño: Mapa a la izquierda, gráficos en grid a la derecha */}
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Mapa - Ocupa toda la altura en la izquierda */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-xl shadow-md p-6 h-full">
+                <h3 className="text-lg font-semibold mb-4">Mapa de Países</h3>
+                <ChoroplethMap data={filteredData} selectedCountry={selectedCountry}
+                               onCountrySelect={onCountrySelect} />
+              </div>
             </div>
 
-            {/* Layout según el diseño: Mapa a la izquierda, gráficos en grid a la derecha */}
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Mapa - Ocupa toda la altura en la izquierda */}
-                <div className="lg:col-span-1">
-                    <div className="bg-white rounded-xl shadow-md p-6 h-full">
-                        <h3 className="text-lg font-semibold mb-4">Mapa de Países</h3>
-                        <ChoroplethMap data={filteredData} selectedCountry={selectedCountry} onCountrySelect={onCountrySelect} />
-                    </div>
-                </div>
-
-                {/* Gráficos - Grid 2x3 en la derecha */}
-                <div className="lg:col-span-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-                        {/* Fila superior */}
-                        <div className="bg-white rounded-xl shadow-md p-6">
-                            <h3 className="text-lg font-semibold mb-4">Géneros</h3>
-                            <ResponsiveContainer width="100%" height={250}>
+            {/* Gráficos - Grid 2x3 en la derecha */}
+            <div className="lg:col-span-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+                {/* Fila superior */}
+                <div className="bg-white rounded-xl shadow-md p-6">
+                  <h3 className="text-lg font-semibold mb-4">Géneros</h3>
+                  <ResponsiveContainer width="100%" height={250}>
                                 <BarChart data={genderData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <XAxis dataKey="name" />
+                                    <XAxis dataKey="name" angle={-30} textAnchor={"end"} interval={0} tick={{fontSize: 10}}/>
                                     <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
                                     <Tooltip
                                         formatter={(value: any) => [`${value}%`, 'Porcentaje']}
@@ -539,7 +550,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                             <h3 className="text-lg font-semibold mb-4">Edad</h3>
                             <ResponsiveContainer width="100%" height={250}>
                                 <BarChart data={ageData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <XAxis dataKey="name" />
+                                    <XAxis dataKey="name" angle={-30} textAnchor={"end"} interval={0} tick={{fontSize: 10}}/>
                                     <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
                                     <Tooltip
                                         formatter={(value: any) => [`${value}%`, 'Porcentaje']}
@@ -563,8 +574,8 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                         <div className="bg-white rounded-xl shadow-md p-6">
                             <h3 className="text-lg font-semibold mb-4">Distribución de puesto de trabajo</h3>
                             <ResponsiveContainer width="100%" height={250}>
-                                <BarChart data={jobAreaData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <XAxis dataKey="name" />
+                                <BarChart data={jobAreaData} margin={{ top: 20, right: 30, left: 30, bottom:60 }}>
+                                    <XAxis dataKey="name" angle={-30} textAnchor={"end"} interval={0} tick={{fontSize: 10}} />
                                     <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
                                     <Tooltip
                                         formatter={(value: any) => [`${value}%`, 'Porcentaje']}

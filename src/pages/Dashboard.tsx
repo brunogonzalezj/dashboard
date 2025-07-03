@@ -47,8 +47,8 @@ const Dashboard: React.FC = () => {
                       title: 'Cursos Activos',
                       description: 'Cursos en proceso, estadísticas en tiempo real y gestión de participantes activos',
                       shortDescription: 'Cursos en proceso y estadísticas actuales',
-                      color: 'bg-[#48a259]',
-                      hoverColor: 'hover:bg-[#008f39]'
+                      color: 'bg-[#3A69AA]',
+                      hoverColor: 'hover:bg-[#335a91]]'
                     };
                   case ViewType.Historic:
                     return {
