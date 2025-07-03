@@ -47,8 +47,8 @@ const Dashboard: React.FC = () => {
                       title: 'Cursos Activos',
                       description: 'Cursos en proceso, estadísticas en tiempo real y gestión de participantes activos',
                       shortDescription: 'Cursos en proceso y estadísticas actuales',
-                      color: 'from-blue-500 to-blue-600',
-                      hoverColor: 'hover:from-blue-600 hover:to-blue-700'
+                      color: 'bg-[#48a259]',
+                      hoverColor: 'hover:bg-[#008f39]'
                     };
                   case ViewType.Historic:
                     return {
@@ -56,17 +56,17 @@ const Dashboard: React.FC = () => {
                       title: 'Histórico de Cursos',
                       description: 'Análisis completo de cursos pasados con filtros avanzados y reportes detallados',
                       shortDescription: 'Análisis de cursos pasados y reportes',
-                      color: 'from-green-500 to-green-600',
-                      hoverColor: 'hover:from-green-600 hover:to-green-700'
+                      color: 'bg-[#3A69AA]',
+                      hoverColor: 'hover:bg-[#335a91]'
                     };
                   case ViewType.Charts:
                     return {
                       icon: <LayoutDashboardIcon/>,
-                      title: 'Gráficos y Análisis',
-                      description: 'Visualizaciones interactivas, mapas geográficos y análisis demográfico',
-                      shortDescription: 'Visualizaciones y análisis demográfico',
-                      color: 'from-amber-500 to-amber-600',
-                      hoverColor: 'hover:from-amber-600 hover:to-amber-700'
+                      title: 'Gráficos Sociolaborales',
+                      description: 'Visualizaciones interactivas de datos porcentuales de información personal y laboral.',
+                      shortDescription: 'Visualizaciones intereactivas de datos',
+                      color: 'bg-[#F3B537]',
+                      hoverColor: 'hover:bg-[#d9a12e]'
                     };
                   default:
                     return {
@@ -90,7 +90,7 @@ const Dashboard: React.FC = () => {
                 >
                   <div className="bg-white border-2 border-gray-200 rounded-lg sm:rounded-xl p-4 sm:p-5 lg:p-6 h-full hover:border-transparent hover:shadow-lg sm:hover:shadow-xl transition-all duration-300 min-h-[200px] sm:min-h-[240px] lg:min-h-[280px] flex flex-col">
                     {/* Progress bar */}
-                    <div className={`w-full h-1 sm:h-2 bg-gradient-to-r ${viewInfo.color} rounded-full mb-3 sm:mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                    <div className={`w-full h-1 sm:h-2 ${viewInfo.color} rounded-full mb-3 sm:mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
                     
                     {/* Content */}
                     <div className="text-center flex-1 flex flex-col justify-between">
@@ -111,7 +111,7 @@ const Dashboard: React.FC = () => {
 
                       {/* Button */}
                       <div className="mt-4 sm:mt-6">
-                        <div className={`w-full py-2 sm:py-3 px-3 sm:px-4 bg-gradient-to-r ${viewInfo.color} ${viewInfo.hoverColor} text-white rounded-md sm:rounded-lg text-center font-medium text-sm sm:text-base opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 shadow-md`}>
+                        <div className={`w-full py-2 sm:py-3 px-3 sm:px-4 ${viewInfo.color} ${viewInfo.hoverColor} text-white rounded-md sm:rounded-lg text-center font-medium text-sm sm:text-base opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 shadow-md`}>
                           Acceder
                         </div>
                       </div>
