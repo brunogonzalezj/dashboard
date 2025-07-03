@@ -23,11 +23,24 @@ interface ChartsViewProps {
     onCountrySelect: (country: string) => void
 }
 
+enum FilterLabels {
+  login = 'Sesion Iniciada',
+  course = 'Curso',
+  country = 'País',
+  business = 'Empresa',
+  progressPercentage = '% de Progreso',
+  association = 'Asociación',
+  businessGroup = 'Grupo Empresarial',
+  stateOfCompleteness = 'Estado de progreso',
+  year = 'Año',
+}
+
 const COLORS = {
     education: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
     jobArea: "#EEAC48",
     experience: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82ca9d"],
-    courses: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
+    courses: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"],
+    age: ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"]
 }
 
 const courseColors = {
@@ -58,6 +71,14 @@ const experienceColors = {
   "10-15": "#1D3557",
   "15-20": "#B78AC2",
   "20+": "#F4A261"
+}
+
+const ageColors = {
+  "-20": "#FF6B6B",
+  "20-30": "#4ECDC4",
+  "30-40": "#45B7D1",
+  "40-50": "#96CEB4",
+  "+50": "#FFEAA7"
 }
 
 const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountrySelect }) => {
@@ -179,6 +200,48 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
 
 const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountrySelect }) => {
     const [activeEducationIndex, setActiveEducationIndex] = useState<number | undefined>();
+    const [filteredData, setFilteredData] = useState<DataItem[]>(data);
+
+    const [filters, setFilters] = useState({
+        login: 'all',
+        course: 'all',
+        country: 'all',
+        business: 'all',
+        progressPercentage: 'all',
+        association: 'all',
+        businessGroup: 'all',
+        stateOfCompleteness: 'all',
+        year: 'all',
+    });
+
+    // Aplicar filtros
+    useEffect(() => {
+        const result = data.filter((item) =>
+            Object.entries(filters).every(([key, value]) => {
+                if (value === 'all') return true;
+                if (key === 'progressPercentage') {
+                    const [min, max] = value.split('-').map(Number);
+                    const progressValue = parseFloat(item.progressPercentage);
+                    return progressValue >= min && progressValue < max;
+                }
+                return item[key as keyof DataItem] === value;
+            })
+        );
+        setFilteredData(result);
+    }, [data, filters]);
+
+    const getProgressRangeOptions = () => {
+        const ranges = [];
+        for (let i = 0; i < 100; i += 10) {
+            ranges.push(`${i}-${i + 10}`);
+        }
+        return ranges;
+    };
+
+    const getUniqueValues = (key: keyof DataItem) => {
+        if (key === 'progressPercentage') return getProgressRangeOptions();
+        return Array.from(new Set(data.map((item) => item[key]))).sort();
+    };
 
     const calculatePercentages = (rawData: { name: string; value: number }[]) => {
         const total = rawData.reduce((sum, item) => sum + item.value, 0);
@@ -190,20 +253,20 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
         }));
     };
 
-  const genderData = calculatePercentages(
-    Object.entries(
-      data.reduce((acc: Record<string, number>, item) => {
-        if (item.gender !== null) {
-          acc[item.gender] = (acc[item.gender] || 0) + 1;
-        }
-        return acc;
-      }, {})
-    ).map(([name, value]) => ({ name, value }))
-  );
+    const genderData = calculatePercentages(
+        Object.entries(
+            filteredData.reduce((acc: Record<string, number>, item) => {
+                if (item.gender !== null) {
+                    acc[item.gender] = (acc[item.gender] || 0) + 1;
+                }
+                return acc;
+            }, {})
+        ).map(([name, value]) => ({ name, value }))
+    );
 
     const educationData = calculatePercentages(
         Object.entries(
-            data.reduce((acc: Record<string, number>, item) => {
+            filteredData.reduce((acc: Record<string, number>, item) => {
                 if (item.education !== null) {
                     acc[item.education] = (acc[item.education] || 0) + 1
                 }
@@ -214,7 +277,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
 
     const jobAreaData = calculatePercentages(
         Object.entries(
-            data.reduce((acc: Record<string, number>, item) => {
+            filteredData.reduce((acc: Record<string, number>, item) => {
                 if (item.jobArea !== null) {
                     acc[item.jobArea] = (acc[item.jobArea] || 0) + 1
                 }
@@ -225,7 +288,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
 
     const experienceData = calculatePercentages(
         Object.entries(
-            data.reduce((acc: Record<string, number>, item) => {
+            filteredData.reduce((acc: Record<string, number>, item) => {
                 const yearsExperience = Number(item.yearsExperience);
                 if (!isNaN(yearsExperience) && yearsExperience !== null) {
                     if (yearsExperience >= 20) {
@@ -250,11 +313,42 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
 
     const courseData = calculatePercentages(
         Object.entries(
-            data.reduce((acc: Record<string, number>, item) => {
+            filteredData.reduce((acc: Record<string, number>, item) => {
                 acc[item.course] = (acc[item.course] || 0) + 1
                 return acc
             }, {})
         ).map(([name, value]) => ({ name, value }))
+    );
+
+    // Nuevo gráfico de edad
+    const ageData = calculatePercentages(
+        Object.entries(
+            filteredData.reduce((acc: Record<string, number>, item) => {
+                const birthYear = Number(item.birthday);
+                const courseYear = Number(item.year);
+                
+                if (!isNaN(birthYear) && !isNaN(courseYear) && birthYear > 0 && courseYear > 0) {
+                    const age = courseYear - birthYear;
+                    
+                    if (age < 20) {
+                        acc["-20"] = (acc["-20"] || 0) + 1;
+                    } else if (age >= 20 && age < 30) {
+                        acc["20-30"] = (acc["20-30"] || 0) + 1;
+                    } else if (age >= 30 && age < 40) {
+                        acc["30-40"] = (acc["30-40"] || 0) + 1;
+                    } else if (age >= 40 && age < 50) {
+                        acc["40-50"] = (acc["40-50"] || 0) + 1;
+                    } else if (age >= 50) {
+                        acc["+50"] = (acc["+50"] || 0) + 1;
+                    }
+                }
+                return acc;
+            }, {})
+        ).map(([name, value]) => ({ name, value }))
+        .sort((a, b) => {
+            const order = ["-20", "20-30", "30-40", "40-50", "+50"];
+            return order.indexOf(a.name) - order.indexOf(b.name);
+        })
     );
 
     const renderCustomizedLabel = (props: any) => {
@@ -324,166 +418,222 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 p-6">
-            <div className="bg-white rounded-xl shadow-md p-6">
-                <ChoroplethMap data={data} selectedCountry={selectedCountry} onCountrySelect={onCountrySelect} />
-            </div>
-
-            <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-semibold mb-4">Géneros</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={genderData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                        <XAxis dataKey="name" />
-                        <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
-                        <Tooltip
-                            formatter={(value: any) => [`${value}%`, 'Porcentaje']}
-                            labelStyle={{ color: '#666' }}
-                        />
-                        <Bar dataKey="value">
-                            {genderData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={genderColors[entry.name as keyof typeof genderColors] || "#8884d8"}>
-                                    <Label
-                                        position="top"
-                                        content={({ value }) => `${value}%`}
-                                    />
-                                </Cell>
-                            ))}
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-semibold mb-4">Nivel de Educación</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                        <Pie
-                            activeIndex={activeEducationIndex}
-                            activeShape={renderActiveShape}
-                            data={educationData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                            onMouseEnter={(_, index) => setActiveEducationIndex(index)}
-                            onMouseLeave={() => setActiveEducationIndex(undefined)}
-                        >
-                            {educationData.map((entry, index) => (
-                                <Cell 
-                                    key={`cell-${index}`}
-                                    fill={educationColors[entry.name as keyof typeof educationColors] || "#8884d8"}
-                                    className="transition-all duration-200"
-                                />
-                            ))}
-                        </Pie>
-                        <Tooltip 
-                            formatter={(value: any, name: any, props: any) => [
-                                `${value}% (${props.payload.absoluteValue})`,
-                                name
-                            ]}
-                            contentStyle={{
-                                backgroundColor: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                            }}
-                        />
-                        <Legend 
-                            layout="horizontal"
-                            align="center"
-                            verticalAlign="bottom"
-                            wrapperStyle={{
-                                paddingTop: '20px',
-                                fontSize: '11px',
-                                width: '100%'
-                            }}
-                            formatter={(value) => {
-                                // Truncate long education names
-                                if (value.length > 20) {
-                                    return `${value.substring(0, 20)}...`;
+        <div className="h-full flex flex-col">
+            {/* Filtros */}
+            <div className="bg-white rounded-xl shadow-md p-4 mb-6">
+                <h2 className="text-lg font-semibold mb-4">Filtros</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    {Object.entries(filters).map(([key, value]) => (
+                        <div key={key}>
+                            <label
+                                htmlFor={`${key}-filter`}
+                                className="block text-sm font-medium text-gray-700"
+                            >
+                                {FilterLabels[key as keyof typeof FilterLabels]
+                                    .charAt(0)
+                                    .toUpperCase() +
+                                    FilterLabels[key as keyof typeof FilterLabels].slice(1)}
+                            </label>
+                            <select
+                                id={`${key}-filter`}
+                                value={value}
+                                onChange={(e) =>
+                                    setFilters((prev) => ({ ...prev, [key]: e.target.value }))
                                 }
-                                return value;
-                            }}
-                        />
-                    </PieChart>
-                </ResponsiveContainer>
+                                className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 text-sm"
+                            >
+                                <option value="all">Todos</option>
+                                {getUniqueValues(key as keyof DataItem).map((option) => (
+                                    <option key={option?.toString()} value={option?.toString()}>
+                                        {option}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    ))}
+                </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-semibold mb-4">Distribución de puesto de trabajo</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={jobAreaData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                        <XAxis dataKey="name" />
-                        <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
-                        <Tooltip
-                            formatter={(value: any) => [`${value}%`, 'Porcentaje']}
-                            labelStyle={{ color: '#666' }}
-                        />
-                        <Bar dataKey="value" fill={COLORS.jobArea}>
-                            {jobAreaData.map((_entry, index) => (
-                                <Cell key={`cell-${index}`}>
-                                    <Label
-                                        position="top"
-                                        content={({ value }) => `${value}%`}
+            {/* Layout según el diseño: Mapa a la izquierda, gráficos en grid a la derecha */}
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Mapa - Ocupa toda la altura en la izquierda */}
+                <div className="lg:col-span-1">
+                    <div className="bg-white rounded-xl shadow-md p-6 h-full">
+                        <h3 className="text-lg font-semibold mb-4">Mapa de Países</h3>
+                        <ChoroplethMap data={filteredData} selectedCountry={selectedCountry} onCountrySelect={onCountrySelect} />
+                    </div>
+                </div>
+
+                {/* Gráficos - Grid 2x3 en la derecha */}
+                <div className="lg:col-span-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+                        {/* Fila superior */}
+                        <div className="bg-white rounded-xl shadow-md p-6">
+                            <h3 className="text-lg font-semibold mb-4">Géneros</h3>
+                            <ResponsiveContainer width="100%" height={250}>
+                                <BarChart data={genderData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                    <XAxis dataKey="name" />
+                                    <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                                    <Tooltip
+                                        formatter={(value: any) => [`${value}%`, 'Porcentaje']}
+                                        labelStyle={{ color: '#666' }}
                                     />
-                                </Cell>
-                            ))}
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
+                                    <Bar dataKey="value">
+                                        {genderData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={genderColors[entry.name as keyof typeof genderColors] || "#8884d8"}>
+                                                <Label
+                                                    position="top"
+                                                    content={({ value }) => `${value}%`}
+                                                />
+                                            </Cell>
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
 
-            <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-semibold mb-4">Años de experiencia</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                        <Pie
-                            data={experienceData}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={renderCustomizedLabel}
-                            outerRadius={100}
-                            fill="#8884d8"
-                            dataKey="value"
-                        >
-                            {experienceData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={experienceColors[entry.name as keyof typeof experienceColors] || "#8884d8"} />
-                            ))}
-                        </Pie>
-                        <Tooltip formatter={(value: any) => [`${value}%`, 'Porcentaje']} />
-                        <Legend formatter={(value) => <span className="text-xs">{value}</span>} />
-                    </PieChart>
-                </ResponsiveContainer>
-            </div>
+                        <div className="bg-white rounded-xl shadow-md p-6">
+                            <h3 className="text-lg font-semibold mb-4">Nivel de Educación</h3>
+                            <ResponsiveContainer width="100%" height={250}>
+                                <PieChart>
+                                    <Pie
+                                        activeIndex={activeEducationIndex}
+                                        activeShape={renderActiveShape}
+                                        data={educationData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={40}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                        onMouseEnter={(_, index) => setActiveEducationIndex(index)}
+                                        onMouseLeave={() => setActiveEducationIndex(undefined)}
+                                    >
+                                        {educationData.map((entry, index) => (
+                                            <Cell 
+                                                key={`cell-${index}`}
+                                                fill={educationColors[entry.name as keyof typeof educationColors] || "#8884d8"}
+                                                className="transition-all duration-200"
+                                            />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip 
+                                        formatter={(value: any, name: any, props: any) => [
+                                            `${value}% (${props.payload.absoluteValue})`,
+                                            name
+                                        ]}
+                                        contentStyle={{
+                                            backgroundColor: 'white',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                                        }}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
 
-            <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-semibold mb-4">Distribución de los cursos</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                        <Pie
-                            data={courseData}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={renderCustomizedLabel}
-                            outerRadius={100}
-                            fill="#8884d8"
-                            dataKey="value"
-                        >
-                            {courseData.map((entry, index) => (
-                                <Cell
-                                    key={`cell-${index}`}
-                                    fill={courseColors[entry.name as keyof typeof courseColors] || "#8884d8"}
-                                />
-                            ))}
-                        </Pie>
-                        <Tooltip formatter={(value: any) => [`${value}%`, 'Porcentaje']} />
-                        <Legend formatter={(value) => <span className="text-xs">{value}</span>} />
-                    </PieChart>
-                </ResponsiveContainer>
+                        <div className="bg-white rounded-xl shadow-md p-6">
+                            <h3 className="text-lg font-semibold mb-4">Edad</h3>
+                            <ResponsiveContainer width="100%" height={250}>
+                                <BarChart data={ageData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                    <XAxis dataKey="name" />
+                                    <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                                    <Tooltip
+                                        formatter={(value: any) => [`${value}%`, 'Porcentaje']}
+                                        labelStyle={{ color: '#666' }}
+                                    />
+                                    <Bar dataKey="value">
+                                        {ageData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={ageColors[entry.name as keyof typeof ageColors] || "#8884d8"}>
+                                                <Label
+                                                    position="top"
+                                                    content={({ value }) => `${value}%`}
+                                                />
+                                            </Cell>
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        {/* Fila inferior */}
+                        <div className="bg-white rounded-xl shadow-md p-6">
+                            <h3 className="text-lg font-semibold mb-4">Distribución de puesto de trabajo</h3>
+                            <ResponsiveContainer width="100%" height={250}>
+                                <BarChart data={jobAreaData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                    <XAxis dataKey="name" />
+                                    <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                                    <Tooltip
+                                        formatter={(value: any) => [`${value}%`, 'Porcentaje']}
+                                        labelStyle={{ color: '#666' }}
+                                    />
+                                    <Bar dataKey="value" fill={COLORS.jobArea}>
+                                        {jobAreaData.map((_entry, index) => (
+                                            <Cell key={`cell-${index}`}>
+                                                <Label
+                                                    position="top"
+                                                    content={({ value }) => `${value}%`}
+                                                />
+                                            </Cell>
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-md p-6">
+                            <h3 className="text-lg font-semibold mb-4">Años de experiencia</h3>
+                            <ResponsiveContainer width="100%" height={250}>
+                                <PieChart>
+                                    <Pie
+                                        data={experienceData}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={renderCustomizedLabel}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                    >
+                                        {experienceData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={experienceColors[entry.name as keyof typeof experienceColors] || "#8884d8"} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip formatter={(value: any) => [`${value}%`, 'Porcentaje']} />
+                                    <Legend formatter={(value) => <span className="text-xs">{value}</span>} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-md p-6">
+                            <h3 className="text-lg font-semibold mb-4">Distribución de los cursos</h3>
+                            <ResponsiveContainer width="100%" height={250}>
+                                <PieChart>
+                                    <Pie
+                                        data={courseData}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={renderCustomizedLabel}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                    >
+                                        {courseData.map((entry, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={courseColors[entry.name as keyof typeof courseColors] || "#8884d8"}
+                                            />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip formatter={(value: any) => [`${value}%`, 'Porcentaje']} />
+                                    <Legend formatter={(value) => <span className="text-xs">{value}</span>} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
