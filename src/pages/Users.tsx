@@ -8,7 +8,7 @@ import {
   ChevronUpIcon,
   ChevronDownIcon,
   TriangleAlertIcon,
-  DownloadIcon,
+  DownloadIcon
 } from 'lucide-react';
 import { User } from '../interfaces/IUsers';
 import Swal from 'sweetalert2';
@@ -22,7 +22,7 @@ const Users: React.FC = () => {
     role: '',
     email: '',
     phone: '',
-    fullName: '',
+    fullName: ''
   });
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,7 +37,7 @@ const Users: React.FC = () => {
   }>({
     businessGroups: [],
     associations: [],
-    business: [],
+    business: []
   });
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState('');
@@ -60,7 +60,7 @@ const Users: React.FC = () => {
     try {
       setUserLoading(true);
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/users`, {
-        withCredentials: true,
+        withCredentials: true
       });
       setUsers(response.data);
     } catch (error) {
@@ -75,10 +75,10 @@ const Users: React.FC = () => {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/users/get_passwords`,
-        { withCredentials: true },
+        { withCredentials: true }
       );
       const blob = new Blob([response.data.csv], {
-        type: 'text/csv;charset=utf-8;',
+        type: 'text/csv;charset=utf-8;'
       });
       FileSaver.saveAs(blob, 'clients_passwords.csv');
     } catch (error) {
@@ -91,18 +91,18 @@ const Users: React.FC = () => {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/data/company-options`,
-        { withCredentials: true },
+        { withCredentials: true }
       );
       const sortedOptions = {
         businessGroups: response.data.businessGroups.sort((a: string, b: string) =>
-          a.localeCompare(b),
+          a.localeCompare(b)
         ),
         associations: response.data.associations.sort((a: string, b: string) =>
-          a.localeCompare(b),
+          a.localeCompare(b)
         ),
         business: response.data.business.sort((a: string, b: string) =>
-          a.localeCompare(b),
-        ),
+          a.localeCompare(b)
+        )
       };
       setCompanyOptions(sortedOptions);
     } catch (error) {
@@ -116,7 +116,7 @@ const Users: React.FC = () => {
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/users`,
         newUser,
-        { withCredentials: true },
+        { withCredentials: true }
       );
       setNewUser({
         username: '',
@@ -125,10 +125,10 @@ const Users: React.FC = () => {
         role: '',
         email: '',
         fullName: '',
-        phone: '',
+        phone: ''
       });
       setSuccessMessage(
-        `Usuario creado: ${response.data.username}, Contraseña: ${response.data.password}`,
+        `Usuario creado: ${response.data.username}, Contraseña: ${response.data.password}`
       );
       fetchUsers();
     } catch (error) {
@@ -146,7 +146,7 @@ const Users: React.FC = () => {
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, reestablecer',
-      cancelButtonText: 'Cancelar',
+      cancelButtonText: 'Cancelar'
     });
 
     if (!result.isConfirmed) return;
@@ -155,23 +155,23 @@ const Users: React.FC = () => {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/users/update-passwords`,
-        { withCredentials: true },
+        { withCredentials: true }
       );
       const blob = new Blob([response.data.csv], {
-        type: 'text/csv;charset=utf-8;',
+        type: 'text/csv;charset=utf-8;'
       });
       FileSaver.saveAs(blob, 'updated_clients_passwords.csv');
       await Swal.fire({
         title: '¡Éxito!',
         text: 'Las contraseñas se han reestablecido correctamente.',
-        icon: 'success',
+        icon: 'success'
       });
     } catch (error) {
       console.error('Error al reestablecer las contraseñas:', error);
       await Swal.fire({
         title: 'Error',
         text: 'Ocurrió un problema al reestablecer las contraseñas.',
-        icon: 'error',
+        icon: 'error'
       });
     } finally {
       setLoading(false);
@@ -190,7 +190,7 @@ const Users: React.FC = () => {
     if (!editingUser) return;
     try {
       const updateData: Partial<User> & { password?: string } = {
-        username: editingUser.username,
+        username: editingUser.username
       };
       if (newPassword) updateData.password = newPassword;
       if (newPhone) updateData.phone = newPhone;
@@ -200,7 +200,7 @@ const Users: React.FC = () => {
       await axios.put(
         `${import.meta.env.VITE_API_URL}/users/update-user/${editingUser.id}`,
         updateData,
-        { withCredentials: true },
+        { withCredentials: true }
       );
       setEditingUser(null);
       setNewPassword('');
@@ -208,13 +208,13 @@ const Users: React.FC = () => {
       await Swal.fire({
         title: '¡Éxito!',
         text: 'Usuario actualizado correctamente.',
-        icon: 'success',
+        icon: 'success'
       });
     } catch (error) {
       await Swal.fire({
         title: 'Error',
         text: 'Ocurrió un problema al actualizar el usuario.',
-        icon: 'error',
+        icon: 'error'
       });
     }
   };
@@ -228,7 +228,7 @@ const Users: React.FC = () => {
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
+      cancelButtonText: 'Cancelar'
     });
 
     if (!result.isConfirmed) return;
@@ -236,20 +236,20 @@ const Users: React.FC = () => {
     try {
       await axios.delete(
         `${import.meta.env.VITE_API_URL}/users/delete-user/${id}`,
-        { withCredentials: true },
+        { withCredentials: true }
       );
       fetchUsers();
       await Swal.fire({
         title: '¡Eliminado!',
         text: 'El usuario ha sido eliminado.',
-        icon: 'success',
+        icon: 'success'
       });
     } catch (error) {
       console.error('Error deleting user:', error);
       await Swal.fire({
         title: 'Error',
         text: 'No se pudo eliminar el usuario.',
-        icon: 'error',
+        icon: 'error'
       });
     }
   };
@@ -258,10 +258,10 @@ const Users: React.FC = () => {
     setSortConfig((prevConfig) =>
       prevConfig?.key === key
         ? {
-            ...prevConfig,
-            direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
-          }
-        : { key, direction: 'asc' },
+          ...prevConfig,
+          direction: prevConfig.direction === 'asc' ? 'desc' : 'asc'
+        }
+        : { key, direction: 'asc' }
     );
   };
 
@@ -372,55 +372,55 @@ const Users: React.FC = () => {
         ) : (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
-              <tr>
-                {[
-                  { key: 'username', label: 'Usuario' },
-                  { key: 'fullName', label: 'Nombre' },
-                  { key: 'email', label: 'Correo' },
-                  { key: 'phone', label: 'Teléfono' },
-                  { key: 'role', label: 'Rol' },
-                  { key: 'company', label: 'Empresa' },
-                  { key: 'actions', label: 'Acciones' },
-                ].map((column) => (
-                  <th
-                    key={column.key}
-                    onClick={() =>
-                      column.key !== 'actions' &&
-                      handleSort(column.key as keyof User)
-                    }
-                    className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      column.key !== 'actions' && 'cursor-pointer hover:bg-gray-100'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>{column.label}</span>
-                      {column.key !== 'actions' && (
-                        <SortIcon column={column.key as keyof User} />
-                      )}
-                    </div>
-                  </th>
-                ))}
-              </tr>
+            <tr>
+              {[
+                { key: 'username', label: 'Usuario' },
+                { key: 'fullName', label: 'Nombre' },
+                { key: 'email', label: 'Correo' },
+                { key: 'phone', label: 'Teléfono' },
+                { key: 'role', label: 'Rol' },
+                { key: 'company', label: 'Empresa' },
+                { key: 'actions', label: 'Acciones' }
+              ].map((column) => (
+                <th
+                  key={column.key}
+                  onClick={() =>
+                    column.key !== 'actions' &&
+                    handleSort(column.key as keyof User)
+                  }
+                  className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                    column.key !== 'actions' && 'cursor-pointer hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>{column.label}</span>
+                    {column.key !== 'actions' && (
+                      <SortIcon column={column.key as keyof User} />
+                    )}
+                  </div>
+                </th>
+              ))}
+            </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {sortedUsers.map((user) => (
-                <tr
-                  key={user.id}
-                  className="hover:bg-gray-50 transition-colors duration-150"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.username}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.fullName}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.email}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.phone}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+            {sortedUsers.map((user) => (
+              <tr
+                key={user.id}
+                className="hover:bg-gray-50 transition-colors duration-150"
+              >
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {user.username}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {user.fullName}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {user.email}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {user.phone}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         user.role === 'admin'
@@ -430,32 +430,32 @@ const Users: React.FC = () => {
                     >
                       {user.role}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.company}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex space-x-2">
-                      {user.username !== 'clagonjor' && (
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {user.company}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex space-x-2">
+                    {user.username !== 'clagonjor' && (
                       <button
                         onClick={() => handleEditUser(user)}
                         className="text-amber-500 hover:text-amber-600 transition-colors duration-150"
                       >
                         <Edit2Icon className="w-5 h-5" />
                       </button>
-                      )}
-                      {user.username !== 'clagonjor' && (
-                        <button
-                          onClick={() => handleDeleteUser(user.id)}
-                          className="text-red-500 hover:text-red-600 transition-colors duration-150"
-                        >
-                          <Trash2Icon className="w-5 h-5" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    )}
+                    {user.username !== 'clagonjor' && (
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="text-red-500 hover:text-red-600 transition-colors duration-150"
+                      >
+                        <Trash2Icon className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
             </tbody>
           </table>
         )}
@@ -542,10 +542,10 @@ const Users: React.FC = () => {
                   {[
                     {
                       value: 'businessGroup',
-                      label: 'Grupo Empresarial',
+                      label: 'Grupo Empresarial'
                     },
                     { value: 'association', label: 'Asociación' },
-                    { value: 'business', label: 'Empresa' },
+                    { value: 'business', label: 'Empresa' }
                   ].map((option) => (
                     <label
                       key={option.value}
@@ -560,7 +560,7 @@ const Users: React.FC = () => {
                           setNewUser({
                             ...newUser,
                             companyType: e.target.value,
-                            company: '',
+                            company: ''
                           })
                         }
                         className="form-radio text-amber-500"

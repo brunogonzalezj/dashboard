@@ -157,6 +157,40 @@ export default function CsvUpload() {
     }
   };
 
+  const wipeFormData = async () => {
+    try {
+      const result = await Swal.fire({
+        title: '¿Está seguro de que desea eliminar todos los datos del formulario?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+      });
+
+      if (!result.isConfirmed) return;
+
+      await axios.get(`${import.meta.env.VITE_API_URL}/data/wipeForm`, {
+        withCredentials: true,
+      });
+      await Swal.fire({
+        title: '¡Éxito!',
+        text: 'Todos los datos del formulario han sido eliminados.',
+        icon: 'success',
+      });
+    }
+    catch (error) {
+      console.error('Error wiping form data:', error);
+      await Swal.fire({
+        title: 'Error',
+        text: 'Ocurrió un problema al eliminar los datos del formulario.',
+        icon: 'error',
+      });
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -337,6 +371,13 @@ export default function CsvUpload() {
           >
             <Download className="w-5 h-5" />
             Descargar Formulario
+          </button>
+          <button
+            onClick={wipeFormData}
+            className="w-full sm:w-auto py-3 px-6 rounded-lg shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-600 hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            <AlertTriangle className="w-5 h-5" />
+            Eliminar Datos del Formulario
           </button>
         </div>
 
