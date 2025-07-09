@@ -63,9 +63,9 @@ const genderColors = {
 
 const educationColors = {
   "Sin Formacion": "#8A6B60",
-  "Primaria Completa": "#D7CCC8",
-  "Secundaria Completa": "#A1887F",
-  "Tecnico o Tecnologo": "#AED581",
+  "Primaria": "#D7CCC8",
+  "Secundaria": "#A1887F",
+  "Tecnico": "#AED581",
   "Universitario": "#81D4D5",
   "Posgrado": "#81ABD5"
 }
