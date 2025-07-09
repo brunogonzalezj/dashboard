@@ -70,6 +70,15 @@ const educationColors = {
   "Posgrado": "#81ABD5"
 }
 
+const educationOrder =  [
+  "Sin Formación",
+  "Primaria",
+  "Secundaria",
+  "Técnico",
+  "Universitario",
+  "Posgrado"
+]
+
 const experienceColors = {
   "0-5": "#A8DADC",
   "5-10": "#457B9D",
@@ -272,16 +281,16 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
     ).map(([name, value]) => ({ name, value }))
   ).sort((a, b) => genderOrder.indexOf(a.name) - genderOrder.indexOf(b.name));
 
-    const educationData = calculatePercentages(
-        Object.entries(
-            filteredData.reduce((acc: Record<string, number>, item) => {
-                if (item.education !== null) {
-                    acc[item.education] = (acc[item.education] || 0) + 1
-                }
-                return acc
-            }, {})
-        ).map(([name, value]) => ({ name, value }))
-    );
+  const educationData = calculatePercentages(
+    Object.entries(
+      filteredData.reduce((acc: Record<string, number>, item) => {
+        if (item.education !== null) {
+          acc[item.education] = (acc[item.education] || 0) + 1;
+        }
+        return acc;
+      }, {})
+    ).map(([name, value]) => ({ name, value }))
+  ).sort((a, b) => educationOrder.indexOf(a.name) - educationOrder.indexOf(b.name));
 
     const jobAreaData = calculatePercentages(
         Object.entries(
