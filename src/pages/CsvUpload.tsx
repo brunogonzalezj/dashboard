@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { Upload, AlertTriangle, Download } from 'lucide-react';
+import { Upload, AlertTriangle, Download, Check, X } from 'lucide-react';
+
+interface Curso {
+  id: number;
+  nombre: string;
+  activo: boolean;
+}
 
 export default function CsvUpload() {
   const [currentFile, setCurrentFile] = useState<File | null>(null);
@@ -12,6 +18,118 @@ export default function CsvUpload() {
   const [isUploadingHistory, setIsUploadingHistory] = useState(false);
   const [isMigrating, setIsMigrating] = useState(false);
   const [migrationMessage, setMigrationMessage] = useState('');
+  const [cursos, setCursos] = useState<Curso[]>([]);
+  const [isLoadingCursos, setIsLoadingCursos] = useState(false);
+  const [cursosMessage, setCursosMessage] = useState('');
+  const [formEnabled, setFormEnabled] = useState<boolean>();
+  const [isLoadingFormStatus, setIsLoadingFormStatus] = useState(false);
+  const [formStatusMessage, setFormStatusMessage] = useState('');
+
+
+  useEffect(() => {
+    fetchCursos();
+    fetchFormStatus();
+  }, []);
+
+  const fetchFormStatus = async () => {
+    setIsLoadingFormStatus(true);
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/data/form-status`,
+        {
+          withCredentials: true,
+        }
+      );
+      setFormEnabled(response.data.habilitado);
+    } catch (error) {
+      console.error('Error al cargar el estado del formulario:', error);
+      setFormStatusMessage('Error al cargar el estado del formulario');
+    } finally {
+      setIsLoadingFormStatus(false);
+    }
+  };
+
+  const toggleFormStatus = async () => {
+    setIsLoadingFormStatus(true);
+    setFormStatusMessage('');
+
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/data/form-status`,
+        {
+          habilitado: !formEnabled
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      setFormEnabled(!formEnabled);
+      setFormStatusMessage(response.data.message);
+
+      // Limpiar el mensaje después de 3 segundos
+      setTimeout(() => {
+        setFormStatusMessage('');
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error al cambiar el estado del formulario:', error);
+      setFormStatusMessage('Error al cambiar el estado del formulario');
+    } finally {
+      setIsLoadingFormStatus(false);
+    }
+  };
+
+  const fetchCursos = async () => {
+    setIsLoadingCursos(true);
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/data/cursos`,
+        {
+          withCredentials: true,
+        }
+      );
+      setCursos(response.data);
+    } catch (error) {
+      console.error('Error al cargar los cursos:', error);
+      setCursosMessage('Error al cargar los cursos');
+    } finally {
+      setIsLoadingCursos(false);
+    }
+  };
+
+  const toggleCursoActivo = async (cursoId: number, activo: boolean) => {
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/data/cursos/toggle`,
+        {
+          cursoId,
+          activo: !activo
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      // Actualizar el estado local después de cambiar en el servidor
+      setCursos(cursos.map(curso =>
+        curso.id === cursoId
+          ? { ...curso, activo: !activo }
+          : curso
+      ));
+
+      setCursosMessage(`Curso ${!activo ? 'activado' : 'desactivado'} correctamente`);
+
+      // Limpiar el mensaje después de 3 segundos
+      setTimeout(() => {
+        setCursosMessage('');
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error al cambiar estado del curso:', error);
+      setCursosMessage('Error al cambiar estado del curso');
+    }
+  };
 
   const handleMigrate = async () => {
     const result = await Swal.fire({
@@ -193,6 +311,117 @@ export default function CsvUpload() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
+      {/* Sección de Estado del Formulario */}
+      <div className="bg-white rounded-xl shadow-lg p-6 transition-all duration-200 hover:shadow-xl">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Estado del Formulario</h2>
+
+        {isLoadingFormStatus ? (
+          <div className="flex justify-center items-center p-6">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className={`w-4 h-4 rounded-full mr-3 ${formEnabled ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <p className="text-lg font-medium">
+                  El formulario está actualmente {formEnabled ? 'habilitado' : 'deshabilitado'}
+                </p>
+              </div>
+
+              <button
+                onClick={toggleFormStatus}
+                disabled={isLoadingFormStatus}
+                className={`py-2 px-6 rounded-lg shadow-sm text-sm font-medium text-white transition-all duration-200 ${
+                  isLoadingFormStatus
+                    ? 'bg-gray-300 cursor-not-allowed'
+                    : formEnabled
+                      ? 'bg-red-500 hover:bg-red-600'
+                      : 'bg-green-500 hover:bg-green-600'
+                }`}
+              >
+                {isLoadingFormStatus ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    Actualizando...
+                  </div>
+                ) : (
+                  formEnabled ? 'Deshabilitar Formulario' : 'Habilitar Formulario'
+                )}
+              </button>
+            </div>
+
+            {formStatusMessage && (
+              <div className={`mt-4 p-3 rounded-lg text-sm font-medium ${
+                formStatusMessage.includes('Error')
+                  ? 'bg-red-50 text-red-800'
+                  : 'bg-green-50 text-green-800'
+              }`}>
+                {formStatusMessage}
+              </div>
+            )}
+
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600">
+                <span className="font-medium">Nota:</span> {formEnabled
+                ? 'Al deshabilitar el formulario, los usuarios no podrán acceder a él ni enviar datos.'
+                : 'Al habilitar el formulario, los usuarios podrán acceder y enviar sus datos.'}
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+      {/* Sección de Cursos Disponibles */}
+      <div className="bg-white rounded-xl shadow-lg p-6 transition-all duration-200 hover:shadow-xl">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Configuración de Cursos</h2>
+
+        {isLoadingCursos ? (
+          <div className="flex justify-center items-center p-6">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-gray-600 mb-4">
+              Seleccione los cursos que desea mostrar en el formulario:
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {cursos.map((curso) => (
+                <div
+                  key={curso.id}
+                  className={`p-4 rounded-lg border transition-all duration-200 flex justify-between items-center ${
+                    curso.activo
+                      ? 'border-green-500 bg-green-50'
+                      : 'border-gray-300 bg-gray-50'
+                  }`}
+                >
+                  <span className="font-medium">{curso.nombre}</span>
+                  <button
+                    onClick={() => toggleCursoActivo(curso.id, curso.activo)}
+                    className={`p-2 rounded-full transition-colors ${
+                      curso.activo
+                        ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {curso.activo ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {cursosMessage && (
+              <div className={`mt-4 p-3 rounded-lg text-sm font-medium ${
+                cursosMessage.includes('Error')
+                  ? 'bg-red-50 text-red-800'
+                  : 'bg-green-50 text-green-800'
+              }`}>
+                {cursosMessage}
+              </div>
+            )}
+          </>
+        )}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Current CSV Upload */}
         <div className="bg-white rounded-xl shadow-lg p-6 transition-all duration-200 hover:shadow-xl">
