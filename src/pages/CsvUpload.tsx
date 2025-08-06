@@ -35,10 +35,7 @@ export default function CsvUpload() {
     setIsLoadingFormStatus(true);
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/data/form-status`,
-        {
-          withCredentials: true,
-        }
+        `${import.meta.env.VITE_API_URL}/data/form-status`
       );
       setFormEnabled(response.data.habilitado);
     } catch (error) {
