@@ -8,9 +8,10 @@ interface TableProps {
   data: DataItem[];
   onSort: (key: keyof DataItem) => void;
   sortConfig: { key: string; direction: string } | null;
+  isHistoric?: boolean;
 }
 
-const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig }) => {
+const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig, isHistoric = false }) => {
   const headers = [
     { key: 'course', label: 'Curso' },
     { key: 'name', label: 'Nombre' },
@@ -19,6 +20,7 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig }) => {
     { key: 'business', label: 'Empresa' },
     { key: 'stateOfCompleteness', label: 'Estado' },
     { key: 'progressPercentage', label: '% de progreso' },
+    ...(isHistoric ? [{ key: 'finalScore', label: 'Nota Final' }] : []),
     { key: 'contact', label: 'Contactar' },
   ];
 
@@ -73,6 +75,11 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig }) => {
                 </div>
                 <span className="text-xs text-gray-500 mt-1">{item.progressPercentage}</span>
               </td>
+              {isHistoric && (
+                <td className="py-2 px-4 border-b text-center font-semibold">
+                  {item.finalScore || 'N/A'}
+                </td>
+              )}
               <td className="py-2 px-4 border-b">
                 <div className="flex items-center justify-center space-x-2">
                   <Link

@@ -119,9 +119,31 @@ const Historic: React.FC = () => {
     );
   };
 
+  const getLoginStats = useMemo(() => {
+    if (filteredData.length === 0) return { loggedInCount: 0, totalCount: 0, rate: 0 };
+
+    const loggedInCount = filteredData.filter((item) => item.login === 'SI').length;
+    const totalCount = filteredData.length;
+    const rate = ((loggedInCount / totalCount) * 100).toFixed(0);
+
+    return { loggedInCount, totalCount, rate };
+  }, [filteredData]);
+
+  const getCompletionStats = useMemo(() => {
+    if (filteredData.length === 0) return { completedCount: 0, totalCount: 0, rate: 0 };
+
+    const completedCount = filteredData.filter(
+      (item) => item.stateOfCompleteness === 'Completado'
+    ).length;
+    const totalCount = filteredData.length;
+    const rate = ((completedCount / totalCount) * 100).toFixed(0);
+
+    return { completedCount, totalCount, rate };
+  }, [filteredData]);
+
   const handleDownloadXLSX = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/data/export-xlsx`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/data/export-history-xlsx`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -139,6 +161,7 @@ const Historic: React.FC = () => {
             stateOfCompleteness: item.stateOfCompleteness,
             progressPercentage: item.progressPercentage,
             year: item.year,
+            finalScore: item.finalScore,
           })),
           username,
         }),
@@ -184,8 +207,37 @@ const Historic: React.FC = () => {
 
   return (
     <div className="p-2 mt-2 sm:p-4 md:p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto">
+      <div className="flex flex-col mb-4 lg:mb-8 gap-4">
+        <div className="flex flex-col items-center justify-center lg:flex-row w-full gap-4">
+          <div className="bg-[#3A69AA] p-4 rounded-lg text-white">
+            <h2 className="text-base sm:text-lg font-semibold mb-2">
+              Usuarios que iniciaron sesión
+            </h2>
+            {!loading ? (
+              <p className="text-2xl sm:text-3xl font-bold">
+                {getLoginStats.loggedInCount} de {getLoginStats.totalCount} usuarios ({getLoginStats.rate}%)
+              </p>
+            ) : (
+              <span className="loading loading-ring loading-lg"></span>
+            )}
+          </div>
+          <div className="bg-[#3A69AA] p-4 rounded-lg text-white">
+            <h2 className="text-base sm:text-lg font-semibold mb-2">
+              Usuarios que completaron el curso
+            </h2>
+            {!loading ? (
+              <p className="flex text-nowrap text-2xl sm:text-3xl font-bold">
+                {getCompletionStats.completedCount} de {getCompletionStats.totalCount} usuarios ({getCompletionStats.rate}%)
+              </p>
+            ) : (
+              <span className="loading loading-ring loading-lg"></span>
+            )}
+          </div>
+        </div>
+      </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+        <h1 className="text-lg sm:text-xl font-bold">Datos Históricos</h1>
         <button
           onClick={handleDownloadXLSX}
           className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center text-sm"
@@ -236,6 +288,7 @@ const Historic: React.FC = () => {
           data={displayedData}
           onSort={handleSort}
           sortConfig={sortConfig}
+          isHistoric={true}
         />
       </div>
 
