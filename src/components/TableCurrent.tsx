@@ -25,8 +25,12 @@ const mailtoFor = (item: DataItem) => {
 const phoneDigits = (phone: string) => String(phone ?? '').replace(/\D/g, '');
 
 function StatusBadge({ state }: { state: string }) {
-  const done = state === 'Completado';
-  return <span className={cn(done ? 'badge-success' : 'badge-neutral', 'badge-dot')}>{done ? 'Completado' : 'No completado'}</span>;
+  if (state === 'Completado') return <span className="badge-success badge-dot">Completado</span>;
+  // El CSV trae "SIN DATOS" cuando la plataforma no informó el estado: no es lo mismo que "No completado"
+  if (!state || state.toUpperCase() === 'SIN DATOS') {
+    return <span className="badge-neutral badge-dot opacity-70">Sin datos</span>;
+  }
+  return <span className="badge-neutral badge-dot">No completado</span>;
 }
 
 function Progress({ item }: { item: DataItem }) {
