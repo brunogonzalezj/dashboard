@@ -1,93 +1,105 @@
-import { Link, useLocation } from "react-router-dom";
-import { FileSpreadsheet, Home, LogOut, Users, X } from 'lucide-react';
-import { useAuth } from "../contexts/AuthContext";
-import React from "react";
+import { NavLink } from 'react-router-dom';
+import { FileSpreadsheet, LayoutDashboard, LogOut, Users, X } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import React from 'react';
+import { cn } from '../lib/utils';
 
 interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+  onNavigate?: () => void;
+  onClose?: () => void;
 }
 
-const NAV = [
-  { to: '/',          icon: Home,            label: 'Inicio' },
-  { to: '/users',     icon: Users,           label: 'Usuarios',       adminOnly: true },
-  { to: '/csv-upload',icon: FileSpreadsheet, label: 'Cargar CSV',     adminOnly: true },
+export const NAV = [
+  { to: '/',           icon: LayoutDashboard, label: 'Panel de cursos' },
+  { to: '/users',      icon: Users,           label: 'Usuarios',          adminOnly: true },
+  { to: '/csv-upload', icon: FileSpreadsheet, label: 'Datos y formulario', adminOnly: true },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+const ROLE_LABEL: Record<string, string> = { admin: 'Administrador', client: 'Cliente' };
+
+export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, onClose }) => {
   const { logout, userRole, username } = useAuth();
-  const location = useLocation();
-  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <>
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-20 bg-black/40 backdrop-blur-sm sm:hidden"
-          onClick={onClose}
-        />
-      )}
-
-      <aside
-        className={`
-          fixed sm:static inset-y-0 left-0 z-30
-          w-60 flex flex-col h-full
-          transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-          sm:translate-x-0 transition-transform duration-300 ease-in-out
-        `}
-        style={{ background: 'linear-gradient(180deg, #f59e0b 0%, #fbbf24 100%)' }}
-      >
-        {/* Logo + close */}
-        <div className="flex items-center justify-between px-5 py-5 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <img src="/soy_logo.webp" alt="Logo" className="w-8 h-8 rounded-full ring-2 ring-white/30" />
-            <span className="text-white font-semibold text-sm tracking-wide">Excelencia</span>
+    <div className="flex h-full w-full flex-col bg-primary-900 text-primary-100">
+      {/* Marca */}
+      <div className="flex h-16 items-center justify-between gap-3 px-5">
+        <div className="flex items-center gap-3 min-w-0">
+          <img src="/soy_logo.webp" alt="" className="h-9 w-9 rounded-full ring-1 ring-white/15" />
+          <div className="min-w-0 leading-tight">
+            <p className="text-[15px] font-semibold text-white truncate">Excelencia</p>
+            <p className="text-xs text-primary-200/80 truncate">de la Soya</p>
           </div>
-          <button onClick={onClose} className="sm:hidden text-white/70 hover:text-white p-1 rounded">
-            <X size={18} />
-          </button>
         </div>
-
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {NAV.filter(n => !n.adminOnly || userRole === 'admin').map(({ to, icon: Icon, label }) => (
-            <Link
-              key={to}
-              to={to}
-              onClick={onClose}
-              className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                transition-all duration-150
-                ${isActive(to)
-                  ? 'bg-white text-primary-600 shadow-sm'
-                  : 'text-white/80 hover:text-white hover:bg-white/10'
-                }
-              `}
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              <span>{label}</span>
-            </Link>
-          ))}
-        </nav>
-
-        {/* User + logout */}
-        <div className="px-3 py-4 border-t border-white/10 space-y-1">
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-bold uppercase flex-shrink-0">
-              {username?.[0] ?? '?'}
-            </div>
-            <span className="text-white/80 text-sm truncate">{username}</span>
-          </div>
+        {onClose && (
           <button
-            onClick={() => { logout(); onClose(); }}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all duration-150"
+            onClick={onClose}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-primary-200 hover:bg-white/10 hover:text-white lg:hidden"
+            aria-label="Cerrar menú"
           >
-            <LogOut className="w-4 h-4 flex-shrink-0" />
-            <span>Cerrar sesión</span>
+            <X className="h-5 w-5" />
           </button>
+        )}
+      </div>
+
+      {/* Navegación */}
+      <nav className="flex-1 overflow-y-auto px-3 pt-4" aria-label="Principal">
+        <ul className="space-y-1">
+          {NAV.filter((n) => !n.adminOnly || userRole === 'admin').map(({ to, icon: Icon, label }) => (
+            <li key={to}>
+              <NavLink
+                to={to}
+                end={to === '/'}
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                  cn(
+                    'group flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150',
+                    isActive
+                      ? 'bg-white/[0.08] text-white'
+                      : 'text-primary-200 hover:bg-white/[0.06] hover:text-white',
+                  )
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon
+                      className={cn(
+                        'h-[18px] w-[18px] flex-shrink-0 transition-colors',
+                        isActive ? 'text-secondary-400' : 'text-primary-300 group-hover:text-primary-100',
+                      )}
+                    />
+                    <span className="truncate">{label}</span>
+                    {isActive && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-secondary-400" aria-hidden="true" />}
+                  </>
+                )}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {/* Usuario */}
+      <div className="border-t border-white/10 p-3">
+        <div className="flex items-center gap-3 px-2 py-2">
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-secondary-400 text-sm font-bold uppercase text-primary-950">
+            {username?.[0] ?? '?'}
+          </div>
+          <div className="min-w-0 leading-tight">
+            <p className="truncate text-sm font-medium text-white">{username}</p>
+            <p className="text-xs text-primary-200/80">{ROLE_LABEL[userRole ?? ''] ?? 'Sin rol'}</p>
+          </div>
         </div>
-      </aside>
-    </>
+        <button
+          onClick={() => {
+            onNavigate?.();
+            logout();
+          }}
+          className="mt-1 flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-primary-200 transition-colors hover:bg-white/[0.06] hover:text-white"
+        >
+          <LogOut className="h-[18px] w-[18px] flex-shrink-0" />
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
   );
 };

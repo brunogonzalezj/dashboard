@@ -1,114 +1,70 @@
-import type React from "react"
-import { FunnelChart, Funnel, Tooltip, LabelList, ResponsiveContainer, Cell } from "recharts"
-import type { DataItem } from "../../interfaces/IData"
+import type React from 'react';
+import { ArrowDown } from 'lucide-react';
+import type { DataItem } from '../../interfaces/IData';
 
 interface InfoViewProps {
-  data: DataItem[]
+  data: DataItem[];
 }
 
-const FUNNEL_COLORS = ['#3a69aa', '#f59e0b', '#10b981']
+const pct = (part: number, whole: number) => (whole > 0 ? (part / whole) * 100 : 0);
+const fmt = (n: number) => n.toLocaleString('es', { maximumFractionDigits: 1 });
 
+/**
+ * Embudo de avance: cuántos de los registrados entraron y cuántos terminaron.
+ * Cada etapa es una barra proporcional al total, con la conversión desde la etapa anterior.
+ */
 const InfoView: React.FC<InfoViewProps> = ({ data }) => {
-  const totalRegistered = data.length
-  const loggedIn = data.filter((item) => item.login === "SI").length
-  const completed = data.filter((item) => item.stateOfCompleteness === "Completado").length
+  const registered = data.length;
+  const loggedIn = data.filter((item) => item.login === 'SI').length;
+  const completed = data.filter((item) => item.stateOfCompleteness === 'Completado').length;
 
-  const funnelData = [
-    { name: "Registrados", value: totalRegistered, fill: FUNNEL_COLORS[0] },
-    { name: "Iniciaron Sesión", value: loggedIn, fill: FUNNEL_COLORS[1] },
-    { name: "Completados", value: completed, fill: FUNNEL_COLORS[2] },
-  ]
-
-  const conversionRates = [
-    {
-      label: 'Registro → Sesión',
-      rate: totalRegistered > 0 ? ((loggedIn / totalRegistered) * 100).toFixed(1) : '0',
-      drop: totalRegistered > 0 ? (((totalRegistered - loggedIn) / totalRegistered) * 100).toFixed(1) : '0',
-    },
-    {
-      label: 'Sesión → Completado',
-      rate: loggedIn > 0 ? ((completed / loggedIn) * 100).toFixed(1) : '0',
-      drop: loggedIn > 0 ? (((loggedIn - completed) / loggedIn) * 100).toFixed(1) : '0',
-    },
-  ]
+  const stages = [
+    { name: 'Registrados', value: registered, color: '#2a4f84', from: null as number | null },
+    { name: 'Iniciaron sesión', value: loggedIn, color: '#5f8ccb', from: registered },
+    { name: 'Completaron el curso', value: completed, color: '#e39a0b', from: loggedIn },
+  ];
 
   return (
-    <div className="space-y-4">
-      <div className="dashboard-card">
-        <h2 className="section-title mb-4">Funnel de Progreso</h2>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Funnel Chart */}
-          <div className="lg:col-span-2">
-            <ResponsiveContainer width="100%" height={350}>
-              <FunnelChart>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                  }}
-                  formatter={(value: number, name: string) => [`${value} participantes`, name]}
-                />
-                <Funnel
-                  dataKey="value"
-                  data={funnelData}
-                  isAnimationActive
-                >
-                  {funnelData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} stroke="none" />
-                  ))}
-                  <LabelList
-                    dataKey="name"
-                    position="center"
-                    fill="#fff"
-                    fontSize={14}
-                    fontWeight={600}
+    <section className="dashboard-card">
+      <header className="mb-6">
+        <h2 className="card-title">Embudo de avance</h2>
+        <p className="card-subtitle">De los participantes registrados, cuántos entraron a la plataforma y cuántos terminaron.</p>
+      </header>
+
+      <ol className="space-y-2">
+        {stages.map((stage, i) => {
+          const ofTotal = pct(stage.value, registered);
+          return (
+            <li key={stage.name}>
+              {i > 0 && stage.from !== null && (
+                <p className="my-2 flex items-center gap-2 pl-1 text-[13px] text-[color:var(--text-muted)]">
+                  <ArrowDown className="h-4 w-4" />
+                  <span>
+                    <span className="font-semibold text-emerald-700 tabular">{fmt(pct(stage.value, stage.from))}%</span> continúa
+                    <span className="mx-1.5 text-[#c3cad4]">·</span>
+                    <span className="font-semibold text-red-700 tabular">{fmt(100 - pct(stage.value, stage.from))}%</span> se queda
+                  </span>
+                </p>
+              )}
+              <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,12rem)_1fr_auto] sm:gap-4">
+                <p className="text-sm font-medium text-[color:var(--text-strong)]">{stage.name}</p>
+                <div className="h-9 overflow-hidden rounded-md bg-[#eef1f5]">
+                  <div
+                    className="h-full rounded-md transition-[width] duration-500 ease-out"
+                    style={{ width: `${Math.max(ofTotal, stage.value > 0 ? 1.5 : 0)}%`, background: stage.color }}
                   />
-                </Funnel>
-              </FunnelChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Stats sidebar */}
-          <div className="flex flex-col gap-3 justify-center">
-            {/* Stage cards */}
-            {funnelData.map((stage, i) => {
-              const pct = totalRegistered > 0 ? ((stage.value / totalRegistered) * 100).toFixed(1) : '0'
-              return (
-                <div
-                  key={stage.name}
-                  className="rounded-xl p-4 border border-gray-100"
-                  style={{ backgroundColor: `${FUNNEL_COLORS[i]}10` }}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: FUNNEL_COLORS[i] }} />
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{stage.name}</p>
-                  </div>
-                  <p className="text-2xl font-bold text-gray-800">{stage.value}</p>
-                  <p className="text-xs text-gray-400">{pct}% del total</p>
                 </div>
-              )
-            })}
+                <p className="tabular sm:text-right">
+                  <span className="text-xl font-semibold tracking-tight text-[color:var(--text-strong)]">{stage.value.toLocaleString('es')}</span>
+                  <span className="ml-2 text-[13px] text-[color:var(--text-muted)]">{fmt(ofTotal)}% del total</span>
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+};
 
-            {/* Conversion rates */}
-            <div className="mt-2 space-y-2">
-              {conversionRates.map((cr) => (
-                <div key={cr.label} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
-                  <span className="text-xs text-gray-500">{cr.label}</span>
-                  <div className="text-right">
-                    <span className="text-sm font-semibold text-green-600">{cr.rate}%</span>
-                    <span className="text-xs text-red-400 ml-2">-{cr.drop}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export default InfoView
+export default InfoView;

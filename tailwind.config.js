@@ -7,8 +7,9 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Azul marino: estructura (barra lateral, títulos, series de datos)
         primary: {
-          50:  '#eef3fb',
+          50:  '#eef3fa',
           100: '#d5e2f4',
           200: '#aac5e9',
           300: '#7fa8de',
@@ -16,10 +17,12 @@ export default {
           500: '#3a69aa',
           600: '#2d5288',
           700: '#213d66',
-          800: '#162844',
-          900: '#0a1322',
+          800: '#1b3152',
+          900: '#13233b',
+          950: '#0c1626',
           DEFAULT: '#3a69aa',
         },
+        // Ámbar SOY: acción principal y selección
         secondary: {
           50:  '#fffbeb',
           100: '#fef3c7',
@@ -32,47 +35,15 @@ export default {
           800: '#92400e',
           900: '#78350f',
           DEFAULT: '#fbbf24',
-        }
+        },
       },
       fontFamily: {
-        sans: ['Inter var', 'sans-serif'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
-      animation: {
-        'fade-in': 'fadeIn 0.4s ease-out',
-        'slide-in': 'slideIn 0.4s ease-out',
-        'slide-up': 'slideUp 0.4s ease-out',
+      screens: {
+        xs: '420px',
       },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        slideIn: {
-          '0%': { transform: 'translateX(-10px)', opacity: '0' },
-          '100%': { transform: 'translateX(0)', opacity: '1' },
-        },
-        slideUp: {
-          '0%': { transform: 'translateY(12px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        }
-      }
     },
   },
-  plugins: [
-    require('daisyui')
-  ],
-  daisyui: {
-    themes: [
-      {
-        light: {
-          ...require('daisyui/src/theming/themes')['light'],
-          primary: '#3a69aa',
-          secondary: '#fbbf24',
-          accent: '#37CDBE',
-          neutral: '#3D4451',
-          'base-100': '#FFFFFF',
-        }
-      }
-    ]
-  }
+  plugins: [],
 }

@@ -1,76 +1,84 @@
-import { useState } from "react"
-import { useHistoryData } from "../../hooks/queries"
-import { DataItem } from "../../interfaces/IData"
-import ChartsView from "../history/ChartsView"
-import InfoView from "../history/InfoView"
-import YearInfoView from "../history/YearInfoView"
-import { Skeleton } from "../ui/Skeleton"
+import { useState } from 'react';
+import { useHistoryData } from '../../hooks/queries';
+import { DataItem } from '../../interfaces/IData';
+import ChartsView from '../history/ChartsView';
+import InfoView from '../history/InfoView';
+import YearInfoView from '../history/YearInfoView';
+import { Skeleton } from '../ui/Skeleton';
+import { cn } from '../../lib/utils';
 
-enum ViewType {
-  Charts = "Gráficos",
-  Info = "Información",
-  YearInfo = "Info por año",
-}
+const SUBVIEWS = [
+  { id: 'perfil', label: 'Perfil' },
+  { id: 'embudo', label: 'Embudo de avance' },
+  { id: 'anual', label: 'Por año' },
+] as const;
+type SubviewId = (typeof SUBVIEWS)[number]['id'];
 
 const EMPTY_DATA: DataItem[] = [];
 
 export default function History() {
-  const { data = EMPTY_DATA, isLoading } = useHistoryData()
-  const [currentView, setCurrentView] = useState<ViewType>(ViewType.Charts)
-  const [selectedCountry, setSelectedCountry] = useState<string>("all")
+  const { data = EMPTY_DATA, isLoading } = useHistoryData();
+  const [current, setCurrent] = useState<SubviewId>('perfil');
+  const [selectedCountry, setSelectedCountry] = useState<string>('all');
 
-  const filteredData = selectedCountry === "all" ? data : data.filter((item) => item.country === selectedCountry)
+  const filteredData = selectedCountry === 'all' ? data : data.filter((item) => item.country === selectedCountry);
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="flex gap-2">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-10 w-32 rounded-lg" />
-          ))}
-        </div>
-        <Skeleton className="h-10 rounded-lg" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <Skeleton className="h-[300px] rounded-xl" />
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Skeleton key={i} className="h-[250px] rounded-xl" />
-            ))}
+      <div className="space-y-5" role="status" aria-label="Cargando gráficos">
+        <Skeleton className="h-10 w-80 rounded-lg" />
+        <Skeleton className="h-[104px] rounded-xl" />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <Skeleton className="h-[420px] rounded-xl" />
+          <div className="grid gap-4">
+            <Skeleton className="h-[200px] rounded-xl" />
+            <Skeleton className="h-[200px] rounded-xl" />
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="space-y-4">
-      {/* View toggle */}
-      <div className="flex gap-2">
-        {Object.values(ViewType).map((view) => (
-          <button
-            key={view}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              currentView === view
-                ? "bg-amber-400 text-gray-800 shadow-sm"
-                : "bg-white border border-gray-200 text-gray-600 hover:bg-amber-50 hover:border-amber-300"
-            }`}
-            onClick={() => setCurrentView(view)}
-          >
-            {view}
-          </button>
-        ))}
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Selector segmentado: tres maneras de mirar los mismos datos */}
+        <div role="radiogroup" aria-label="Tipo de gráfico" className="inline-flex max-w-full overflow-x-auto rounded-lg bg-[#e9ecf1] p-1">
+          {SUBVIEWS.map((v) => {
+            const selected = current === v.id;
+            return (
+              <button
+                key={v.id}
+                role="radio"
+                aria-checked={selected}
+                onClick={() => setCurrent(v.id)}
+                className={cn(
+                  'h-9 whitespace-nowrap rounded-md px-3.5 text-[13px] font-semibold transition-[background-color,color,box-shadow] duration-150',
+                  selected
+                    ? 'bg-white text-[color:var(--text-strong)] shadow-[0_1px_2px_rgba(16,28,45,0.12)]'
+                    : 'text-[color:var(--text-muted)] hover:text-[color:var(--text-strong)]',
+                )}
+              >
+                {v.label}
+              </button>
+            );
+          })}
+        </div>
+        {selectedCountry !== 'all' && current !== 'perfil' && (
+          <p className="text-[13px] text-[color:var(--text-muted)]">
+            Mostrando solo <span className="font-semibold text-[color:var(--text-strong)]">{selectedCountry}</span> ·{' '}
+            <button className="font-semibold text-primary-600 underline hover:text-primary-700" onClick={() => setSelectedCountry('all')}>
+              ver todos
+            </button>
+          </p>
+        )}
       </div>
 
-      {/* Content */}
-      {currentView === ViewType.Charts && (
-        <ChartsView data={filteredData} selectedCountry={selectedCountry} onCountrySelect={setSelectedCountry} />
+      {current === 'perfil' && (
+        <ChartsView data={data} selectedCountry={selectedCountry} onCountrySelect={setSelectedCountry} />
       )}
-      {currentView === ViewType.Info && (
-        <InfoView data={filteredData} />
-      )}
-      {currentView === ViewType.YearInfo && (
-        <YearInfoView data={filteredData} />
-      )}
+      {current === 'embudo' && <InfoView data={filteredData} />}
+      {current === 'anual' && <YearInfoView data={filteredData} />}
     </div>
-  )
+  );
 }

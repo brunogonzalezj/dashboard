@@ -2,7 +2,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
-import { Eye, EyeOff, LogIn } from "lucide-react"
+import { Eye, EyeOff, Loader2, LogIn, TriangleAlert } from "lucide-react"
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("")
@@ -46,10 +46,10 @@ const LoginPage: React.FC = () => {
             const minutes = Math.ceil(retryAfter / 60)
             setBlockedUntil(Date.now() + retryAfter * 1000)
             setError(
-              `Demasiados intentos de inicio de sesión. Esperá ${minutes} ${minutes === 1 ? "minuto" : "minutos"} e intentá de nuevo.`
+              `Demasiados intentos de inicio de sesión. Espera ${minutes} ${minutes === 1 ? "minuto" : "minutos"} e intenta de nuevo.`
             )
           } else {
-            setError("Demasiados intentos de inicio de sesión. Esperá unos minutos e intentá de nuevo.")
+            setError("Demasiados intentos de inicio de sesión. Espera unos minutos e intenta de nuevo.")
           }
         } else if (error.response.status === 401) {
           setError("Usuario o contraseña inválidos.")
@@ -72,92 +72,75 @@ const LoginPage: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-cover bg-center"
+      className="min-h-dvh flex items-center justify-center px-4 py-10 bg-cover bg-center"
       style={{ backgroundImage: "url(/bg_login.svg)" }}
     >
-      <div className="max-w-md w-full space-y-8 bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl">
-        <div className="flex flex-col items-center">
-          <img 
-            className="h-16 w-auto transform hover:scale-105 transition-transform duration-200" 
-            src="/soy_header.webp" 
-            alt="Logo" 
-          />
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Iniciar sesión
-          </h2>
+      <main className="w-full max-w-[400px] rounded-2xl bg-white p-7 sm:p-9 shadow-[0_24px_60px_-20px_rgba(120,53,15,0.45)]">
+        <div className="flex flex-col items-center text-center">
+          <img className="h-14 w-auto" src="/soy_header.webp" alt="SOY Excellence Center" />
+          <h1 className="mt-6 text-2xl font-semibold tracking-tight">Iniciar sesión</h1>
+          <p className="mt-1 text-sm text-[color:var(--text-muted)]">Panel de cursos de Excelencia de la Soya</p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-7 space-y-4" onSubmit={handleSubmit} noValidate>
           {error && (
-            <div className="bg-red-50 text-red-600 text-sm font-medium text-center border border-red-200 rounded-lg p-4 animate-fade-in">
+            <p className="notice-error" role="alert">
+              <TriangleAlert className="mt-0.5 h-4 w-4 flex-shrink-0" />
               {error}
-            </div>
+            </p>
           )}
 
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                Usuario
-              </label>
+          <div>
+            <label htmlFor="username" className="form-label">Usuario</label>
+            <input
+              id="username"
+              type="text"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="input-field h-11"
+              placeholder="Tu usuario"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="form-label">Contraseña</label>
+            <div className="relative">
               <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
-                placeholder="Ingresa tu usuario"
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input-field h-11 pr-12"
+                placeholder="Tu contraseña"
                 required
               />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Contraseña
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Ingresa tu contraseña"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="icon-btn absolute right-0.5 top-1/2 -translate-y-1/2"
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? <EyeOff className="h-[18px] w-[18px]" /> : <Eye className="h-[18px] w-[18px]" />}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={loading || blockedUntil !== null}
-            className="group relative w-full flex items-center justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary w-full !h-11 !mt-6"
           >
-            {loading ? (
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                Iniciando sesión...
-              </div>
-            ) : (
-              <>
-                <LogIn className="w-5 h-5 mr-2" />
-                Iniciar sesión
-              </>
-            )}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+            {loading ? "Iniciando sesión…" : "Iniciar sesión"}
           </button>
         </form>
-      </div>
+      </main>
     </div>
   )
 }

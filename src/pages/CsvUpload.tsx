@@ -1,17 +1,127 @@
-import React, { useState } from 'react';
+import { useId, useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { Upload, AlertTriangle, Download, Check, X } from 'lucide-react';
+import { ArchiveRestore, Check, Download, FileSpreadsheet, Trash2, TriangleAlert, Upload, X } from 'lucide-react';
 import { useFormStatus, useCursos, useToggleFormStatus, useToggleCurso, useMigrate } from '../hooks/queries';
 import { Skeleton } from '../components/ui/Skeleton';
+import { Spinner } from '../components/ui/Spinner';
+import { cn } from '../lib/utils';
 
+type Feedback = { kind: 'success' | 'error'; text: string } | null;
 
+function FeedbackNotice({ feedback, className }: { feedback: Feedback; className?: string }) {
+  if (!feedback) return null;
+  const Icon = feedback.kind === 'success' ? Check : TriangleAlert;
+  return (
+    <p className={cn(feedback.kind === 'success' ? 'notice-success' : 'notice-error', className)} role={feedback.kind === 'error' ? 'alert' : 'status'}>
+      <Icon className="mt-0.5 h-4 w-4 flex-shrink-0" />
+      {feedback.text}
+    </p>
+  );
+}
+
+/** Interruptor accesible (role="switch") */
+function Switch({ checked, onChange, disabled, label }: { checked: boolean; onChange: () => void; disabled?: boolean; label: string }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={onChange}
+      className={cn(
+        'relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60',
+        checked ? 'bg-emerald-600' : 'bg-[#c3cad4]',
+      )}
+    >
+      <span className={cn('inline-block h-5 w-5 rounded-full bg-white shadow transition-transform duration-200', checked ? 'translate-x-[22px]' : 'translate-x-0.5')} />
+    </button>
+  );
+}
+
+interface DropzoneProps {
+  title: string;
+  description: string;
+  file: File | null;
+  onFile: (file: File | null) => void;
+  onUpload: () => void;
+  uploading: boolean;
+  feedback: Feedback;
+}
+
+/** Zona para elegir o arrastrar un CSV */
+function CsvDropzone({ title, description, file, onFile, onUpload, uploading, feedback }: DropzoneProps) {
+  const inputId = useId();
+  const [dragging, setDragging] = useState(false);
+
+  return (
+    <section className="dashboard-card flex flex-col">
+      <h3 className="card-title">{title}</h3>
+      <p className="card-subtitle mb-4">{description}</p>
+
+      <label
+        htmlFor={inputId}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          const dropped = e.dataTransfer.files?.[0];
+          if (dropped) onFile(dropped);
+        }}
+        className={cn(
+          'flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed px-4 py-5 text-center transition-colors',
+          'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-500 has-[:focus-visible]:ring-offset-2',
+          dragging ? 'border-secondary-500 bg-secondary-50' : file ? 'border-emerald-300 bg-emerald-50/60' : 'border-[#cfd5dd] bg-[#f9fafb] hover:border-[#aeb7c3] hover:bg-[#f4f6f8]',
+        )}
+      >
+        {file ? (
+          <>
+            <FileSpreadsheet className="h-6 w-6 text-emerald-700" />
+            <p className="max-w-full truncate text-sm font-semibold text-[color:var(--text-strong)]">{file.name}</p>
+            <p className="text-xs text-[color:var(--text-muted)]">{(file.size / 1024).toLocaleString('es', { maximumFractionDigits: 0 })} KB · toca para cambiarlo</p>
+          </>
+        ) : (
+          <>
+            <Upload className="h-6 w-6 text-[color:var(--text-muted)]" />
+            <p className="text-sm font-medium text-[color:var(--text-strong)]">Elige un archivo CSV o arrástralo aquí</p>
+            <p className="text-xs text-[color:var(--text-muted)]">Solo archivos .csv</p>
+          </>
+        )}
+        <input
+          id={inputId}
+          type="file"
+          accept=".csv"
+          className="sr-only"
+          onChange={(e) => onFile(e.target.files?.[0] ?? null)}
+        />
+      </label>
+
+      <div className="mt-4 flex items-center gap-2">
+        <button onClick={onUpload} disabled={uploading || !file} className="btn-primary flex-1">
+          {uploading ? <Spinner /> : <Upload className="h-4 w-4" />}
+          {uploading ? 'Cargando…' : 'Cargar CSV'}
+        </button>
+        {file && !uploading && (
+          <button onClick={() => onFile(null)} className="icon-btn" aria-label="Quitar archivo" title="Quitar archivo">
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      <FeedbackNotice feedback={feedback} className="mt-3" />
+    </section>
+  );
+}
 
 export default function CsvUpload() {
   const { data: formStatusData, isLoading: isFormStatusLoading } = useFormStatus();
-  const formEnabled = formStatusData?.habilitado;
+  const formEnabled = Boolean(formStatusData?.habilitado);
   const toggleFormStatusMutation = useToggleFormStatus();
-  const isLoadingFormStatus = isFormStatusLoading || toggleFormStatusMutation.isPending;
 
   const { data: cursos = [], isLoading: isLoadingCursos } = useCursos();
   const toggleCursoMutation = useToggleCurso();
@@ -21,98 +131,85 @@ export default function CsvUpload() {
 
   const [currentFile, setCurrentFile] = useState<File | null>(null);
   const [historyFile, setHistoryFile] = useState<File | null>(null);
-  const [message, setMessage] = useState('');
-  const [messageHistory, setMessageHistory] = useState('');
+  const [currentFeedback, setCurrentFeedback] = useState<Feedback>(null);
+  const [historyFeedback, setHistoryFeedback] = useState<Feedback>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingHistory, setIsUploadingHistory] = useState(false);
-  const [migrationMessage, setMigrationMessage] = useState('');
-  const [cursosMessage, setCursosMessage] = useState('');
-  const [formStatusMessage, setFormStatusMessage] = useState('');
+  const [migrationFeedback, setMigrationFeedback] = useState<Feedback>(null);
+  const [cursosFeedback, setCursosFeedback] = useState<Feedback>(null);
+  const [formFeedback, setFormFeedback] = useState<Feedback>(null);
+  const [pendingCurso, setPendingCurso] = useState<number | null>(null);
+
+  const flash = (set: (f: Feedback) => void, f: Feedback) => {
+    set(f);
+    if (f?.kind === 'success') setTimeout(() => set(null), 3000);
+  };
 
   const toggleFormStatus = async () => {
-    setFormStatusMessage('');
+    setFormFeedback(null);
     try {
       const result = await toggleFormStatusMutation.mutateAsync({ habilitado: !formEnabled });
-      setFormStatusMessage(result.message);
-      setTimeout(() => setFormStatusMessage(''), 3000);
+      flash(setFormFeedback, { kind: 'success', text: result.message ?? 'Estado actualizado' });
     } catch (error) {
       console.error('Error al cambiar el estado del formulario:', error);
-      setFormStatusMessage('Error al cambiar el estado del formulario');
+      setFormFeedback({ kind: 'error', text: 'No se pudo cambiar el estado del formulario. Intenta de nuevo.' });
     }
   };
 
   const toggleCursoActivo = async (cursoId: number, activo: boolean) => {
+    setPendingCurso(cursoId);
     try {
       await toggleCursoMutation.mutateAsync({ cursoId, activo: !activo });
-      setCursosMessage(`Curso ${!activo ? 'activado' : 'desactivado'} correctamente`);
-      setTimeout(() => setCursosMessage(''), 3000);
+      flash(setCursosFeedback, { kind: 'success', text: `Curso ${!activo ? 'visible' : 'oculto'} en el formulario` });
     } catch (error) {
       console.error('Error al cambiar estado del curso:', error);
-      setCursosMessage('Error al cambiar estado del curso');
+      setCursosFeedback({ kind: 'error', text: 'No se pudo cambiar el curso. Intenta de nuevo.' });
+    } finally {
+      setPendingCurso(null);
     }
   };
 
   const handleMigrate = async () => {
     const result = await Swal.fire({
-      title: '¿Está seguro de que desea migrar los datos?',
-      text: 'Esto moverá los datos actuales a la tabla histórica.',
+      title: '¿Pasar los datos actuales al histórico?',
+      text: 'Los participantes de los cursos activos se mueven a la tabla histórica.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, migrar',
+      confirmButtonText: 'Sí, pasar al histórico',
       cancelButtonText: 'Cancelar',
+      reverseButtons: true,
     });
-
     if (!result.isConfirmed) return;
 
-    setMigrationMessage('');
+    setMigrationFeedback(null);
     try {
       const data = await migrateMutation.mutateAsync();
-      setMigrationMessage(data.message);
+      setMigrationFeedback({ kind: 'success', text: data.message ?? 'Datos pasados al histórico' });
     } catch (error) {
       console.error('Error durante la migración:', error);
-      setMigrationMessage(`Error durante la migración: ${error}`);
-    }
-  };
-
-  const handleCurrentFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setCurrentFile(e.target.files[0]);
-    }
-  };
-
-  const handleHistoryFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setHistoryFile(e.target.files[0]);
+      setMigrationFeedback({ kind: 'error', text: 'No se pudieron pasar los datos al histórico. No se movió nada.' });
     }
   };
 
   const handleUploadCurrent = async () => {
     if (!currentFile) {
-      setMessage('Por favor, seleccione un archivo CSV');
+      setCurrentFeedback({ kind: 'error', text: 'Elige un archivo CSV primero.' });
       return;
     }
-
     setIsUploading(true);
+    setCurrentFeedback(null);
     const formData = new FormData();
     formData.append('file', currentFile);
-
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/data/upload-csv`,
-        formData,
-        {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        },
-      );
-      setMessage(response.data.message || 'Archivo CSV cargado exitosamente');
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/data/upload-csv`, formData, {
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setCurrentFeedback({ kind: 'success', text: response.data.message || 'Archivo CSV cargado' });
+      setCurrentFile(null);
     } catch (error) {
       console.error('Error uploading CSV:', error);
-      setMessage('Error al cargar el archivo CSV');
+      setCurrentFeedback({ kind: 'error', text: 'No se pudo cargar el archivo. Revisa que sea el CSV correcto e intenta de nuevo.' });
     } finally {
       setIsUploading(false);
     }
@@ -120,46 +217,35 @@ export default function CsvUpload() {
 
   const handleUploadHistory = async () => {
     if (!historyFile) {
-      setMessageHistory('Por favor, seleccione un archivo CSV');
+      setHistoryFeedback({ kind: 'error', text: 'Elige un archivo CSV primero.' });
       return;
     }
-
     const result = await Swal.fire({
-      title: '¿Está seguro de que desea subir el archivo CSV?',
-      text: '¡Esto reemplazará los datos históricos actuales!',
+      title: '¿Reemplazar el histórico?',
+      text: 'Los datos históricos actuales se reemplazan por los de este archivo.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, subir',
+      confirmButtonText: 'Sí, reemplazar',
       cancelButtonText: 'Cancelar',
+      reverseButtons: true,
+      customClass: { confirmButton: 'is-danger' },
     });
-
-    if (!result.isConfirmed) {
-      return;
-    }
+    if (!result.isConfirmed) return;
 
     setIsUploadingHistory(true);
+    setHistoryFeedback(null);
     const formData = new FormData();
     formData.append('file', historyFile);
-
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/data/upload-history`,
-        formData,
-        {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        },
-      );
-      setMessageHistory(
-        response.data.message || 'Archivo CSV cargado exitosamente',
-      );
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/data/upload-history`, formData, {
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setHistoryFeedback({ kind: 'success', text: response.data.message || 'Archivo CSV cargado' });
+      setHistoryFile(null);
     } catch (error) {
       console.error('Error uploading CSV:', error);
-      setMessageHistory('Error al cargar el archivo CSV');
+      setHistoryFeedback({ kind: 'error', text: 'No se pudo cargar el archivo. El histórico no cambió.' });
     } finally {
       setIsUploadingHistory(false);
     }
@@ -167,308 +253,200 @@ export default function CsvUpload() {
 
   const handleDownloadFormData = async () => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/data/getFormData`,
-        {
-          withCredentials: true,
-          responseType: 'blob',
-        },
-      );
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/data/getFormData`, {
+        withCredentials: true,
+        responseType: 'blob',
+      });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', 'Formulario.xlsx');
       document.body.appendChild(link);
       link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading form data:', error);
+      await Swal.fire({ title: 'No se pudo descargar', text: 'Puede que el formulario todavía no tenga respuestas.', icon: 'error' });
     }
   };
 
   const wipeFormData = async () => {
     try {
       const result = await Swal.fire({
-        title: '¿Está seguro de que desea eliminar todos los datos del formulario?',
-        text: 'Esta acción no se puede deshacer',
+        title: '¿Eliminar todas las respuestas del formulario?',
+        text: 'Se borran todas las respuestas recibidas. Esta acción no se puede deshacer.',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+        customClass: { confirmButton: 'is-danger' },
       });
-
       if (!result.isConfirmed) return;
 
-      await axios.get(`${import.meta.env.VITE_API_URL}/data/wipeForm`, {
-        withCredentials: true,
-      });
-      await Swal.fire({
-        title: '¡Éxito!',
-        text: 'Todos los datos del formulario han sido eliminados.',
-        icon: 'success',
-      });
-    }
-    catch (error) {
+      await axios.get(`${import.meta.env.VITE_API_URL}/data/wipeForm`, { withCredentials: true });
+      await Swal.fire({ title: 'Respuestas eliminadas', text: 'El formulario quedó sin respuestas.', icon: 'success' });
+    } catch (error) {
       console.error('Error wiping form data:', error);
-      await Swal.fire({
-        title: 'Error',
-        text: 'Ocurrió un problema al eliminar los datos del formulario.',
-        icon: 'error',
-      });
+      await Swal.fire({ title: 'No se pudieron eliminar', text: 'Las respuestas siguen guardadas. Intenta de nuevo.', icon: 'error' });
     }
-  }
+  };
+
+  const activeCount = cursos.filter((c) => c.activo).length;
 
   return (
-    <div className="space-y-6">
-      <h1 className="section-title">Gestión de Datos</h1>
+    <div className="space-y-8">
+      <header>
+        <h1 className="page-title">Datos y formulario</h1>
+        <p className="page-subtitle">Carga los CSV de participantes y controla qué se muestra en el formulario público.</p>
+      </header>
 
-      {/* Form Status */}
-      <div className="dashboard-card">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Estado del Formulario</h2>
-
-        {isLoadingFormStatus ? (
-          <div className="space-y-3">
-            <Skeleton className="h-4 w-48" />
-            <Skeleton className="h-10 w-32" />
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${formEnabled ? 'bg-green-500' : 'bg-red-500'}`} />
-                <p className="text-sm font-medium text-gray-700">
-                  Formulario {formEnabled ? 'habilitado' : 'deshabilitado'}
-                </p>
+      {/* Formulario público */}
+      <section className="space-y-3" aria-labelledby="sec-formulario">
+        <h2 id="sec-formulario" className="section-title">Formulario público</h2>
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
+          <div className="dashboard-card">
+            {isFormStatusLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-4 w-56" />
               </div>
-              <button
-                onClick={toggleFormStatus}
-                disabled={isLoadingFormStatus}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all ${
-                  isLoadingFormStatus
-                    ? 'bg-gray-300 cursor-not-allowed'
-                    : formEnabled
-                      ? 'bg-red-500 hover:bg-red-600'
-                      : 'bg-green-500 hover:bg-green-600'
-                }`}
-              >
-                {formEnabled ? 'Deshabilitar' : 'Habilitar'}
-              </button>
-            </div>
-
-            {formStatusMessage && (
-              <div className={`mt-3 p-3 rounded-lg text-sm font-medium ${
-                formStatusMessage.includes('Error')
-                  ? 'bg-red-50 text-red-700'
-                  : 'bg-green-50 text-green-700'
-              }`}>
-                {formStatusMessage}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Courses Config */}
-      <div className="dashboard-card">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Configuración de Cursos</h2>
-
-        {isLoadingCursos ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
-        ) : (
-          <>
-            <p className="text-sm text-gray-500 mb-4">
-              Seleccione los cursos visibles en el formulario:
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {cursos.map((curso) => (
-                <div
-                  key={curso.id}
-                  className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
-                    curso.activo
-                      ? 'border-green-300 bg-green-50'
-                      : 'border-gray-200 bg-gray-50'
-                  }`}
-                >
-                  <span className="text-sm font-medium text-gray-700">{curso.nombre}</span>
-                  <button
-                    onClick={() => toggleCursoActivo(curso.id, curso.activo)}
-                    className={`p-1.5 rounded-full transition-colors ${
-                      curso.activo
-                        ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                    }`}
-                  >
-                    {curso.activo ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-                  </button>
+            ) : (
+              <>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="card-title">Recibir respuestas</h3>
+                    <p className="card-subtitle">
+                      {formEnabled ? 'El formulario está abierto.' : 'El formulario está cerrado.'}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formEnabled}
+                    onChange={toggleFormStatus}
+                    disabled={toggleFormStatusMutation.isPending}
+                    label="Recibir respuestas en el formulario"
+                  />
                 </div>
-              ))}
+                <p className={cn('mt-4 badge-dot', formEnabled ? 'badge-success' : 'badge-neutral')}>
+                  {formEnabled ? 'Abierto' : 'Cerrado'}
+                </p>
+                <FeedbackNotice feedback={formFeedback} className="mt-3" />
+              </>
+            )}
+          </div>
+
+          <div className="dashboard-card lg:col-span-2">
+            <div className="mb-3 flex items-baseline justify-between gap-3">
+              <div>
+                <h3 className="card-title">Cursos en el formulario</h3>
+                <p className="card-subtitle">Los cursos activados aparecen como opción para elegir.</p>
+              </div>
+              {!isLoadingCursos && (
+                <span className="text-[13px] text-[color:var(--text-muted)] tabular whitespace-nowrap">
+                  {activeCount} de {cursos.length} visibles
+                </span>
+              )}
             </div>
-
-            {cursosMessage && (
-              <div className={`mt-3 p-3 rounded-lg text-sm font-medium ${
-                cursosMessage.includes('Error')
-                  ? 'bg-red-50 text-red-700'
-                  : 'bg-green-50 text-green-700'
-              }`}>
-                {cursosMessage}
+            {isLoadingCursos ? (
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
               </div>
+            ) : cursos.length === 0 ? (
+              <p className="py-6 text-center text-[13px] text-[color:var(--text-muted)]">No hay cursos configurados.</p>
+            ) : (
+              <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {cursos.map((curso) => (
+                  <li
+                    key={curso.id}
+                    className={cn(
+                      'flex items-center justify-between gap-3 rounded-lg border px-3.5 py-2.5 transition-colors',
+                      curso.activo ? 'border-emerald-200 bg-emerald-50/50' : 'border-[color:var(--border)]',
+                    )}
+                  >
+                    <span className={cn('text-sm font-medium', curso.activo ? 'text-[color:var(--text-strong)]' : 'text-[color:var(--text-muted)]')}>
+                      {curso.nombre}
+                    </span>
+                    <Switch
+                      checked={curso.activo}
+                      onChange={() => toggleCursoActivo(curso.id, curso.activo)}
+                      disabled={pendingCurso === curso.id}
+                      label={`Mostrar ${curso.nombre} en el formulario`}
+                    />
+                  </li>
+                ))}
+              </ul>
             )}
-          </>
-        )}
-      </div>
+            <FeedbackNotice feedback={cursosFeedback} className="mt-3" />
+          </div>
+        </div>
 
-      {/* CSV Upload Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Current CSV */}
-        <div className="dashboard-card">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Cargar CSV Actual</h2>
-          <div className="space-y-4">
-            <label
-              htmlFor="current-file-upload"
-              className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-amber-300 transition-colors"
-            >
-              <Upload className="w-6 h-6 mb-1.5 text-gray-400" />
-              <p className="text-sm text-gray-500">Clic para subir CSV</p>
-              {currentFile && (
-                <p className="mt-1 text-xs text-amber-600 font-medium truncate max-w-[90%]">
-                  {currentFile.name}
-                </p>
-              )}
-              <input
-                id="current-file-upload"
-                type="file"
-                accept=".csv"
-                className="hidden"
-                onChange={handleCurrentFileChange}
-              />
-            </label>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={handleDownloadFormData} className="btn-secondary">
+            <Download className="h-4 w-4" />
+            Descargar respuestas (Excel)
+          </button>
+        </div>
+      </section>
 
-            <button
-              onClick={handleUploadCurrent}
-              disabled={isUploading || !currentFile}
-              className={`w-full py-2.5 rounded-lg text-sm font-medium text-white transition-all ${
-                isUploading || !currentFile
-                  ? 'bg-gray-300 cursor-not-allowed'
-                  : 'bg-amber-500 hover:bg-amber-600'
-              }`}
-            >
-              {isUploading ? (
-                <span className="inline-flex items-center gap-2">
-                  <span className="loading loading-ring loading-sm"></span>
-                  Cargando...
-                </span>
-              ) : !currentFile ? 'Seleccione un archivo' : 'Cargar CSV'}
+      {/* Carga de CSV */}
+      <section className="space-y-3" aria-labelledby="sec-csv">
+        <h2 id="sec-csv" className="section-title">Cargar participantes</h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <CsvDropzone
+            title="Cursos activos"
+            description="Actualiza los participantes que se ven en “Cursos activos”."
+            file={currentFile}
+            onFile={(f) => {
+              setCurrentFile(f);
+              setCurrentFeedback(null);
+            }}
+            onUpload={handleUploadCurrent}
+            uploading={isUploading}
+            feedback={currentFeedback}
+          />
+          <CsvDropzone
+            title="Histórico"
+            description="Reemplaza por completo los datos de cursos anteriores."
+            file={historyFile}
+            onFile={(f) => {
+              setHistoryFile(f);
+              setHistoryFeedback(null);
+            }}
+            onUpload={handleUploadHistory}
+            uploading={isUploadingHistory}
+            feedback={historyFeedback}
+          />
+        </div>
+      </section>
+
+      {/* Acciones de cierre de ciclo */}
+      <section className="space-y-3" aria-labelledby="sec-zona">
+        <h2 id="sec-zona" className="section-title">Cierre de ciclo</h2>
+        <div className="dashboard-card divide-y divide-[color:var(--border)] !py-0">
+          <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="card-title">Pasar cursos activos al histórico</h3>
+              <p className="card-subtitle">Al terminar un ciclo, mueve los participantes actuales a la tabla histórica.</p>
+            </div>
+            <button onClick={handleMigrate} disabled={isMigrating} className="btn-secondary sm:flex-shrink-0">
+              {isMigrating ? <Spinner /> : <ArchiveRestore className="h-4 w-4" />}
+              {isMigrating ? 'Pasando…' : 'Pasar al histórico'}
             </button>
-
-            {message && (
-              <div className={`p-3 rounded-lg text-sm font-medium ${
-                message.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
-              }`}>
-                {message}
-              </div>
-            )}
           </div>
-        </div>
-
-        {/* History CSV */}
-        <div className="dashboard-card">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Cargar CSV Histórico</h2>
-          <div className="space-y-4">
-            <label
-              htmlFor="file-upload-history"
-              className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-amber-300 transition-colors"
-            >
-              <Upload className="w-6 h-6 mb-1.5 text-gray-400" />
-              <p className="text-sm text-gray-500">Clic para subir CSV</p>
-              {historyFile && (
-                <p className="mt-1 text-xs text-amber-600 font-medium truncate max-w-[90%]">
-                  {historyFile.name}
-                </p>
-              )}
-              <input
-                id="file-upload-history"
-                type="file"
-                accept=".csv"
-                className="hidden"
-                onChange={handleHistoryFileChange}
-              />
-            </label>
-
-            <button
-              onClick={handleUploadHistory}
-              disabled={isUploadingHistory || !historyFile}
-              className={`w-full py-2.5 rounded-lg text-sm font-medium text-white transition-all ${
-                isUploadingHistory || !historyFile
-                  ? 'bg-gray-300 cursor-not-allowed'
-                  : 'bg-amber-500 hover:bg-amber-600'
-              }`}
-            >
-              {isUploadingHistory ? (
-                <span className="inline-flex items-center gap-2">
-                  <span className="loading loading-ring loading-sm"></span>
-                  Cargando...
-                </span>
-              ) : !historyFile ? 'Seleccione un archivo' : 'Cargar CSV'}
+          <FeedbackNotice feedback={migrationFeedback} className="my-3" />
+          <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="card-title text-red-800">Eliminar respuestas del formulario</h3>
+              <p className="card-subtitle">Borra todas las respuestas recibidas. No se puede deshacer.</p>
+            </div>
+            <button onClick={wipeFormData} className="btn-danger-outline sm:flex-shrink-0">
+              <Trash2 className="h-4 w-4" />
+              Eliminar respuestas
             </button>
-
-            {messageHistory && (
-              <div className={`p-3 rounded-lg text-sm font-medium ${
-                messageHistory.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
-              }`}>
-                {messageHistory}
-              </div>
-            )}
           </div>
         </div>
-      </div>
-
-      {/* Utilities */}
-      <div className="dashboard-card">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Utilidades</h2>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={handleMigrate}
-            disabled={isMigrating}
-            className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all ${
-              isMigrating
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-amber-500 hover:bg-amber-600'
-            }`}
-          >
-            <AlertTriangle className="w-4 h-4" />
-            {isMigrating ? 'Migrando...' : 'Migrar Datos Históricos'}
-          </button>
-
-          <button
-            onClick={handleDownloadFormData}
-            className="btn-primary"
-          >
-            <Download className="w-4 h-4" />
-            Descargar Formulario
-          </button>
-
-          <button
-            onClick={wipeFormData}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all"
-          >
-            <AlertTriangle className="w-4 h-4" />
-            Eliminar Datos del Formulario
-          </button>
-        </div>
-
-        {migrationMessage && (
-          <div className={`mt-3 p-3 rounded-lg text-sm font-medium ${
-            migrationMessage.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
-          }`}>
-            {migrationMessage}
-          </div>
-        )}
-      </div>
+      </section>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import axios from 'axios';
 
 interface AuthContextType {
     isAuthenticated: boolean;
+    isCheckingAuth: boolean;
     userRole: string | null;
     username: string | null;
     login: (username: string, password: string) => Promise<void>;
@@ -21,6 +22,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [username, setUsername] = useState<string | null>(() => {
         return localStorage.getItem('username');
     });
+    // Mientras se verifica la cookie, las rutas privadas esperan en vez de mandar al login
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -46,6 +49,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 localStorage.removeItem('isAuthenticated');
                 localStorage.removeItem('userRole');
                 localStorage.removeItem('username');
+            } finally {
+                setIsCheckingAuth(false);
             }
         };
 
@@ -94,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     return (
-      <AuthContext.Provider value={{ isAuthenticated, username, userRole, login, logout }}>
+      <AuthContext.Provider value={{ isAuthenticated, isCheckingAuth, username, userRole, login, logout }}>
           {children}
       </AuthContext.Provider>
     );

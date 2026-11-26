@@ -1,133 +1,115 @@
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { ChartLineIcon, LayoutDashboardIcon, NotepadTextDashedIcon, ArrowLeft } from 'lucide-react';
+import React, { Suspense } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { BarChart3, ClipboardList, History as HistoryIcon } from 'lucide-react';
+import { cn } from '../lib/utils';
+import { Skeleton } from '../components/ui/Skeleton';
 
 const Current = React.lazy(() => import('../components/dashboard/Current.tsx'));
 const Historic = React.lazy(() => import('../components/dashboard/Historic.tsx'));
 const History = React.lazy(() => import('../components/dashboard/History.tsx'));
 
-enum ViewType {
-  Current = 'Actual',
-  Historic = 'Histórico',
-  Charts = 'Gráficos',
-}
+const VIEWS = [
+  {
+    id: 'actual',
+    label: 'Cursos activos',
+    icon: ClipboardList,
+    description: 'Participantes de los cursos en curso: inicio de sesión, avance y finalización.',
+    Component: Current,
+  },
+  {
+    id: 'historico',
+    label: 'Histórico',
+    icon: HistoryIcon,
+    description: 'Participantes de cursos anteriores, con nota final y filtros por empresa y país.',
+    Component: Historic,
+  },
+  {
+    id: 'graficos',
+    label: 'Gráficos sociolaborales',
+    icon: BarChart3,
+    description: 'Perfil de los participantes: género, edad, educación, puesto y experiencia.',
+    Component: History,
+  },
+] as const;
 
-const VIEW_CONFIG = {
-  [ViewType.Current]: {
-    icon: NotepadTextDashedIcon,
-    title: 'Cursos Activos',
-    description: 'Cursos en proceso, estadísticas en tiempo real y gestión de participantes activos',
-    accent: 'amber',
-  },
-  [ViewType.Historic]: {
-    icon: ChartLineIcon,
-    title: 'Histórico de Cursos',
-    description: 'Análisis completo de cursos pasados con filtros avanzados y reportes detallados',
-    accent: 'amber',
-  },
-  [ViewType.Charts]: {
-    icon: LayoutDashboardIcon,
-    title: 'Gráficos Sociolaborales',
-    description: 'Visualizaciones interactivas de datos porcentuales de información personal y laboral',
-    accent: 'amber',
-  },
-} as const;
+type ViewId = (typeof VIEWS)[number]['id'];
+
+const ViewFallback = () => (
+  <div className="space-y-5" role="status" aria-label="Cargando vista">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <Skeleton className="h-[120px] rounded-xl" />
+      <Skeleton className="h-[120px] rounded-xl" />
+    </div>
+    <Skeleton className="h-[320px] rounded-xl" />
+  </div>
+);
 
 const Dashboard: React.FC = () => {
-  const [selectedView, setSelectedView] = useState<ViewType | null>(null);
-  const { username } = useAuth();
+  const [params, setParams] = useSearchParams();
+  const requested = params.get('vista') as ViewId | null;
+  const view = VIEWS.find((v) => v.id === requested) ?? VIEWS[0];
+  const { Component } = view;
 
-  if (!selectedView) {
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
-        <div className="w-full max-w-4xl">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <img
-              src="/soy_logo.webp"
-              alt="Logo"
-              className="w-14 h-14 mx-auto mb-4 rounded-full shadow-md"
-            />
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">
-              Menú principal
-            </h1>
-            <p className="text-gray-500">
-              Selecciona el módulo que deseas visualizar
-            </p>
-          </div>
+  const select = (id: ViewId) => {
+    const next = new URLSearchParams(params);
+    next.set('vista', id);
+    setParams(next, { replace: true });
+  };
 
-          {/* Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {Object.values(ViewType).map((view) => {
-              const config = VIEW_CONFIG[view];
-              const Icon = config.icon;
-              return (
-                <button
-                  key={view}
-                  onClick={() => setSelectedView(view)}
-                  className="group dashboard-card text-left hover:border-amber-300 hover:shadow-lg transition-all duration-200 flex flex-col"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center mb-4 group-hover:bg-amber-100 transition-colors">
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-semibold text-gray-800 mb-1.5">{config.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed flex-1">
-                    {config.description}
-                  </p>
-                  <div className="mt-4 text-sm font-medium text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                    Acceder →
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Footer */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-400">
-              Bienvenido, <span className="font-medium text-gray-600">{username}</span>
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const getTitle = () => VIEW_CONFIG[selectedView]?.title ?? 'Dashboard';
-
-  const renderContent = () => {
-    switch (selectedView) {
-      case ViewType.Current:
-        return <Current />;
-      case ViewType.Historic:
-        return <Historic />;
-      case ViewType.Charts:
-        return <History />;
-      default:
-        return <Current />;
-    }
+  // Flechas izquierda/derecha para moverse entre pestañas (patrón de tablist)
+  const onTabKey = (e: React.KeyboardEvent, index: number) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    const nextIndex = (index + (e.key === 'ArrowRight' ? 1 : -1) + VIEWS.length) % VIEWS.length;
+    select(VIEWS[nextIndex].id);
+    document.getElementById(`tab-${VIEWS[nextIndex].id}`)?.focus();
   };
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => setSelectedView(null)}
-          className="btn-ghost !px-3 !py-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Menú</span>
-        </button>
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-800 truncate">
-          {getTitle()}
-        </h1>
+    <div className="space-y-6">
+      <header>
+        <h1 className="page-title">Panel de cursos</h1>
+        <p className="page-subtitle">{view.description}</p>
+      </header>
+
+      <div className="-mx-4 sm:mx-0 overflow-x-auto px-4 sm:px-0 border-b border-[color:var(--border)]">
+        <div role="tablist" aria-label="Vistas del panel" className="flex min-w-max gap-1">
+          {VIEWS.map((v, i) => {
+            const selected = v.id === view.id;
+            const Icon = v.icon;
+            return (
+              <button
+                key={v.id}
+                id={`tab-${v.id}`}
+                role="tab"
+                aria-selected={selected}
+                aria-controls="panel-vista"
+                tabIndex={selected ? 0 : -1}
+                onClick={() => select(v.id)}
+                onKeyDown={(e) => onTabKey(e, i)}
+                className={cn(
+                  'relative inline-flex h-11 items-center gap-2 rounded-t-lg px-3 sm:px-4 text-sm font-medium transition-colors',
+                  'after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:rounded-full',
+                  selected
+                    ? 'text-[color:var(--text-strong)] after:bg-secondary-500'
+                    : 'text-[color:var(--text-muted)] hover:text-[color:var(--text-strong)] hover:bg-black/[0.03]',
+                )}
+              >
+                <Icon className={cn('h-4 w-4', selected ? 'text-secondary-600' : 'text-current')} />
+                {v.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Content */}
-      <div>{renderContent()}</div>
+      <div id="panel-vista" role="tabpanel" aria-labelledby={`tab-${view.id}`}>
+        <Suspense fallback={<ViewFallback />}>
+          <Component />
+        </Suspense>
+      </div>
     </div>
   );
-}
+};
 
 export default Dashboard;
