@@ -1,7 +1,7 @@
 import type { TooltipProps } from 'recharts';
 
 /** Categorías sin orden (cursos, áreas): tonos de la marca bien separados entre sí */
-export const CATEGORICAL = ['#3a69aa', '#e39a0b', '#1f9e89', '#c8553d', '#6b7f99', '#8a9a3b'];
+export const CATEGORICAL = ['#3a69aa', '#e39a0b', '#178474', '#c8553d', '#6b7f99', '#8a9a3b'];
 
 /** Categorías con orden (edad, educación, experiencia): rampa del azul de la marca, de claro a oscuro */
 export const SEQUENTIAL = ['#bcd0ea', '#8fb0dc', '#5f8ccb', '#3a69aa', '#2a4f84', '#1b3152'];

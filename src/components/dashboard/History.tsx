@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useHistoryData } from '../../hooks/queries';
 import { DataItem } from '../../interfaces/IData';
 import ChartsView from '../history/ChartsView';
@@ -18,7 +19,14 @@ const EMPTY_DATA: DataItem[] = [];
 
 export default function History() {
   const { data = EMPTY_DATA, isLoading } = useHistoryData();
-  const [current, setCurrent] = useState<SubviewId>('perfil');
+  // La sub-vista vive en la URL (?detalle=), igual que las pestañas del panel
+  const [params, setParams] = useSearchParams();
+  const current: SubviewId = SUBVIEWS.find((v) => v.id === params.get('detalle'))?.id ?? 'perfil';
+  const setCurrent = (id: SubviewId) => {
+    const next = new URLSearchParams(params);
+    next.set('detalle', id);
+    setParams(next, { replace: true });
+  };
   const [selectedCountry, setSelectedCountry] = useState<string>('all');
 
   const filteredData = selectedCountry === 'all' ? data : data.filter((item) => item.country === selectedCountry);
