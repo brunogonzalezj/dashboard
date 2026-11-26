@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import { useSearchParams } from 'react-router';
 import { BarChart3, ClipboardList, History as HistoryIcon } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { Skeleton } from '../components/ui/Skeleton';
 
@@ -69,7 +70,17 @@ const Dashboard: React.FC = () => {
     <div className="space-y-6">
       <header>
         <h1 className="page-title">Panel de cursos</h1>
-        <p className="page-subtitle">{view.description}</p>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.p
+            key={view.id}
+            className="page-subtitle"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.2 } }}
+            exit={{ opacity: 0, transition: { duration: 0.1 } }}
+          >
+            {view.description}
+          </motion.p>
+        </AnimatePresence>
       </header>
 
       <div className="-mx-4 sm:mx-0 overflow-x-auto overflow-y-hidden no-scrollbar px-4 sm:px-0 border-b border-(--border)">
@@ -88,26 +99,42 @@ const Dashboard: React.FC = () => {
                 onClick={() => select(v.id)}
                 onKeyDown={(e) => onTabKey(e, i)}
                 className={cn(
-                  'relative inline-flex h-11 items-center gap-2 rounded-t-lg px-3 sm:px-4 text-sm font-medium transition-colors',
-                  'after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full',
-                  selected
-                    ? 'text-(--text-strong) after:bg-secondary-500'
-                    : 'text-(--text-muted) hover:text-(--text-strong) hover:bg-black/3',
+                  'relative inline-flex h-11 items-center gap-2 rounded-t-lg px-3 sm:px-4 text-sm font-medium transition-colors duration-200',
+                  selected ? 'text-(--text-strong)' : 'text-(--text-muted) hover:text-(--text-strong) hover:bg-black/3',
                 )}
               >
-                <Icon className={cn('h-4 w-4', selected ? 'text-secondary-600' : 'text-current')} />
+                <Icon className={cn('h-4 w-4 transition-colors duration-200', selected ? 'text-secondary-600' : 'text-current')} />
                 {v.label}
+                {selected && (
+                  // El subrayado se desliza de una pestaña a otra: muestra de dónde a dónde cambió la vista
+                  <motion.span
+                    layoutId="dashboard-tab-indicator"
+                    className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-secondary-500"
+                    transition={{ type: 'spring', stiffness: 520, damping: 40 }}
+                  />
+                )}
               </button>
             );
           })}
         </div>
       </div>
 
-      <div id="panel-vista" role="tabpanel" aria-labelledby={`tab-${view.id}`}>
-        <Suspense fallback={<ViewFallback />}>
-          <Component />
-        </Suspense>
-      </div>
+      {/* Cambio de vista: la anterior se va rápido y la nueva entra con un leve ascenso */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={view.id}
+          id="panel-vista"
+          role="tabpanel"
+          aria-labelledby={`tab-${view.id}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0, transition: { duration: 0.24, ease: [0.16, 1, 0.3, 1] } }}
+          exit={{ opacity: 0, y: -4, transition: { duration: 0.12, ease: 'easeIn' } }}
+        >
+          <Suspense fallback={<ViewFallback />}>
+            <Component />
+          </Suspense>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

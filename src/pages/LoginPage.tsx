@@ -78,7 +78,7 @@ const LoginPage: React.FC = () => {
       className="min-h-dvh flex items-center justify-center px-4 py-10 bg-cover bg-center"
       style={{ backgroundImage: "url(/bg_login.svg)" }}
     >
-      <main className="w-full max-w-[400px] rounded-2xl bg-white p-7 sm:p-9 shadow-[0_24px_60px_-20px_rgba(120,53,15,0.45)]">
+      <main className="login-in w-full max-w-[400px] rounded-2xl bg-white p-7 sm:p-9 shadow-[0_24px_60px_-20px_rgba(120,53,15,0.45)]">
         <div className="flex flex-col items-center text-center">
           <img className="h-14 w-auto" src="/soy_header.webp" alt="SOY Excellence Center" />
           <h1 className="mt-6 text-2xl font-semibold tracking-tight">Iniciar sesión</h1>

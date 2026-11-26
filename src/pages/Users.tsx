@@ -60,6 +60,8 @@ const Users: React.FC = () => {
   const [created, setCreated] = useState<{ username: string; password: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  // Abierta/cerrada va aparte: el usuario se conserva mientras la ventana anima su salida
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [newEmail, setNewEmail] = useState('');
@@ -122,6 +124,7 @@ const Users: React.FC = () => {
 
   const handleEditUser = (user: User) => {
     setEditingUser(user);
+    setIsEditOpen(true);
     setNewPassword('');
     setNewPhone(user.phone || '');
     setNewEmail(user.email || '');
@@ -139,7 +142,7 @@ const Users: React.FC = () => {
       if (newFullName) updateData.fullName = newFullName;
 
       await updateUserMutation.mutateAsync({ id: editingUser.id, data: updateData });
-      setEditingUser(null);
+      setIsEditOpen(false);
       setNewPassword('');
       await Swal.fire({ title: 'Usuario actualizado', icon: 'success', timer: 1600, showConfirmButton: false });
     } catch {
@@ -333,8 +336,8 @@ const Users: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedUsers.map((user) => (
-                    <tr key={user.id}>
+                  {sortedUsers.map((user, i) => (
+                    <tr key={user.id} className="list-in" style={{ '--i': i } as React.CSSProperties}>
                       <td>
                         <p className="font-medium text-(--text-strong)">{user.username}</p>
                         <p className="text-xs text-(--text-muted)">{user.fullName}</p>
@@ -358,8 +361,8 @@ const Users: React.FC = () => {
 
           {/* Celular y tablet: tarjetas */}
           <ul className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {sortedUsers.map((user) => (
-              <li key={user.id} className="dashboard-card p-4!">
+            {sortedUsers.map((user, i) => (
+              <li key={user.id} className="dashboard-card p-4! list-in" style={{ '--i': i } as React.CSSProperties}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-(--text-strong)">{user.username}</p>
@@ -483,7 +486,7 @@ const Users: React.FC = () => {
       </Modal>
 
       {/* Editar usuario */}
-      <Modal open={editingUser !== null} title="Editar usuario" description={editingUser?.username} onClose={() => setEditingUser(null)}>
+      <Modal open={isEditOpen} title="Editar usuario" description={editingUser?.username} onClose={() => setIsEditOpen(false)}>
         {editingUser && (
           <form onSubmit={handleUpdateUser} className="space-y-4">
             <div>
@@ -509,7 +512,7 @@ const Users: React.FC = () => {
               </div>
             </div>
             <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
-              <button type="button" onClick={() => setEditingUser(null)} className="btn-secondary">Cancelar</button>
+              <button type="button" onClick={() => setIsEditOpen(false)} className="btn-secondary">Cancelar</button>
               <button type="submit" disabled={updateUserMutation.isPending} className="btn-primary">
                 {updateUserMutation.isPending && <Spinner />}
                 Guardar cambios

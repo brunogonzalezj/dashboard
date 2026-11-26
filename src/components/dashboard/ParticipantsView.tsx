@@ -7,6 +7,7 @@ import { DataItem } from '../../interfaces/IData';
 import { FilterBar } from '../ui/FilterBar';
 import { Skeleton, StatCardSkeleton, TableSkeleton } from '../ui/Skeleton';
 import { Spinner } from '../ui/Spinner';
+import { AnimatedBar, AnimatedNumber } from '../ui/AnimatedNumber';
 import { CHART_AXIS, CHART_GRID } from '../ui/chartTheme';
 import { ChartTooltip } from '../ui/ChartTooltip';
 
@@ -200,7 +201,7 @@ const ParticipantsView: React.FC<ParticipantsViewProps> = ({ data, isLoading, va
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 view-in">
       {/* Indicadores */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <StatCard
@@ -321,10 +322,10 @@ function StatCard({ label, value, total, rate, tone }: StatCardProps) {
     <div className="dashboard-card p-4! sm:p-5!">
       <div className="flex items-baseline justify-between gap-2">
         <p className="text-[13px] font-medium leading-snug text-(--text-muted)">{label}</p>
-        <p className="text-sm font-semibold tabular text-(--text-strong)">{rate}%</p>
+        <AnimatedNumber value={rate} suffix="%" className="text-sm font-semibold tabular text-(--text-strong)" />
       </div>
       <p className="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight tabular text-(--text-strong)">
-        {value.toLocaleString('es')}
+        <AnimatedNumber value={value} />
         <span className="ml-1 sm:ml-1.5 text-sm sm:text-base font-normal text-(--text-muted)">
           de {total.toLocaleString('es')}
         </span>
@@ -337,7 +338,7 @@ function StatCard({ label, value, total, rate, tone }: StatCardProps) {
         aria-valuemax={100}
         aria-valuenow={rate}
       >
-        <span style={{ width: `${rate}%`, background: tone === 'navy' ? 'var(--navy-500)' : 'var(--amber-500)' }} />
+        <AnimatedBar ratio={rate / 100} color={tone === 'navy' ? 'var(--navy-500)' : 'var(--amber-500)'} />
       </div>
     </div>
   );

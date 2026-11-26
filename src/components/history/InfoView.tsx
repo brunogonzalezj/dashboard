@@ -1,8 +1,8 @@
 import type React from 'react';
-import { useEffect, useState } from 'react';
 import { Cell, Funnel, FunnelChart, LabelList, ResponsiveContainer, Tooltip } from 'recharts';
 import type { DataItem } from '../../interfaces/IData';
 import { ChartTooltip } from '../ui/ChartTooltip';
+import { useMediaQuery } from '../../lib/useMediaQuery';
 
 interface InfoViewProps {
   data: DataItem[];
@@ -27,22 +27,10 @@ function wrapWords(text: string, max: number) {
 const pct = (part: number, whole: number) => (whole > 0 ? (part / whole) * 100 : 0);
 const fmt = (n: number) => n.toLocaleString('es', { maximumFractionDigits: 1 });
 
-/** true en pantallas de al menos 640px: ahí hay lugar para poner nombres al costado del embudo */
-function useWideScreen() {
-  const query = '(min-width: 640px)';
-  const [wide, setWide] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
-  useEffect(() => {
-    const mq = window.matchMedia(query);
-    const onChange = () => setWide(mq.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-  return wide;
-}
-
 /** Embudo de avance: registrados → iniciaron sesión → completaron el curso */
 const InfoView: React.FC<InfoViewProps> = ({ data }) => {
-  const wide = useWideScreen();
+  // En pantallas de al menos 640px hay lugar para nombres al costado del embudo
+  const wide = useMediaQuery('(min-width: 640px)');
   const fontSize = wide ? 14 : 12;
   const charWidth = wide ? 8.5 : 7.3;
   const registered = data.length;

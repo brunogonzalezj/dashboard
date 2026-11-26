@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
+import { AnimatePresence, motion } from 'motion/react';
 import { useHistoryData } from '../../hooks/queries';
 import { DataItem } from '../../interfaces/IData';
 import ChartsView from '../history/ChartsView';
@@ -61,13 +62,19 @@ export default function History() {
                 aria-checked={selected}
                 onClick={() => setCurrent(v.id)}
                 className={cn(
-                  'h-9 whitespace-nowrap rounded-md px-3.5 text-[13px] font-semibold transition-[background-color,color,box-shadow] duration-150',
-                  selected
-                    ? 'bg-white text-(--text-strong) shadow-[0_1px_2px_rgba(16,28,45,0.12)]'
-                    : 'text-(--text-muted) hover:text-(--text-strong)',
+                  'relative h-9 whitespace-nowrap rounded-md px-3.5 text-[13px] font-semibold transition-colors duration-200',
+                  selected ? 'text-(--text-strong)' : 'text-(--text-muted) hover:text-(--text-strong)',
                 )}
               >
-                {v.label}
+                {selected && (
+                  // La "pastilla" blanca se desliza hasta la opción elegida
+                  <motion.span
+                    layoutId="charts-subview-pill"
+                    className="absolute inset-0 rounded-md bg-white shadow-[0_1px_2px_rgba(16,28,45,0.12)]"
+                    transition={{ type: 'spring', stiffness: 520, damping: 40 }}
+                  />
+                )}
+                <span className="relative">{v.label}</span>
               </button>
             );
           })}
@@ -82,11 +89,20 @@ export default function History() {
         )}
       </div>
 
-      {current === 'perfil' && (
-        <ChartsView data={data} selectedCountry={selectedCountry} onCountrySelect={setSelectedCountry} />
-      )}
-      {current === 'embudo' && <InfoView data={filteredData} />}
-      {current === 'anual' && <YearInfoView data={filteredData} />}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={current}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] } }}
+          exit={{ opacity: 0, transition: { duration: 0.1 } }}
+        >
+          {current === 'perfil' && (
+            <ChartsView data={data} selectedCountry={selectedCountry} onCountrySelect={setSelectedCountry} />
+          )}
+          {current === 'embudo' && <InfoView data={filteredData} />}
+          {current === 'anual' && <YearInfoView data={filteredData} />}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

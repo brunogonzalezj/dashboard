@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 import { ChevronDown, RotateCcw, SlidersHorizontal } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { useMediaQuery } from '../../lib/useMediaQuery';
 
 export interface FilterField {
   key: string;
@@ -26,6 +27,8 @@ export function FilterBar({ fields, onChange, onReset, summary }: FilterBarProps
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const active = fields.filter((f) => f.value !== 'all').length;
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const expanded = open || isDesktop;
 
   return (
     <section className="dashboard-card p-0!" aria-label="Filtros">
@@ -62,35 +65,43 @@ export function FilterBar({ fields, onChange, onReset, summary }: FilterBarProps
         </div>
       </div>
 
+      {/* En celular se despliega animando la altura real (grid-template-rows 0fr → 1fr) */}
       <div
-        id={panelId}
         className={cn(
-          'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-8 gap-x-3 gap-y-3 px-4 pb-4 md:pt-3.5',
-          open ? 'grid' : 'hidden md:grid',
+          'grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
+          expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
         )}
+        inert={!expanded}
       >
-        {fields.map((f) => (
-          <div key={f.key} className="min-w-0">
-            <label htmlFor={`${panelId}-${f.key}`} className="block text-xs font-medium text-(--text-muted) mb-1">
-              {f.label}
-            </label>
-            <select
-              id={`${panelId}-${f.key}`}
-              value={f.value}
-              onChange={(e) => onChange(f.key, e.target.value)}
-              className={cn('input-field-sm', f.value !== 'all' && 'is-active')}
-            >
-              <option value="all">{f.allLabel ?? 'Todos'}</option>
-              {f.options
-                .filter((o) => o !== null && o !== undefined && o !== '')
-                .map((o) => (
-                  <option key={String(o)} value={String(o)}>
-                    {String(o)}
-                  </option>
-                ))}
-            </select>
+        <div className="min-h-0 overflow-hidden">
+          <div
+            id={panelId}
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-8 gap-x-3 gap-y-3 px-4 pb-4 md:pt-3.5"
+          >
+            {fields.map((f) => (
+              <div key={f.key} className="min-w-0">
+                <label htmlFor={`${panelId}-${f.key}`} className="block text-xs font-medium text-(--text-muted) mb-1">
+                  {f.label}
+                </label>
+                <select
+                  id={`${panelId}-${f.key}`}
+                  value={f.value}
+                  onChange={(e) => onChange(f.key, e.target.value)}
+                  className={cn('input-field-sm', f.value !== 'all' && 'is-active')}
+                >
+                  <option value="all">{f.allLabel ?? 'Todos'}</option>
+                  {f.options
+                    .filter((o) => o !== null && o !== undefined && o !== '')
+                    .map((o) => (
+                      <option key={String(o)} value={String(o)}>
+                        {String(o)}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </section>
   );

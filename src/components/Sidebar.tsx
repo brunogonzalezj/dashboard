@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router';
 import { LogOut, X } from 'lucide-react';
+import { LayoutGroup, motion } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
 import React from 'react';
 import { cn } from '../lib/utils';
@@ -39,6 +40,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, onClose }) => {
 
       {/* Navegación */}
       <nav className="flex-1 overflow-y-auto px-3 pt-4" aria-label="Principal">
+        {/* Grupo propio por instancia: la barra fija y el menú del celular están montados a la vez */}
+        <LayoutGroup id={onClose ? 'sidebar-drawer' : 'sidebar-fixed'}>
         <ul className="space-y-1">
           {NAV.filter((n) => !n.adminOnly || userRole === 'admin').map(({ to, icon: Icon, label }) => (
             <li key={to}>
@@ -48,29 +51,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, onClose }) => {
                 onClick={onNavigate}
                 className={({ isActive }) =>
                   cn(
-                    'group flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150',
-                    isActive
-                      ? 'bg-white/8 text-white'
-                      : 'text-primary-200 hover:bg-white/6 hover:text-white',
+                    'group relative flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150',
+                    isActive ? 'text-white' : 'text-primary-200 hover:bg-white/6 hover:text-white',
                   )
                 }
               >
                 {({ isActive }) => (
                   <>
+                    {isActive && (
+                      // El resaltado se desliza hasta la sección nueva
+                      <motion.span
+                        layoutId="sidebar-active"
+                        className="absolute inset-0 rounded-lg bg-white/8"
+                        transition={{ type: 'spring', stiffness: 480, damping: 38 }}
+                      />
+                    )}
                     <Icon
                       className={cn(
-                        'h-[18px] w-[18px] shrink-0 transition-colors',
+                        'relative h-[18px] w-[18px] shrink-0 transition-colors',
                         isActive ? 'text-secondary-400' : 'text-primary-300 group-hover:text-primary-100',
                       )}
                     />
-                    <span className="truncate">{label}</span>
-                    {isActive && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-secondary-400" aria-hidden="true" />}
+                    <span className="relative truncate">{label}</span>
+                    {isActive && <span className="relative ml-auto h-1.5 w-1.5 rounded-full bg-secondary-400" aria-hidden="true" />}
                   </>
                 )}
               </NavLink>
             </li>
           ))}
         </ul>
+        </LayoutGroup>
       </nav>
 
       {/* Usuario */}

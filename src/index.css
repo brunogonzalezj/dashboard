@@ -400,6 +400,7 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
@@ -423,6 +424,44 @@ select.input-field-sm {
 select.is-active {
   border-color: var(--amber-500);
   background-color: var(--amber-50);
+}
+
+/* ── Movimiento ──────────────────────────────────────────────────────
+   Entradas cortas con desaceleración natural. Siempre parten de un estado visible
+   (fill-mode both + reduced-motion en 0.01ms), así nada queda oculto si la animación no corre. */
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+/* Avisos de éxito/error: aparecen en vez de saltar */
+.notice-success,
+.notice-error,
+.notice-info {
+  animation: rise-in 240ms var(--ease-out-expo) both;
+}
+/* Filas y tarjetas de una lista: escalonadas al aparecer, con tope de 300ms en total */
+.list-in {
+  animation: rise-in 320ms var(--ease-out-expo) both;
+  animation-delay: min(calc(var(--i, 0) * 22ms), 300ms);
+}
+/* Entrada de una vista completa (carga inicial de datos) */
+.view-in {
+  animation: fade-in 260ms ease-out both;
+}
+/* Tarjeta de login: el único momento de entrada "autoral" */
+.login-in {
+  animation: card-in 560ms var(--ease-out-expo) both;
 }
 
 /* Tailwind 4 ya no pone cursor de mano en los botones */

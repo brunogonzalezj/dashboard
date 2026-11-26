@@ -5,6 +5,7 @@ import { MapPin, X } from 'lucide-react';
 import type { DataItem } from '../../interfaces/IData';
 import { useAuth } from '../../contexts/AuthContext.tsx';
 import { FilterBar } from '../ui/FilterBar';
+import { AnimatedBar } from '../ui/AnimatedNumber';
 import { Skeleton } from '../ui/Skeleton';
 import { CATEGORICAL, GENDER_COLORS, SEQUENTIAL, courseColor } from '../ui/chartTheme';
 
@@ -211,10 +212,12 @@ function PercentBars({ title, subtitle, slices, colorFor }: PercentBarsProps) {
                   <span className="ml-1.5 text-xs text-(--text-muted)">{s.count.toLocaleString('es')}</span>
                 </span>
               </div>
-              <div className="h-2 rounded-full bg-[#eef1f5]" aria-hidden="true">
-                <div
-                  className="h-full rounded-full transition-[width] duration-300 ease-out"
-                  style={{ width: `${(s.pct / max) * 100}%`, background: colorFor(s.name, i) }}
+              <div className="relative h-2 overflow-hidden rounded-full bg-[#eef1f5]" aria-hidden="true">
+                <AnimatedBar
+                  className="absolute inset-y-0 left-0 rounded-full"
+                  ratio={s.pct / max}
+                  color={colorFor(s.name, i)}
+                  delay={Math.min(i * 0.04, 0.2)}
                 />
               </div>
             </li>

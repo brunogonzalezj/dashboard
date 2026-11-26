@@ -125,8 +125,8 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig, isHistor
               </tr>
             </thead>
             <tbody>
-              {data.map((item) => (
-                <tr key={item.id}>
+              {data.map((item, i) => (
+                <tr key={item.id} className="list-in" style={{ '--i': i % 50 } as React.CSSProperties}>
                   <td>
                     <p className="font-medium text-(--text-strong)">{item.name} {item.lastName}</p>
                     <p className="text-xs text-(--text-muted)">{item.email}</p>
@@ -150,8 +150,8 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig, isHistor
 
       {/* Celular y tablet: tarjetas */}
       <ul className="xl:hidden grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-        {data.map((item) => (
-          <li key={item.id} className="dashboard-card p-4!">
+        {data.map((item, i) => (
+          <li key={item.id} className="dashboard-card p-4! list-in" style={{ '--i': i % 50 } as React.CSSProperties}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="font-semibold text-(--text-strong) truncate">{item.name} {item.lastName}</p>
