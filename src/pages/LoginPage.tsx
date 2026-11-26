@@ -1,5 +1,5 @@
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import { Eye, EyeOff, LogIn } from "lucide-react"
@@ -10,11 +10,20 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [blockedUntil, setBlockedUntil] = useState<number | null>(null)
   const navigate = useNavigate()
   const { login } = useAuth()
 
+  // Rehabilita el botón cuando vence el bloqueo por rate limit (429)
+  useEffect(() => {
+    if (blockedUntil === null) return
+    const timer = setTimeout(() => setBlockedUntil(null), Math.max(0, blockedUntil - Date.now()))
+    return () => clearTimeout(timer)
+  }, [blockedUntil])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (blockedUntil !== null) return
     setError("")
 
     if (!username.trim() || !password.trim()) {
@@ -31,7 +40,18 @@ const LoginPage: React.FC = () => {
       console.error("Login error:", error)
 
       if (error.response) {
-        if (error.response.status === 401) {
+        if (error.response.status === 429) {
+          const retryAfter = Number(error.response.headers?.["retry-after"])
+          if (Number.isFinite(retryAfter) && retryAfter > 0) {
+            const minutes = Math.ceil(retryAfter / 60)
+            setBlockedUntil(Date.now() + retryAfter * 1000)
+            setError(
+              `Demasiados intentos de inicio de sesión. Esperá ${minutes} ${minutes === 1 ? "minuto" : "minutos"} e intentá de nuevo.`
+            )
+          } else {
+            setError("Demasiados intentos de inicio de sesión. Esperá unos minutos e intentá de nuevo.")
+          }
+        } else if (error.response.status === 401) {
           setError("Usuario o contraseña inválidos.")
         } else if (error.response.status === 403) {
           setError("Su cuenta está bloqueada. Contacte al administrador del sistema.")
@@ -121,7 +141,7 @@ const LoginPage: React.FC = () => {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || blockedUntil !== null}
             className="group relative w-full flex items-center justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (

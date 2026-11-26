@@ -248,7 +248,9 @@ const Current: React.FC = () => {
           <p className="text-sm text-gray-500">
             Última modificación:{' '}
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
-              {new Date(lastDate).toLocaleString()}
+              {lastDate && !isNaN(new Date(lastDate).getTime())
+                ? new Date(lastDate).toLocaleString()
+                : 'Sin cargas'}
             </span>
           </p>
         </div>
