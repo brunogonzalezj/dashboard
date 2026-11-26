@@ -46,39 +46,50 @@ const YearInfoView: React.FC<YearInfoViewProps> = ({ data }) => {
   }
 
   return (
-    <div>
-        <div className={"flex flex-col  bg-white rounded-lg shadow-xl p-4"}>
-            <h2 className="text-2xl font-bold mb-4 text-left">Información Histórica Anual</h2>
-            <div className={"flex-col"}>
-            <select
-                value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-                className="mb-4 p-2 border rounded-lg"
-            >
-                <option value="all">Todos los cursos</option>
-                {courses.map((course) => (
-                    <option key={course} value={course}>
-                        {course}
-                    </option>
-                ))}
-            </select>
-            </div>
-            <ResponsiveContainer width={"100%"} height={450} className={"m-4 p-4"}>
-                <BarChart data={chartData}>
-                    <XAxis dataKey="year"/>
-                    <YAxis/>
-                    <Tooltip/>
-                    <Legend/>
-                    {selectedCourse === "all" ? (
-                        courses.map((course) => (
-                            <Bar key={course} dataKey={course} fill={getColorForCourse(course)}/>
-                        ))
-                    ) : (
-                        <Bar dataKey={selectedCourse} fill={getColorForCourse(selectedCourse)}/>
-                    )}
-                </BarChart>
-            </ResponsiveContainer>
+    <div className="space-y-4">
+      <div className="filter-bar">
+        <div className="min-w-[140px] max-w-[200px]">
+          <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5 block" htmlFor="course-filter">Curso</label>
+          <select
+            id="course-filter"
+            value={selectedCourse}
+            onChange={(e) => setSelectedCourse(e.target.value)}
+            className="input-field-sm"
+          >
+            <option value="all">Todos los cursos</option>
+            {courses.map((course) => (
+              <option key={course} value={course}>
+                {course}
+              </option>
+            ))}
+          </select>
         </div>
+      </div>
+      <div className="dashboard-card">
+        <h2 className="section-title mb-2">Información Histórica Anual</h2>
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart data={chartData}>
+            <XAxis dataKey="year" tick={{ fontSize: 13, fill: '#4B5563' }} />
+            <YAxis tick={{ fontSize: 13, fill: '#4B5563' }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'white',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+              }}
+            />
+            <Legend />
+            {selectedCourse === "all" ? (
+              courses.map((course) => (
+                <Bar key={course} dataKey={course} fill={getColorForCourse(course)} radius={[4, 4, 0, 0]} />
+              ))
+            ) : (
+              <Bar dataKey={selectedCourse} fill={getColorForCourse(selectedCourse)} radius={[4, 4, 0, 0]} />
+            )}
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   )
 }

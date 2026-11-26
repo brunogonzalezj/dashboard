@@ -30,11 +30,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 });
                 if (response.data.isAuthenticated) {
                     setIsAuthenticated(true);
-                    setUserRole(response.data.role);
+                    setUserRole(response.data.role?.toLowerCase());
                     setUsername(response.data.username);
 
                     localStorage.setItem('isAuthenticated', 'true');
-                    localStorage.setItem('userRole', response.data.role);
+                    localStorage.setItem('userRole', response.data.role?.toLowerCase());
                     localStorage.setItem('username', response.data.username);
                 }
             } catch (error) {
@@ -58,11 +58,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 withCredentials: true,
             });
             setIsAuthenticated(true);
-            setUserRole(response.data.role);
+            setUserRole(response.data.role?.toLowerCase());
             setUsername(response.data.username);
 
             localStorage.setItem('isAuthenticated', 'true');
-            localStorage.setItem('userRole', response.data.role);
+            localStorage.setItem('userRole', response.data.role?.toLowerCase());
             localStorage.setItem('username', response.data.username);
         } catch (error) {
             console.error('Login failed:', error);

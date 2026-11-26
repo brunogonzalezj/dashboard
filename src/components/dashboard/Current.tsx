@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDashboardData, useUploadDate } from '../../hooks/queries';
 import {
   Bar,
   BarChart,
@@ -14,6 +14,7 @@ import {
 import { Download } from 'lucide-react';
 import { saveAs } from 'file-saver';
 import { DataItem } from '../../interfaces/IData.ts';
+import { StatCardSkeleton, Skeleton } from '../ui/Skeleton';
 const TableCurrent = React.lazy(() => import('../TableCurrent'));
 
 enum FilterLabels {
@@ -27,14 +28,16 @@ enum FilterLabels {
   stateOfCompleteness = 'Estado de progreso',
 }
 
+const EMPTY_DATA: DataItem[] = [];
+
 const Current: React.FC = () => {
-  const [data, setData] = useState<DataItem[]>([]);
+  const { data = EMPTY_DATA, isLoading } = useDashboardData();
+  const { data: uploadDateData } = useUploadDate();
+  const lastDate = uploadDateData?.uploadDate ?? '';
+
   const [filteredData, setFilteredData] = useState<DataItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
-  const { isAuthenticated } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [lastDate, setLastDate] = useState('');
 
   const { username, userRole } = useAuth();
 
@@ -55,45 +58,12 @@ const Current: React.FC = () => {
   } | null>(null);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchData();
-      getLastDate();
-    }
-  }, [isAuthenticated]);
-
-  useEffect(() => {
     filterAndSortData();
   }, [data, filters, sortConfig]);
 
   const displayedData = useMemo(() => {
     return filteredData.slice(0, currentPage * itemsPerPage);
   }, [filteredData, currentPage]);
-
-  const getLastDate = async () => {
-    try {
-      setLoading(true);
-      const url = `${import.meta.env.VITE_API_URL}/data/get-upload-date`;
-      const response = await axios.get(url, { withCredentials: true });
-      setLastDate(response.data.uploadDate);
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setLastDate('');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const url = `${import.meta.env.VITE_API_URL}/data/dashboard-data`;
-      const response = await axios.get(url, { withCredentials: true });
-      setData(response.data);
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setData([]);
-    }
-  };
 
   const filterAndSortData = () => {
     const result = data.filter((item) =>
@@ -233,90 +203,97 @@ const Current: React.FC = () => {
   };
 
   return (
-    <div className="p-2 mt-2 sm:p-4 md:p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto">
-      <div className="flex flex-col mb-4 lg:mb-8 gap-4">
-        <div className="flex flex-col items-center justify-center lg:flex-row w-full gap-4">
-          <div className="bg-[#3A69AA] p-4 rounded-lg text-white">
-            <h2 className="text-base sm:text-lg font-semibold mb-2">
-              Usuarios que iniciaron sesión
-            </h2>
-            {!loading ? (
+    <div className="space-y-6">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {isLoading ? (
+          <>
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </>
+        ) : (
+          <>
+            <div className="stat-card">
+              <h2 className="text-sm font-medium text-white/80 mb-1">
+                Usuarios que iniciaron sesión
+              </h2>
               <p className="text-2xl sm:text-3xl font-bold">
-                {getLoginStats.loggedInCount} de {getLoginStats.totalCount} usuarios ({getLoginStats.rate}%)
+                {getLoginStats.loggedInCount}
+                <span className="text-base font-normal text-white/70 ml-2">
+                  de {getLoginStats.totalCount} ({getLoginStats.rate}%)
+                </span>
               </p>
-            ) : (
-              <span className="loading loading-ring loading-lg"></span>
-            )}
-          </div>
-          <div className="bg-[#3A69AA] p-4 rounded-lg text-white">
-            <h2 className="text-base sm:text-lg font-semibold mb-2">
-              Usuarios que completaron el curso
-            </h2>
-            {!loading ? (
-              <p className="flex text-nowrap text-2xl sm:text-3xl font-bold">
-                {getCompletionStats.completedCount} de {getCompletionStats.totalCount} usuarios ({getCompletionStats.rate}%)
+            </div>
+            <div className="stat-card">
+              <h2 className="text-sm font-medium text-white/80 mb-1">
+                Usuarios que completaron el curso
+              </h2>
+              <p className="text-2xl sm:text-3xl font-bold">
+                {getCompletionStats.completedCount}
+                <span className="text-base font-normal text-white/70 ml-2">
+                  de {getCompletionStats.totalCount} ({getCompletionStats.rate}%)
+                </span>
               </p>
-            ) : (
-              <span className="loading loading-ring loading-lg"></span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center flex-col w-full lg:flex-1">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 w-full">
-            <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">
-              Distribución de Progreso
-            </h2>
-            <p className="text-sm sm:text-base">
-              Ultima modificación:{' '}
-              <span className="badge badge-warning font-semibold">
-                {new Date(lastDate).toLocaleString()}
-              </span>
-            </p>
-          </div>
-          {!loading ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={getProgressData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="progress" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" name="Nro de Usuarios" fill="#3A69AA" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <span className="loading loading-ring loading-lg"></span>
-          )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-        <h1 className="text-lg sm:text-xl font-bold">Datos de Usuario</h1>
+      {/* Progress Chart */}
+      <div className="dashboard-card">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4">
+          <h2 className="section-title mb-2 sm:mb-0">
+            Distribución de Progreso
+          </h2>
+          <p className="text-sm text-gray-500">
+            Última modificación:{' '}
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+              {new Date(lastDate).toLocaleString()}
+            </span>
+          </p>
+        </div>
+        {isLoading ? (
+          <Skeleton className="w-full h-[300px]" />
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={getProgressData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="progress" tick={{ fontSize: 12 }} />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
+              />
+              <Legend />
+              <Bar dataKey="count" name="Nro de Usuarios" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
+      {/* Data Section Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <h1 className="section-title">Datos de Usuario</h1>
         <button
           onClick={handleDownloadXLSX}
-          className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center text-sm"
+          className="btn-secondary"
         >
-          <Download className="mr-2" size={18} />
+          <Download size={16} />
           Descargar Excel
         </button>
       </div>
 
-      <h2 className="text-lg sm:text-xl font-semibold mb-2">Filtros</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      {/* Filters */}
+      <div className="filter-bar">
         {Object.entries(filters).map(
           ([key, value]) =>
             (userRole === 'admin' ||
               !['association', 'businessGroup', 'business'].includes(key)) && (
-              <div key={key}>
+              <div key={key} className="min-w-[130px] max-w-[180px] flex-1">
                 <label
                   htmlFor={`${key}-filter`}
-                  className="block text-sm font-medium text-gray-700"
+                  className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5 block"
                 >
-                  {FilterLabels[key as keyof typeof FilterLabels]
-                    .charAt(0)
-                    .toUpperCase() +
-                    FilterLabels[key as keyof typeof FilterLabels].slice(1)}
+                  {FilterLabels[key as keyof typeof FilterLabels]}
                 </label>
                 <select
                   id={`${key}-filter`}
@@ -324,7 +301,7 @@ const Current: React.FC = () => {
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, [key]: e.target.value }))
                   }
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 text-sm"
+                  className="input-field-sm"
                 >
                   <option value="all">Todos</option>
                   {getUniqueValues(key as keyof DataItem).map((option) => (
@@ -338,19 +315,22 @@ const Current: React.FC = () => {
         )}
       </div>
 
-      <div className="overflow-x-auto w-full">
-        <TableCurrent
-          data={displayedData}
-          onSort={handleSort}
-          sortConfig={sortConfig}
-        />
+      {/* Table */}
+      <div className="dashboard-card !p-0 overflow-hidden">
+        <div className="overflow-x-auto">
+          <TableCurrent
+            data={displayedData}
+            onSort={handleSort}
+            sortConfig={sortConfig}
+          />
+        </div>
       </div>
 
       {displayedData.length < filteredData.length && (
-        <div className="mt-4 flex justify-center">
+        <div className="flex justify-center">
           <button
             onClick={() => setCurrentPage((prev) => prev + 1)}
-            className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded text-sm sm:text-base"
+            className="btn-secondary"
           >
             Cargar más
           </button>

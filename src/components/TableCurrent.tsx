@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MailIcon } from 'lucide-react';
+import { MailIcon, ChevronUpIcon, ChevronDownIcon } from 'lucide-react';
 import { Whatsapp } from './WhatsappIcon';
 import { DataItem } from '../interfaces/IData.ts';
 
@@ -19,95 +19,96 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig, isHistor
     { key: 'email', label: 'Correo' },
     { key: 'business', label: 'Empresa' },
     { key: 'stateOfCompleteness', label: 'Estado' },
-    { key: 'progressPercentage', label: '% de progreso' },
+    { key: 'progressPercentage', label: '% Progreso' },
     ...(isHistoric ? [{ key: 'finalScore', label: 'Nota Final' }] : []),
     { key: 'contact', label: 'Contactar' },
   ];
 
   const SortIcon = ({ column }: { column: string }) => {
     if (sortConfig?.key !== column) return null;
-    return sortConfig.direction === 'asc' ? '🔼' : '🔽';
+    return sortConfig.direction === 'asc'
+      ? <ChevronUpIcon className="w-3.5 h-3.5 inline-block ml-0.5 text-amber-600" />
+      : <ChevronDownIcon className="w-3.5 h-3.5 inline-block ml-0.5 text-amber-600" />;
   };
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[640px] bg-white shadow-md rounded-lg p-8">
-        <thead>
-          <tr>
-            {headers.map(({ key, label }) => (
-              <th
-                key={key}
-                onClick={() => key !== 'contact' && onSort(key as keyof DataItem)}
-                className="py-2 px-4 border-b cursor-pointer text-left"
-              >
-                {label} {key !== 'contact' && <SortIcon column={key} />}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item) => (
-            <tr key={item.id} className="hover:bg-gray-50">
-              <td className="py-2 px-4 border-b">{item.course}</td>
-              <td className="py-2 px-4 border-b">{item.name}</td>
-              <td className="py-2 px-4 border-b">{item.lastName}</td>
-              <td className="py-2 px-4 border-b">{item.email}</td>
-              <td className="py-2 px-4 border-b">{item.business}</td>
-              <td className="py-2 px-4 border-b">
-                <div
-                  className={`badge p-2 sm:p-4 justify-center ${
-                    item.stateOfCompleteness === 'Completado'
-                      ? 'badge-success'
-                      : 'badge-error'
-                  } text-white text-nowrap text-xs sm:text-sm`}
-                >
-                  {item.stateOfCompleteness === 'Completado'
-                    ? 'Completado'
-                    : 'No completado'}
-                </div>
-              </td>
-              <td className="py-2 px-4 border-b">
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-amber-500 h-2 rounded-full"
-                    style={{ width: `${item.progressPercentage}` }}
-                  ></div>
-                </div>
-                <span className="text-xs text-gray-500 mt-1">{item.progressPercentage}</span>
-              </td>
-              {isHistoric && (
-                <td className="py-2 px-4 border-b text-center font-semibold">
-                  {item.finalScore || 'N/A'}
-                </td>
-              )}
-              <td className="py-2 px-4 border-b">
-                <div className="flex items-center justify-center space-x-2">
-                  <Link
-                    to={`https://api.whatsapp.com/send?phone=${item.phone}`}
-                    target="_blank"
-                  >
-                    <Whatsapp />
-                  </Link>
-                  <button
-                    onClick={() => {
-                      const subject = `Curso ${item.course} - ${item.name} ${item.lastName}`;
-                      const body = `Estimado/a ${item.name},\nLe informamos que su nota final en el curso de ${item.course} es: ${item.finalScore}, su porcentaje de avance es de ${item.progressPercentage} y el estado de finalización del curso es: ${item.stateOfCompleteness}.\nSaludos.`;
-                      const mailto = `mailto:${item.email}?subject=${encodeURIComponent(
-                        subject
-                      )}&body=${encodeURIComponent(body)}`;
-                      window.location.href = mailto;
-                    }}
-                    className="text-gray-600 hover:text-gray-800"
-                  >
-                    <MailIcon className="w-5 h-5" />
-                  </button>
-                </div>
-              </td>
-            </tr>
+    <table className="data-table">
+      <thead>
+        <tr>
+          {headers.map(({ key, label }) => (
+            <th
+              key={key}
+              onClick={() => key !== 'contact' && onSort(key as keyof DataItem)}
+              className={key !== 'contact' ? 'cursor-pointer hover:bg-gray-100 select-none' : ''}
+            >
+              <span className="inline-flex items-center">
+                {label}
+                {key !== 'contact' && <SortIcon column={key} />}
+              </span>
+            </th>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map((item) => (
+          <tr key={item.id}>
+            <td>{item.course}</td>
+            <td>{item.name}</td>
+            <td>{item.lastName}</td>
+            <td className="text-gray-500">{item.email}</td>
+            <td>{item.business}</td>
+            <td>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                  item.stateOfCompleteness === 'Completado'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-red-500 text-white'
+                }`}
+              >
+                {item.stateOfCompleteness === 'Completado' ? 'Completado' : 'No completado'}
+              </span>
+            </td>
+            <td>
+              <div className="flex items-center gap-2 min-w-[100px]">
+                <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                  <div
+                    className="bg-amber-500 h-1.5 rounded-full transition-all"
+                    style={{ width: `${parseFloat(item.progressPercentage)}%` }}
+                  />
+                </div>
+                <span className="text-xs text-gray-500 tabular-nums w-10 text-right">{item.progressPercentage}</span>
+              </div>
+            </td>
+            {isHistoric && (
+              <td className="text-center font-semibold">
+                {item.finalScore || 'N/A'}
+              </td>
+            )}
+            <td>
+              <div className="flex items-center justify-center gap-2">
+                <Link
+                  to={`https://api.whatsapp.com/send?phone=${item.phone}`}
+                  target="_blank"
+                >
+                  <Whatsapp />
+                </Link>
+                <button
+                  onClick={() => {
+                    const subject = `Curso ${item.course} - ${item.name} ${item.lastName}`;
+                    const body = `Estimado/a ${item.name},\nLe informamos que su nota final en el curso de ${item.course} es: ${item.finalScore}, su porcentaje de avance es de ${item.progressPercentage} y el estado de finalización del curso es: ${item.stateOfCompleteness}.\nSaludos.`;
+                    const mailto = `mailto:${item.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                    window.location.href = mailto;
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <MailIcon className="w-5 h-5" />
+                </button>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 };
 

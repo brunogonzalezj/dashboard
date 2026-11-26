@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import FileSaver from 'file-saver';
@@ -12,9 +12,24 @@ import {
 } from 'lucide-react';
 import { User } from '../interfaces/IUsers';
 import Swal from 'sweetalert2';
+import { useUsers, useCompanyOptions, useCreateUser, useUpdateUser, useDeleteUser } from '../hooks/queries';
+import { TableSkeleton } from '../components/ui/Skeleton';
 
 const Users: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const { data: users = [], isLoading: userLoading } = useUsers();
+  const { data: rawCompanyOptions } = useCompanyOptions();
+  const companyOptions = useMemo(() => {
+    if (!rawCompanyOptions) return { businessGroups: [], associations: [], business: [] };
+    return {
+      businessGroups: [...rawCompanyOptions.businessGroups].sort((a, b) => a.localeCompare(b)),
+      associations: [...rawCompanyOptions.associations].sort((a, b) => a.localeCompare(b)),
+      business: [...rawCompanyOptions.business].sort((a, b) => a.localeCompare(b)),
+    };
+  }, [rawCompanyOptions]);
+  const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
+  const deleteUserMutation = useDeleteUser();
+
   const [newUser, setNewUser] = useState({
     username: '',
     companyType: '',
@@ -27,18 +42,8 @@ const Users: React.FC = () => {
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [userLoading, setUserLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const { userRole, isAuthenticated } = useAuth();
-  const [companyOptions, setCompanyOptions] = useState<{
-    businessGroups: string[];
-    associations: string[];
-    business: string[];
-  }>({
-    businessGroups: [],
-    associations: [],
-    business: []
-  });
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [newPhone, setNewPhone] = useState('');
@@ -48,28 +53,6 @@ const Users: React.FC = () => {
     key: keyof User;
     direction: 'asc' | 'desc';
   } | null>(null);
-
-  useEffect(() => {
-    if (isAuthenticated && userRole === 'admin') {
-      fetchUsers();
-      fetchCompanyOptions();
-    }
-  }, [isAuthenticated, userRole]);
-
-  const fetchUsers = async () => {
-    try {
-      setUserLoading(true);
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/users`, {
-        withCredentials: true
-      });
-      setUsers(response.data);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      setError('Error al obtener usuarios');
-    } finally {
-      setUserLoading(false);
-    }
-  };
 
   const fetchPasswords = async () => {
     try {
@@ -87,37 +70,9 @@ const Users: React.FC = () => {
     }
   };
 
-  const fetchCompanyOptions = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/data/company-options`,
-        { withCredentials: true }
-      );
-      const sortedOptions = {
-        businessGroups: response.data.businessGroups.sort((a: string, b: string) =>
-          a.localeCompare(b)
-        ),
-        associations: response.data.associations.sort((a: string, b: string) =>
-          a.localeCompare(b)
-        ),
-        business: response.data.business.sort((a: string, b: string) =>
-          a.localeCompare(b)
-        )
-      };
-      setCompanyOptions(sortedOptions);
-    } catch (error) {
-      console.error('Error fetching company options:', error);
-      setError('Error al obtener opciones de compañía');
-    }
-  };
-
   const createUser = async () => {
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/users`,
-        newUser,
-        { withCredentials: true }
-      );
+      const result = await createUserMutation.mutateAsync(newUser);
       setNewUser({
         username: '',
         companyType: '',
@@ -128,9 +83,8 @@ const Users: React.FC = () => {
         phone: ''
       });
       setSuccessMessage(
-        `Usuario creado: ${response.data.username}, Contraseña: ${response.data.password}`
+        `Usuario creado: ${result.username}, Contraseña: ${result.password}`
       );
-      fetchUsers();
     } catch (error) {
       console.error('Error creating user:', error);
       setError('Error al crear usuario');
@@ -197,14 +151,9 @@ const Users: React.FC = () => {
       if (newEmail) updateData.email = newEmail;
       if (newFullName) updateData.fullName = newFullName;
 
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/users/update-user/${editingUser.id}`,
-        updateData,
-        { withCredentials: true }
-      );
+      await updateUserMutation.mutateAsync({ id: editingUser.id, data: updateData });
       setEditingUser(null);
       setNewPassword('');
-      fetchUsers();
       await Swal.fire({
         title: '¡Éxito!',
         text: 'Usuario actualizado correctamente.',
@@ -234,11 +183,7 @@ const Users: React.FC = () => {
     if (!result.isConfirmed) return;
 
     try {
-      await axios.delete(
-        `${import.meta.env.VITE_API_URL}/users/delete-user/${id}`,
-        { withCredentials: true }
-      );
-      fetchUsers();
+      await deleteUserMutation.mutateAsync(id);
       await Swal.fire({
         title: '¡Eliminado!',
         text: 'El usuario ha sido eliminado.',
@@ -269,12 +214,10 @@ const Users: React.FC = () => {
     const sortableUsers = [...users];
     if (sortConfig !== null) {
       sortableUsers.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
+        const aVal = a[sortConfig!.key] ?? '';
+        const bVal = b[sortConfig!.key] ?? '';
+        if (aVal < bVal) return sortConfig!.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig!.direction === 'asc' ? 1 : -1;
         return 0;
       });
     }
@@ -306,13 +249,13 @@ const Users: React.FC = () => {
   }
 
   return (
-    <div className="bg-white shadow rounded-lg p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h2 className="text-2xl font-bold">Gestión de Usuarios</h2>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 className="section-title">Gestión de Usuarios</h2>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors duration-200 flex items-center gap-2"
+            className="btn-secondary"
           >
             <span className="hidden sm:inline">Crear Usuario</span>
             <span className="sm:hidden">Crear</span>
@@ -320,21 +263,21 @@ const Users: React.FC = () => {
           <button
             onClick={handleUpdatePasswords}
             disabled={loading}
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm text-white bg-red-500 hover:bg-red-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <TriangleAlertIcon className="w-5 h-5" />
+            <TriangleAlertIcon className="w-4 h-4" />
             <span className="hidden sm:inline">
               {loading ? 'Reestableciendo...' : 'Reestablecer contraseñas'}
             </span>
             <span className="sm:hidden">
-              {loading ? 'Procesando...' : 'Reestablecer'}
+              {loading ? '...' : 'Reestablecer'}
             </span>
           </button>
           <button
             onClick={fetchPasswords}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200 flex items-center gap-2"
+            className="btn-primary"
           >
-            <DownloadIcon className="w-5 h-5" />
+            <DownloadIcon className="w-4 h-4" />
             <span className="hidden sm:inline">Descargar contraseñas</span>
             <span className="sm:hidden">Descargar</span>
           </button>
@@ -342,130 +285,101 @@ const Users: React.FC = () => {
       </div>
 
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <TriangleAlertIcon className="h-5 w-5 text-red-400" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          </div>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+          <TriangleAlertIcon className="h-4 w-4 text-red-500 flex-shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
       {successMessage && (
-        <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
-          <div className="flex">
-            <div className="ml-3">
-              <p className="text-sm text-green-700">{successMessage}</p>
-            </div>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <p className="text-sm text-green-700">{successMessage}</p>
+        </div>
+      )}
+
+      {userLoading ? (
+        <TableSkeleton rows={6} cols={8} />
+      ) : (
+      <div className="dashboard-card !p-0 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="data-table">
+              <thead>
+              <tr>
+                {[
+                  { key: 'username', label: 'Usuario' },
+                  { key: 'fullName', label: 'Nombre' },
+                  { key: 'email', label: 'Correo' },
+                  { key: 'phone', label: 'Teléfono' },
+                  { key: 'password', label: 'Contraseña' },
+                  { key: 'role', label: 'Rol' },
+                  { key: 'company', label: 'Empresa' },
+                  { key: 'actions', label: 'Acciones' }
+                ].map((column) => (
+                  <th
+                    key={column.key}
+                    onClick={() =>
+                      column.key !== 'actions' &&
+                      handleSort(column.key as keyof User)
+                    }
+                    className={column.key !== 'actions' ? 'cursor-pointer hover:bg-gray-100 select-none' : ''}
+                  >
+                    <span className="inline-flex items-center">
+                      {column.label}
+                      {column.key !== 'actions' && (
+                        <SortIcon column={column.key as keyof User} />
+                      )}
+                    </span>
+                  </th>
+                ))}
+              </tr>
+              </thead>
+              <tbody>
+              {sortedUsers.map((user) => (
+                <tr key={user.id}>
+                  <td className="font-medium">{user.username}</td>
+                  <td>{user.fullName}</td>
+                  <td className="text-gray-500">{user.email}</td>
+                  <td className="text-gray-500">{user.phone}</td>
+                  <td className="font-mono text-xs">{user.password}</td>
+                  <td>
+                    <span className={user.role === 'admin' ? 'badge-admin' : 'badge-client'}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td>{user.company}</td>
+                  <td>
+                    <div className="flex items-center gap-1.5">
+                      {user.username !== 'clagonjor' && (
+                        <>
+                          <button
+                            onClick={() => handleEditUser(user)}
+                            className="p-1.5 rounded-md text-amber-500 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                          >
+                            <Edit2Icon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="p-1.5 rounded-md text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          >
+                            <Trash2Icon className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
-      <div className="overflow-x-auto">
-        {userLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
-          </div>
-        ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-            <tr>
-              {[
-                { key: 'username', label: 'Usuario' },
-                { key: 'fullName', label: 'Nombre' },
-                { key: 'email', label: 'Correo' },
-                { key: 'phone', label: 'Teléfono' },
-                { key: 'role', label: 'Rol' },
-                { key: 'company', label: 'Empresa' },
-                { key: 'actions', label: 'Acciones' }
-              ].map((column) => (
-                <th
-                  key={column.key}
-                  onClick={() =>
-                    column.key !== 'actions' &&
-                    handleSort(column.key as keyof User)
-                  }
-                  className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                    column.key !== 'actions' && 'cursor-pointer hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>{column.label}</span>
-                    {column.key !== 'actions' && (
-                      <SortIcon column={column.key as keyof User} />
-                    )}
-                  </div>
-                </th>
-              ))}
-            </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-            {sortedUsers.map((user) => (
-              <tr
-                key={user.id}
-                className="hover:bg-gray-50 transition-colors duration-150"
-              >
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.username}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.fullName}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.email}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.phone}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.role === 'admin'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-amber-100 text-amber-800'
-                      }`}
-                    >
-                      {user.role}
-                    </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.company}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div className="flex space-x-2">
-                    {user.username !== 'clagonjor' && (
-                      <button
-                        onClick={() => handleEditUser(user)}
-                        className="text-amber-500 hover:text-amber-600 transition-colors duration-150"
-                      >
-                        <Edit2Icon className="w-5 h-5" />
-                      </button>
-                    )}
-                    {user.username !== 'clagonjor' && (
-                      <button
-                        onClick={() => handleDeleteUser(user.id)}
-                        className="text-red-500 hover:text-red-600 transition-colors duration-150"
-                      >
-                        <Trash2Icon className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
       {/* Create User Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <h3 className="text-lg font-bold mb-4">Nuevo Usuario</h3>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+            <h3 className="section-title mb-5">Nuevo Usuario</h3>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -647,9 +561,9 @@ const Users: React.FC = () => {
 
       {/* Edit User Modal */}
       {editingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <h3 className="text-lg font-bold mb-4">Editar Usuario</h3>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+            <h3 className="section-title mb-5">Editar Usuario</h3>
             <form onSubmit={(e) => {
               e.preventDefault();
               handleUpdateUser();

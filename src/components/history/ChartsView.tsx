@@ -88,7 +88,7 @@ const experienceColors = {
 }
 
 const ageColors = {
-  "-20": "#FF6B6B",
+  "<20": "#FF6B6B",
   "20-30": "#4ECDC4",
   "30-40": "#45B7D1",
   "40-50": "#96CEB4",
@@ -348,7 +348,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                     const age = courseYear - birthYear;
                     
                     if (age < 20) {
-                        acc["-20"] = (acc["-20"] || 0) + 1;
+                        acc["<20"] = (acc["<20"] || 0) + 1;
                     } else if (age >= 20 && age < 30) {
                         acc["20-30"] = (acc["20-30"] || 0) + 1;
                     } else if (age >= 30 && age < 40) {
@@ -363,7 +363,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
             }, {})
         ).map(([name, value]) => ({ name, value }))
         .sort((a, b) => {
-            const order = ["-20", "20-30", "30-40", "40-50", "+50"];
+            const order = ["<20", "20-30", "30-40", "40-50", "+50"];
             return order.indexOf(a.name) - order.indexOf(b.name);
         })
     );
@@ -441,18 +441,13 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
 
 
     return (
-        <div className="h-full flex flex-col">
-            {/* Filtros */}
-          <div className="bg-white rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-lg font-semibold mb-4">Filtros</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="space-y-4">
+            {/* Compact filter bar */}
+          <div className="filter-bar flex-shrink-0">
               {visibleFilters.map(([key, value]) => (
-                <div key={key}>
-                  <label htmlFor={`${key}-filter`} className="block text-sm font-medium text-gray-700">
-                    {FilterLabels[key as keyof typeof FilterLabels]
-                        .charAt(0)
-                        .toUpperCase() +
-                      FilterLabels[key as keyof typeof FilterLabels].slice(1)}
+                <div key={key} className="min-w-[130px] max-w-[180px] flex-1">
+                  <label htmlFor={`${key}-filter`} className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5 block">
+                    {FilterLabels[key as keyof typeof FilterLabels]}
                   </label>
                   <select
                     id={`${key}-filter`}
@@ -460,7 +455,7 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                     onChange={(e) =>
                       setFilters((prev) => ({ ...prev, [key]: e.target.value }))
                     }
-                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 text-sm"
+                    className="input-field-sm"
                   >
                     <option value="all">Todos</option>
                     {getUniqueValues(key as keyof DataItem).map((option) => (
@@ -471,27 +466,27 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                   </select>
                 </div>
               ))}
-            </div>
           </div>
 
-          {/* Layout según el diseño: Mapa a la izquierda, gráficos en grid a la derecha */}
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Mapa - Ocupa toda la altura en la izquierda */}
+          {/* Layout: Map left, charts grid right */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Map */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-md p-6 h-full">
-                <h3 className="text-lg font-semibold mb-4">Mapa de Países</h3>
-                <ChoroplethMap data={filteredData} selectedCountry={selectedCountry}
-                               onCountrySelect={onCountrySelect} />
+              <div className="dashboard-card !p-4">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Mapa de Países</h3>
+                <div className="h-[540px]">
+                  <ChoroplethMap data={filteredData} selectedCountry={selectedCountry}
+                                 onCountrySelect={onCountrySelect} />
+                </div>
               </div>
             </div>
 
-            {/* Gráficos - Grid 2x3 en la derecha */}
+            {/* Charts grid */}
             <div className="lg:col-span-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-                {/* Fila superior */}
-                <div className="bg-white rounded-xl shadow-md p-6">
-                  <h3 className="text-lg font-semibold mb-4">Géneros</h3>
-                  <ResponsiveContainer width="100%" height={250}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="dashboard-card !p-4">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Géneros</h3>
+                    <ResponsiveContainer width="100%" height={250}>
                                 <BarChart data={genderData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                     <XAxis dataKey="name" angle={-30} textAnchor={"end"} interval={0} tick={{fontSize: 10}}/>
                                     <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
@@ -511,11 +506,11 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                     </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
-                        </div>
+                </div>
 
-                        <div className="bg-white rounded-xl shadow-md p-6">
-                            <h3 className="text-lg font-semibold mb-4">Nivel de Educación</h3>
-                            <ResponsiveContainer width="100%" height={250}>
+                <div className="dashboard-card !p-4">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Nivel de Educación</h3>
+                    <ResponsiveContainer width="100%" height={250}>
                                 <PieChart>
                                     <Pie
                                         activeIndex={activeEducationIndex}
@@ -545,22 +540,22 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                         ]}
                                         contentStyle={{
                                             backgroundColor: 'white',
-                                            border: 'none',
+                                            border: '1px solid #e5e7eb',
                                             borderRadius: '8px',
-                                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
                                         }}
                                     />
-                                  <Legend formatter={(value) => <span className="text-xs">{value}</span>} />
+                                  <Legend formatter={(value) => <span className="text-[10px]">{value}</span>} />
                                 </PieChart>
                             </ResponsiveContainer>
-                        </div>
+                </div>
 
-                        <div className="bg-white rounded-xl shadow-md p-6">
-                            <h3 className="text-lg font-semibold mb-4">Edad</h3>
-                            <ResponsiveContainer width="100%" height={250}>
-                                <BarChart data={ageData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <div className="dashboard-card !p-4">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Edad</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                                <BarChart data={ageData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
                                     <XAxis dataKey="name" angle={-30} textAnchor={"end"} interval={0} tick={{fontSize: 10}}/>
-                                    <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                                    <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{fontSize: 10}} />
                                     <Tooltip
                                         formatter={(value: any) => [`${value}%`, 'Porcentaje']}
                                         labelStyle={{ color: '#666' }}
@@ -577,15 +572,14 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                     </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
-                        </div>
+                </div>
 
-                        {/* Fila inferior */}
-                        <div className="bg-white rounded-xl shadow-md p-6">
-                            <h3 className="text-lg font-semibold mb-4">Distribución de puesto de trabajo</h3>
-                            <ResponsiveContainer width="100%" height={250}>
-                                <BarChart data={jobAreaData} margin={{ top: 20, right: 30, left: 30, bottom:60 }}>
+                <div className="dashboard-card !p-4">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Distribución de puesto de trabajo</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                                <BarChart data={jobAreaData} margin={{ top: 10, right: 20, left: 20, bottom: 40 }}>
                                     <XAxis dataKey="name" angle={-30} textAnchor={"end"} interval={0} tick={{fontSize: 10}} />
-                                    <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                                    <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{fontSize: 10}} />
                                     <Tooltip
                                         formatter={(value: any) => [`${value}%`, 'Porcentaje']}
                                         labelStyle={{ color: '#666' }}
@@ -602,11 +596,11 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                     </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
-                        </div>
+                </div>
 
-                        <div className="bg-white rounded-xl shadow-md p-6">
-                            <h3 className="text-lg font-semibold mb-4">Años de experiencia</h3>
-                            <ResponsiveContainer width="100%" height={250}>
+                <div className="dashboard-card !p-4">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Años de experiencia</h3>
+                    <ResponsiveContainer width="100%" height={250}>
                                 <PieChart>
                                     <Pie
                                         data={experienceData}
@@ -623,14 +617,14 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                         ))}
                                     </Pie>
                                     <Tooltip formatter={(value: any) => [`${value}%`, 'Porcentaje']} />
-                                    <Legend formatter={(value) => <span className="text-xs">{value}</span>} />
+                                    <Legend formatter={(value) => <span className="text-[10px]">{value}</span>} />
                                 </PieChart>
                             </ResponsiveContainer>
-                        </div>
+                </div>
 
-                        <div className="bg-white rounded-xl shadow-md p-6">
-                            <h3 className="text-lg font-semibold mb-4">Distribución de los cursos</h3>
-                            <ResponsiveContainer width="100%" height={250}>
+                <div className="dashboard-card !p-4">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Distribución de los cursos</h3>
+                    <ResponsiveContainer width="100%" height={250}>
                                 <PieChart>
                                     <Pie
                                         data={courseData}
@@ -650,13 +644,13 @@ const ChartsView: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountr
                                         ))}
                                     </Pie>
                                     <Tooltip formatter={(value: any) => [`${value}%`, 'Porcentaje']} />
-                                    <Legend formatter={(value) => <span className="text-xs">{value}</span>} />
+                                    <Legend formatter={(value) => <span className="text-[10px]">{value}</span>} />
                                 </PieChart>
                             </ResponsiveContainer>
-                        </div>
-                    </div>
                 </div>
+              </div>
             </div>
+          </div>
         </div>
     );
 }

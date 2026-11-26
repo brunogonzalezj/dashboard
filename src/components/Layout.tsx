@@ -2,18 +2,19 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar.tsx';
 import { AnimatePresence } from 'framer-motion';
+import { Menu } from 'lucide-react';
 
 const Layout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-
   return (
-    <div className='flex h-screen bg-gray-100'>
-      <div className="hidden sm:block sm:h-full h-full">
+    <div className="flex h-screen bg-gray-50">
+      {/* Desktop sidebar */}
+      <div className="hidden sm:block h-full flex-shrink-0">
         <Sidebar isOpen={true} onClose={() => setIsSidebarOpen(false)} />
       </div>
-      
+
+      {/* Mobile sidebar */}
       <AnimatePresence>
         {isSidebarOpen && (
           <div className="sm:hidden">
@@ -22,32 +23,24 @@ const Layout: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <main className='flex-1 overflow-hidden'>
-        <header className='sticky top-0 z-10 bg-white sm:bg-transparent'>
-          <div className='max-w-7xl mx-auto py-3 px-4 sm:px-6 lg:px-8'>
+      {/* Main content */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Mobile top bar */}
+        <header className="sm:hidden sticky top-0 z-10 bg-white border-b border-gray-200">
+          <div className="flex items-center px-4 h-14">
             <button
-              className='sm:hidden text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-lg p-2'
-              onClick={toggleSidebar}
+              className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-lg p-1.5"
+              onClick={() => setIsSidebarOpen(true)}
             >
-              <svg
-                className='h-6 w-6'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M4 6h16M4 12h16M4 18h16'
-                />
-              </svg>
+              <Menu className="h-5 w-5" />
             </button>
+            <img src="/soy_logo.webp" alt="Logo" className="w-7 h-7 rounded-full ml-3" />
           </div>
         </header>
-        
-        <div className='h-[calc(100vh-4rem)] overflow-auto px-4 py-6 sm:px-6 lg:px-8'>
-          <div className='w-auto mx-auto'>
+
+        {/* Page area */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-screen-2xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
             <Outlet />
           </div>
         </div>

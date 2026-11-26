@@ -1,127 +1,51 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Upload, AlertTriangle, Download, Check, X } from 'lucide-react';
+import { useFormStatus, useCursos, useToggleFormStatus, useToggleCurso, useMigrate } from '../hooks/queries';
+import { Skeleton } from '../components/ui/Skeleton';
 
-interface Curso {
-  id: number;
-  nombre: string;
-  activo: boolean;
-}
+
 
 export default function CsvUpload() {
+  const { data: formStatusData, isLoading: isFormStatusLoading } = useFormStatus();
+  const formEnabled = formStatusData?.habilitado;
+  const toggleFormStatusMutation = useToggleFormStatus();
+  const isLoadingFormStatus = isFormStatusLoading || toggleFormStatusMutation.isPending;
+
+  const { data: cursos = [], isLoading: isLoadingCursos } = useCursos();
+  const toggleCursoMutation = useToggleCurso();
+
+  const migrateMutation = useMigrate();
+  const isMigrating = migrateMutation.isPending;
+
   const [currentFile, setCurrentFile] = useState<File | null>(null);
   const [historyFile, setHistoryFile] = useState<File | null>(null);
   const [message, setMessage] = useState('');
   const [messageHistory, setMessageHistory] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingHistory, setIsUploadingHistory] = useState(false);
-  const [isMigrating, setIsMigrating] = useState(false);
   const [migrationMessage, setMigrationMessage] = useState('');
-  const [cursos, setCursos] = useState<Curso[]>([]);
-  const [isLoadingCursos, setIsLoadingCursos] = useState(false);
   const [cursosMessage, setCursosMessage] = useState('');
-  const [formEnabled, setFormEnabled] = useState<boolean>();
-  const [isLoadingFormStatus, setIsLoadingFormStatus] = useState(false);
   const [formStatusMessage, setFormStatusMessage] = useState('');
 
-
-  useEffect(() => {
-    fetchCursos();
-    fetchFormStatus();
-  }, []);
-
-  const fetchFormStatus = async () => {
-    setIsLoadingFormStatus(true);
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/data/form-status`
-      );
-      setFormEnabled(response.data.habilitado);
-    } catch (error) {
-      console.error('Error al cargar el estado del formulario:', error);
-      setFormStatusMessage('Error al cargar el estado del formulario');
-    } finally {
-      setIsLoadingFormStatus(false);
-    }
-  };
-
   const toggleFormStatus = async () => {
-    setIsLoadingFormStatus(true);
     setFormStatusMessage('');
-
     try {
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/data/form-status`,
-        {
-          habilitado: !formEnabled
-        },
-        {
-          withCredentials: true,
-        }
-      );
-
-      setFormEnabled(!formEnabled);
-      setFormStatusMessage(response.data.message);
-
-      // Limpiar el mensaje después de 3 segundos
-      setTimeout(() => {
-        setFormStatusMessage('');
-      }, 3000);
-
+      const result = await toggleFormStatusMutation.mutateAsync({ habilitado: !formEnabled });
+      setFormStatusMessage(result.message);
+      setTimeout(() => setFormStatusMessage(''), 3000);
     } catch (error) {
       console.error('Error al cambiar el estado del formulario:', error);
       setFormStatusMessage('Error al cambiar el estado del formulario');
-    } finally {
-      setIsLoadingFormStatus(false);
-    }
-  };
-
-  const fetchCursos = async () => {
-    setIsLoadingCursos(true);
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/data/cursos`,
-        {
-          withCredentials: true,
-        }
-      );
-      setCursos(response.data);
-    } catch (error) {
-      console.error('Error al cargar los cursos:', error);
-      setCursosMessage('Error al cargar los cursos');
-    } finally {
-      setIsLoadingCursos(false);
     }
   };
 
   const toggleCursoActivo = async (cursoId: number, activo: boolean) => {
     try {
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/data/cursos/toggle`,
-        {
-          cursoId,
-          activo: !activo
-        },
-        {
-          withCredentials: true,
-        }
-      );
-
-      // Actualizar el estado local después de cambiar en el servidor
-      setCursos(cursos.map(curso =>
-        curso.id === cursoId
-          ? { ...curso, activo: !activo }
-          : curso
-      ));
-
+      await toggleCursoMutation.mutateAsync({ cursoId, activo: !activo });
       setCursosMessage(`Curso ${!activo ? 'activado' : 'desactivado'} correctamente`);
-
-      // Limpiar el mensaje después de 3 segundos
-      setTimeout(() => {
-        setCursosMessage('');
-      }, 3000);
-
+      setTimeout(() => setCursosMessage(''), 3000);
     } catch (error) {
       console.error('Error al cambiar estado del curso:', error);
       setCursosMessage('Error al cambiar estado del curso');
@@ -140,26 +64,15 @@ export default function CsvUpload() {
       cancelButtonText: 'Cancelar',
     });
 
-    if (!result.isConfirmed) {
-      return;
-    }
+    if (!result.isConfirmed) return;
 
-    setIsMigrating(true);
     setMigrationMessage('');
-
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/data/migrate`,
-        {
-          withCredentials: true,
-        },
-      );
-      setMigrationMessage(response.data.message);
+      const data = await migrateMutation.mutateAsync();
+      setMigrationMessage(data.message);
     } catch (error) {
       console.error('Error durante la migración:', error);
       setMigrationMessage(`Error durante la migración: ${error}`);
-    } finally {
-      setIsMigrating(false);
     }
   };
 
@@ -307,29 +220,31 @@ export default function CsvUpload() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
-      {/* Sección de Estado del Formulario */}
-      <div className="bg-white rounded-xl shadow-lg p-6 transition-all duration-200 hover:shadow-xl">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Estado del Formulario</h2>
+    <div className="space-y-6">
+      <h1 className="section-title">Gestión de Datos</h1>
+
+      {/* Form Status */}
+      <div className="dashboard-card">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Estado del Formulario</h2>
 
         {isLoadingFormStatus ? (
-          <div className="flex justify-center items-center p-6">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-10 w-32" />
           </div>
         ) : (
           <>
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className={`w-4 h-4 rounded-full mr-3 ${formEnabled ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <p className="text-lg font-medium">
-                  El formulario está actualmente {formEnabled ? 'habilitado' : 'deshabilitado'}
+              <div className="flex items-center gap-3">
+                <div className={`w-3 h-3 rounded-full ${formEnabled ? 'bg-green-500' : 'bg-red-500'}`} />
+                <p className="text-sm font-medium text-gray-700">
+                  Formulario {formEnabled ? 'habilitado' : 'deshabilitado'}
                 </p>
               </div>
-
               <button
                 onClick={toggleFormStatus}
                 disabled={isLoadingFormStatus}
-                className={`py-2 px-6 rounded-lg shadow-sm text-sm font-medium text-white transition-all duration-200 ${
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all ${
                   isLoadingFormStatus
                     ? 'bg-gray-300 cursor-not-allowed'
                     : formEnabled
@@ -337,81 +252,68 @@ export default function CsvUpload() {
                       : 'bg-green-500 hover:bg-green-600'
                 }`}
               >
-                {isLoadingFormStatus ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    Actualizando...
-                  </div>
-                ) : (
-                  formEnabled ? 'Deshabilitar Formulario' : 'Habilitar Formulario'
-                )}
+                {formEnabled ? 'Deshabilitar' : 'Habilitar'}
               </button>
             </div>
 
             {formStatusMessage && (
-              <div className={`mt-4 p-3 rounded-lg text-sm font-medium ${
+              <div className={`mt-3 p-3 rounded-lg text-sm font-medium ${
                 formStatusMessage.includes('Error')
-                  ? 'bg-red-50 text-red-800'
-                  : 'bg-green-50 text-green-800'
+                  ? 'bg-red-50 text-red-700'
+                  : 'bg-green-50 text-green-700'
               }`}>
                 {formStatusMessage}
               </div>
             )}
-
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">Nota:</span> {formEnabled
-                ? 'Al deshabilitar el formulario, los usuarios no podrán acceder a él ni enviar datos.'
-                : 'Al habilitar el formulario, los usuarios podrán acceder y enviar sus datos.'}
-              </p>
-            </div>
           </>
         )}
       </div>
-      {/* Sección de Cursos Disponibles */}
-      <div className="bg-white rounded-xl shadow-lg p-6 transition-all duration-200 hover:shadow-xl">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Configuración de Cursos</h2>
+
+      {/* Courses Config */}
+      <div className="dashboard-card">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Configuración de Cursos</h2>
 
         {isLoadingCursos ? (
-          <div className="flex justify-center items-center p-6">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
           </div>
         ) : (
           <>
-            <p className="text-sm text-gray-600 mb-4">
-              Seleccione los cursos que desea mostrar en el formulario:
+            <p className="text-sm text-gray-500 mb-4">
+              Seleccione los cursos visibles en el formulario:
             </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {cursos.map((curso) => (
                 <div
                   key={curso.id}
-                  className={`p-4 rounded-lg border transition-all duration-200 flex justify-between items-center ${
+                  className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
                     curso.activo
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-300 bg-gray-50'
+                      ? 'border-green-300 bg-green-50'
+                      : 'border-gray-200 bg-gray-50'
                   }`}
                 >
-                  <span className="font-medium">{curso.nombre}</span>
+                  <span className="text-sm font-medium text-gray-700">{curso.nombre}</span>
                   <button
                     onClick={() => toggleCursoActivo(curso.id, curso.activo)}
-                    className={`p-2 rounded-full transition-colors ${
+                    className={`p-1.5 rounded-full transition-colors ${
                       curso.activo
                         ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                     }`}
                   >
-                    {curso.activo ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                    {curso.activo ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
                   </button>
                 </div>
               ))}
             </div>
 
             {cursosMessage && (
-              <div className={`mt-4 p-3 rounded-lg text-sm font-medium ${
+              <div className={`mt-3 p-3 rounded-lg text-sm font-medium ${
                 cursosMessage.includes('Error')
-                  ? 'bg-red-50 text-red-800'
-                  : 'bg-green-50 text-green-800'
+                  ? 'bg-red-50 text-red-700'
+                  : 'bg-green-50 text-green-700'
               }`}>
                 {cursosMessage}
               </div>
@@ -419,147 +321,105 @@ export default function CsvUpload() {
           </>
         )}
       </div>
+
+      {/* CSV Upload Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Current CSV Upload */}
-        <div className="bg-white rounded-xl shadow-lg p-6 transition-all duration-200 hover:shadow-xl">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Cargar CSV Actual</h2>
-          <div className="space-y-6">
-            <div className="relative">
-              <label
-                htmlFor="current-file-upload"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Seleccionar archivo CSV
-              </label>
-              <div className="flex items-center justify-center">
-                <label
-                  htmlFor="current-file-upload"
-                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
-                >
-                  <div className="flex flex-col items-center justify-center p-6 text-center">
-                    <Upload className="w-8 h-8 mb-2 text-gray-500" />
-                    <p className="text-sm text-gray-500">
-                      Clic para subir o arrastrar CSV
-                    </p>
-                    {currentFile && (
-                      <p className="mt-2 text-xs text-gray-500 truncate max-w-full">
-                        {currentFile.name}
-                      </p>
-                    )}
-                  </div>
-                  <input
-                    id="current-file-upload"
-                    type="file"
-                    accept=".csv"
-                    className="hidden"
-                    onChange={handleCurrentFileChange}
-                  />
-                </label>
-              </div>
-            </div>
+        {/* Current CSV */}
+        <div className="dashboard-card">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Cargar CSV Actual</h2>
+          <div className="space-y-4">
+            <label
+              htmlFor="current-file-upload"
+              className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-amber-300 transition-colors"
+            >
+              <Upload className="w-6 h-6 mb-1.5 text-gray-400" />
+              <p className="text-sm text-gray-500">Clic para subir CSV</p>
+              {currentFile && (
+                <p className="mt-1 text-xs text-amber-600 font-medium truncate max-w-[90%]">
+                  {currentFile.name}
+                </p>
+              )}
+              <input
+                id="current-file-upload"
+                type="file"
+                accept=".csv"
+                className="hidden"
+                onChange={handleCurrentFileChange}
+              />
+            </label>
 
             <button
               onClick={handleUploadCurrent}
               disabled={isUploading || !currentFile}
-              className={`w-full py-3 px-4 rounded-lg shadow-sm text-sm font-medium text-white transition-all duration-200 ${
+              className={`w-full py-2.5 rounded-lg text-sm font-medium text-white transition-all ${
                 isUploading || !currentFile
-                  ? 'bg-blue-300 cursor-not-allowed'
-                  : 'bg-blue-500 hover:bg-blue-600 hover:shadow-md'
+                  ? 'bg-gray-300 cursor-not-allowed'
+                  : 'bg-amber-500 hover:bg-amber-600'
               }`}
             >
               {isUploading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                <span className="inline-flex items-center gap-2">
+                  <span className="loading loading-ring loading-sm"></span>
                   Cargando...
-                </div>
-              ) : !currentFile ? (
-                'Seleccione un archivo'
-              ) : (
-                'Cargar CSV'
-              )}
+                </span>
+              ) : !currentFile ? 'Seleccione un archivo' : 'Cargar CSV'}
             </button>
 
             {message && (
-              <div
-                className={`p-4 rounded-lg text-sm font-medium ${
-                  message.includes('Error')
-                    ? 'bg-red-50 text-red-800'
-                    : 'bg-green-50 text-green-800'
-                }`}
-              >
+              <div className={`p-3 rounded-lg text-sm font-medium ${
+                message.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+              }`}>
                 {message}
               </div>
             )}
           </div>
         </div>
 
-        {/* History CSV Upload */}
-        <div className="bg-white rounded-xl shadow-lg p-6 transition-all duration-200 hover:shadow-xl">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Cargar CSV Histórico</h2>
-          <div className="space-y-6">
-            <div className="relative">
-              <label
-                htmlFor="file-upload-history"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Seleccionar archivo CSV
-              </label>
-              <div className="flex items-center justify-center">
-                <label
-                  htmlFor="file-upload-history"
-                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
-                >
-                  <div className="flex flex-col items-center justify-center p-6 text-center">
-                    <Upload className="w-8 h-8 mb-2 text-gray-500" />
-                    <p className="text-sm text-gray-500">
-                      Clic para subir o arrastrar CSV
-                    </p>
-                    {historyFile && (
-                      <p className="mt-2 text-xs text-gray-500 truncate max-w-full">
-                        {historyFile.name}
-                      </p>
-                    )}
-                  </div>
-                  <input
-                    id="file-upload-history"
-                    type="file"
-                    accept=".csv"
-                    className="hidden"
-                    onChange={handleHistoryFileChange}
-                  />
-                </label>
-              </div>
-            </div>
+        {/* History CSV */}
+        <div className="dashboard-card">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Cargar CSV Histórico</h2>
+          <div className="space-y-4">
+            <label
+              htmlFor="file-upload-history"
+              className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-amber-300 transition-colors"
+            >
+              <Upload className="w-6 h-6 mb-1.5 text-gray-400" />
+              <p className="text-sm text-gray-500">Clic para subir CSV</p>
+              {historyFile && (
+                <p className="mt-1 text-xs text-amber-600 font-medium truncate max-w-[90%]">
+                  {historyFile.name}
+                </p>
+              )}
+              <input
+                id="file-upload-history"
+                type="file"
+                accept=".csv"
+                className="hidden"
+                onChange={handleHistoryFileChange}
+              />
+            </label>
 
             <button
               onClick={handleUploadHistory}
               disabled={isUploadingHistory || !historyFile}
-              className={`w-full py-3 px-4 rounded-lg shadow-sm text-sm font-medium text-white transition-all duration-200 ${
+              className={`w-full py-2.5 rounded-lg text-sm font-medium text-white transition-all ${
                 isUploadingHistory || !historyFile
-                  ? 'bg-blue-300 cursor-not-allowed'
-                  : 'bg-blue-500 hover:bg-blue-600 hover:shadow-md'
+                  ? 'bg-gray-300 cursor-not-allowed'
+                  : 'bg-amber-500 hover:bg-amber-600'
               }`}
             >
               {isUploadingHistory ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                <span className="inline-flex items-center gap-2">
+                  <span className="loading loading-ring loading-sm"></span>
                   Cargando...
-                </div>
-              ) : !historyFile ? (
-                'Seleccione un archivo'
-              ) : (
-                'Cargar CSV'
-              )}
+                </span>
+              ) : !historyFile ? 'Seleccione un archivo' : 'Cargar CSV'}
             </button>
 
             {messageHistory && (
-              <div
-                className={`p-4 rounded-lg text-sm font-medium ${
-                  messageHistory.includes('Error')
-                    ? 'bg-red-50 text-red-800'
-                    : 'bg-green-50 text-green-800'
-                }`}
-              >
+              <div className={`p-3 rounded-lg text-sm font-medium ${
+                messageHistory.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+              }`}>
                 {messageHistory}
               </div>
             )}
@@ -567,54 +427,44 @@ export default function CsvUpload() {
         </div>
       </div>
 
-      {/* Utilities Section */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Utilidades</h2>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+      {/* Utilities */}
+      <div className="dashboard-card">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Utilidades</h2>
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={handleMigrate}
             disabled={isMigrating}
-            className={`w-full sm:w-auto py-3 px-6 rounded-lg shadow-sm text-sm font-medium text-white transition-all duration-200 flex items-center justify-center gap-2 ${
+            className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all ${
               isMigrating
-                ? 'bg-green-300 cursor-not-allowed'
-                : 'bg-green-500 hover:bg-green-600 hover:shadow-md'
+                ? 'bg-gray-300 cursor-not-allowed'
+                : 'bg-amber-500 hover:bg-amber-600'
             }`}
           >
-            <AlertTriangle className="w-5 h-5" />
-            {isMigrating ? (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                Migrando...
-              </div>
-            ) : (
-              'Migrar Datos Históricos'
-            )}
+            <AlertTriangle className="w-4 h-4" />
+            {isMigrating ? 'Migrando...' : 'Migrar Datos Históricos'}
           </button>
 
           <button
             onClick={handleDownloadFormData}
-            className="w-full sm:w-auto py-3 px-6 rounded-lg shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2"
+            className="btn-primary"
           >
-            <Download className="w-5 h-5" />
+            <Download className="w-4 h-4" />
             Descargar Formulario
           </button>
+
           <button
             onClick={wipeFormData}
-            className="w-full sm:w-auto py-3 px-6 rounded-lg shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-600 hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all"
           >
-            <AlertTriangle className="w-5 h-5" />
+            <AlertTriangle className="w-4 h-4" />
             Eliminar Datos del Formulario
           </button>
         </div>
 
         {migrationMessage && (
-          <div
-            className={`mt-6 p-4 rounded-lg text-sm font-medium ${
-              migrationMessage.includes('Error')
-                ? 'bg-red-50 text-red-800'
-                : 'bg-green-50 text-green-800'
-            }`}
-          >
+          <div className={`mt-3 p-3 rounded-lg text-sm font-medium ${
+            migrationMessage.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+          }`}>
             {migrationMessage}
           </div>
         )}

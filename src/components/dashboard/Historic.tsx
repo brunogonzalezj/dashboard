@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import { useHistoryData } from '../../hooks/queries';
 import { Download } from 'lucide-react';
 import { saveAs } from 'file-saver';
 import { DataItem } from '../../interfaces/IData.ts';
+import { StatCardSkeleton, FilterSkeleton, TableSkeleton } from '../ui/Skeleton';
 const TableCurrent = React.lazy(() => import('../TableCurrent'));
 
 enum FilterLabels {
@@ -18,13 +19,13 @@ enum FilterLabels {
   year = 'Año',
 }
 
+const EMPTY_DATA: DataItem[] = [];
+
 const Historic: React.FC = () => {
-  const [data, setData] = useState<DataItem[]>([]);
+  const { data = EMPTY_DATA, isLoading: loading } = useHistoryData();
   const [filteredData, setFilteredData] = useState<DataItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
-  const { isAuthenticated } = useAuth();
-  const [loading, setLoading] = useState(true);
 
   const { username, userRole } = useAuth();
 
@@ -46,32 +47,12 @@ const Historic: React.FC = () => {
   } | null>(null);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchData();
-    }
-  }, [isAuthenticated]);
-
-  useEffect(() => {
     filterAndSortData();
   }, [data, filters, sortConfig]);
 
   const displayedData = useMemo(() => {
     return filteredData.slice(0, currentPage * itemsPerPage);
   }, [filteredData, currentPage]);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const url = `${import.meta.env.VITE_API_URL}/data/history-dashboard-data`;
-      const response = await axios.get(url, { withCredentials: true });
-      setData(response.data);
-    } catch (error) {
-      console.error('Error fetching historic dashboard data:', error);
-      setData([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filterAndSortData = () => {
     const result = data.filter((item) =>
@@ -199,69 +180,69 @@ const Historic: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen w-full">
-        <span className="loading loading-ring loading-lg"></span>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+        <FilterSkeleton count={5} />
+        <TableSkeleton rows={8} cols={8} />
       </div>
     );
   }
 
   return (
-    <div className="p-2 mt-2 sm:p-4 md:p-6 bg-gray-100 rounded-lg shadow-2xl overflow-y-auto">
-      <div className="flex flex-col mb-4 lg:mb-8 gap-4">
-        <div className="flex flex-col items-center justify-center lg:flex-row w-full gap-4">
-          <div className="bg-[#3A69AA] p-4 rounded-lg text-white">
-            <h2 className="text-base sm:text-lg font-semibold mb-2">
-              Usuarios que iniciaron sesión
-            </h2>
-            {!loading ? (
-              <p className="text-2xl sm:text-3xl font-bold">
-                {getLoginStats.loggedInCount} de {getLoginStats.totalCount} usuarios ({getLoginStats.rate}%)
-              </p>
-            ) : (
-              <span className="loading loading-ring loading-lg"></span>
-            )}
-          </div>
-          <div className="bg-[#3A69AA] p-4 rounded-lg text-white">
-            <h2 className="text-base sm:text-lg font-semibold mb-2">
-              Usuarios que completaron el curso
-            </h2>
-            {!loading ? (
-              <p className="flex text-nowrap text-2xl sm:text-3xl font-bold">
-                {getCompletionStats.completedCount} de {getCompletionStats.totalCount} usuarios ({getCompletionStats.rate}%)
-              </p>
-            ) : (
-              <span className="loading loading-ring loading-lg"></span>
-            )}
-          </div>
+    <div className="space-y-6">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="stat-card">
+          <h2 className="text-sm font-medium text-white/80 mb-1">
+            Usuarios que iniciaron sesión
+          </h2>
+          <p className="text-2xl sm:text-3xl font-bold">
+            {getLoginStats.loggedInCount}
+            <span className="text-base font-normal text-white/70 ml-2">
+              de {getLoginStats.totalCount} ({getLoginStats.rate}%)
+            </span>
+          </p>
+        </div>
+        <div className="stat-card">
+          <h2 className="text-sm font-medium text-white/80 mb-1">
+            Usuarios que completaron el curso
+          </h2>
+          <p className="text-2xl sm:text-3xl font-bold">
+            {getCompletionStats.completedCount}
+            <span className="text-base font-normal text-white/70 ml-2">
+              de {getCompletionStats.totalCount} ({getCompletionStats.rate}%)
+            </span>
+          </p>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-        <h1 className="text-lg sm:text-xl font-bold">Datos Históricos</h1>
+      {/* Data Section Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <h1 className="section-title">Datos Históricos</h1>
         <button
           onClick={handleDownloadXLSX}
-          className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center text-sm"
+          className="btn-secondary"
         >
-          <Download className="mr-2" size={18} />
+          <Download size={16} />
           Descargar Excel
         </button>
       </div>
 
-      <h2 className="text-lg sm:text-xl font-semibold mb-2">Filtros</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      {/* Filters */}
+      <div className="filter-bar">
         {Object.entries(filters).map(
           ([key, value]) =>
             (userRole === 'admin' ||
               !['association', 'businessGroup', 'business'].includes(key)) && (
-              <div key={key}>
+              <div key={key} className="min-w-[130px] max-w-[180px] flex-1">
                 <label
                   htmlFor={`${key}-filter`}
-                  className="block text-sm font-medium text-gray-700"
+                  className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5 block"
                 >
-                  {FilterLabels[key as keyof typeof FilterLabels]
-                    .charAt(0)
-                    .toUpperCase() +
-                    FilterLabels[key as keyof typeof FilterLabels].slice(1)}
+                  {FilterLabels[key as keyof typeof FilterLabels]}
                 </label>
                 <select
                   id={`${key}-filter`}
@@ -269,7 +250,7 @@ const Historic: React.FC = () => {
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, [key]: e.target.value }))
                   }
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 text-sm"
+                  className="input-field-sm"
                 >
                   <option value="all">Todos</option>
                   {getUniqueValues(key as keyof DataItem).map((option) => (
@@ -283,20 +264,23 @@ const Historic: React.FC = () => {
         )}
       </div>
 
-      <div className="overflow-x-auto w-full">
-        <TableCurrent
-          data={displayedData}
-          onSort={handleSort}
-          sortConfig={sortConfig}
-          isHistoric={true}
-        />
+      {/* Table */}
+      <div className="dashboard-card !p-0 overflow-hidden">
+        <div className="overflow-x-auto">
+          <TableCurrent
+            data={displayedData}
+            onSort={handleSort}
+            sortConfig={sortConfig}
+            isHistoric={true}
+          />
+        </div>
       </div>
 
       {displayedData.length < filteredData.length && (
-        <div className="mt-4 flex justify-center">
+        <div className="flex justify-center">
           <button
             onClick={() => setCurrentPage((prev) => prev + 1)}
-            className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded text-sm sm:text-base"
+            className="btn-secondary"
           >
             Cargar más
           </button>
