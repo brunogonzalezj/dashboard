@@ -1,30 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { User2Icon } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { Sidebar } from "./Sidebar.tsx";
+import { Sidebar } from './Sidebar.tsx';
+import { AnimatePresence } from 'framer-motion';
+import { Menu } from 'lucide-react';
 
 const Layout: React.FC = () => {
-  const { username } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex justify-end items-center">
-              <div className="flex items-center space-x-2 bg-gray-100 rounded-full px-4 py-2 transition-all duration-200 hover:bg-gray-200">
-                <User2Icon className="w-5 h-5 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">{username}</span>
-              </div>
-            </div>
+    <div className="flex h-screen bg-gray-50">
+      {/* Desktop sidebar */}
+      <div className="hidden sm:block h-full flex-shrink-0">
+        <Sidebar isOpen={true} onClose={() => setIsSidebarOpen(false)} />
+      </div>
+
+      {/* Mobile sidebar */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <div className="sm:hidden">
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Main content */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Mobile top bar */}
+        <header className="sm:hidden sticky top-0 z-10 bg-white border-b border-gray-200">
+          <div className="flex items-center px-4 h-14">
+            <button
+              className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-lg p-1.5"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <img src="/soy_logo.webp" alt="Logo" className="w-7 h-7 rounded-full ml-3" />
           </div>
         </header>
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 overflow-auto">
-          <Outlet />
-        </main>
-      </div>
+
+        {/* Page area */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-screen-2xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+            <Outlet />
+          </div>
+        </div>
+      </main>
     </div>
   );
 };

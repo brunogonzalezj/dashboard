@@ -25,16 +25,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const response = await axios.get(`${import.meta.env.API_URL}/auth/check-auth`, {
+                const response = await axios.get(`${import.meta.env.VITE_API_URL}/auth/check-auth`, {
                     withCredentials: true,
                 });
                 if (response.data.isAuthenticated) {
                     setIsAuthenticated(true);
-                    setUserRole(response.data.role);
+                    setUserRole(response.data.role?.toLowerCase());
                     setUsername(response.data.username);
 
                     localStorage.setItem('isAuthenticated', 'true');
-                    localStorage.setItem('userRole', response.data.role);
+                    localStorage.setItem('userRole', response.data.role?.toLowerCase());
                     localStorage.setItem('username', response.data.username);
                 }
             } catch (error) {
@@ -54,15 +54,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const login = async (username: string, password: string) => {
         try {
-            const response = await axios.post(`${import.meta.env.API_URL}/auth/login`, { username, password }, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, { username, password }, {
                 withCredentials: true,
             });
             setIsAuthenticated(true);
-            setUserRole(response.data.role);
+            setUserRole(response.data.role?.toLowerCase());
             setUsername(response.data.username);
 
             localStorage.setItem('isAuthenticated', 'true');
-            localStorage.setItem('userRole', response.data.role);
+            localStorage.setItem('userRole', response.data.role?.toLowerCase());
             localStorage.setItem('username', response.data.username);
         } catch (error) {
             console.error('Login failed:', error);
@@ -73,12 +73,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             localStorage.removeItem('isAuthenticated');
             localStorage.removeItem('userRole');
             localStorage.removeItem('username');
+            throw error; // Rethrow the error to be handled in the component
         }
-    };
+    }
 
     const logout = async () => {
         try {
-            await axios.post(`${import.meta.env.API_URL}/auth/logout`, {}, { withCredentials: true });
+            await axios.post(`${import.meta.env.VITE_API_URL}/auth/logout`, {}, { withCredentials: true });
             setIsAuthenticated(false);
             setUserRole(null);
             setUsername(null);
@@ -88,15 +89,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             localStorage.removeItem('username');
         } catch (error) {
             console.error('Logout failed:', error);
+            throw error; // Rethrow the error to be handled in the component
         }
-    };
+    }
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, username, userRole, login, logout }}>
-            {children}
-        </AuthContext.Provider>
+      <AuthContext.Provider value={{ isAuthenticated, username, userRole, login, logout }}>
+          {children}
+      </AuthContext.Provider>
     );
-};
+}
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
@@ -104,4 +106,4 @@ export const useAuth = () => {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
-};
+}
