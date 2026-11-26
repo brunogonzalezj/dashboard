@@ -230,6 +230,10 @@
 
   .tabular { font-variant-numeric: tabular-nums; }
 
+  /* Desplazamiento horizontal sin barra visible (pestañas en celular) */
+  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
   /* ── Insignias ───────────────────────────── */
   .badge {
     @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap;

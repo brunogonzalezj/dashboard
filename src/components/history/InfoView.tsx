@@ -2,19 +2,31 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import { Cell, Funnel, FunnelChart, LabelList, ResponsiveContainer, Tooltip } from 'recharts';
 import type { DataItem } from '../../interfaces/IData';
-import { CATEGORICAL, ChartTooltip } from '../ui/chartTheme';
+import { ChartTooltip } from '../ui/chartTheme';
 
 interface InfoViewProps {
   data: DataItem[];
 }
 
-// Misma paleta que "Por año": azul, ámbar y verde azulado de la marca
-const STAGE_COLORS = [CATEGORICAL[0], CATEGORICAL[1], CATEGORICAL[2]];
+// Colores del embudo del diseño anterior: azul, ámbar y verde
+const STAGE_COLORS = ['#3a69aa', '#f59e0b', '#10b981'];
+// Texto sobre cada etapa: blanco sobre el azul; marino sobre ámbar y verde (el blanco no alcanza contraste)
+const LABEL_COLORS = ['#ffffff', '#0c1626', '#0c1626'];
+
+/** Parte un texto en líneas de hasta `max` caracteres, sin cortar palabras */
+function wrapWords(text: string, max: number) {
+  const lines: string[] = [];
+  text.split(' ').forEach((word) => {
+    const last = lines[lines.length - 1];
+    if (last !== undefined && (last + ' ' + word).length <= max) lines[lines.length - 1] = last + ' ' + word;
+    else lines.push(word);
+  });
+  return lines;
+}
 
 const pct = (part: number, whole: number) => (whole > 0 ? (part / whole) * 100 : 0);
 const fmt = (n: number) => n.toLocaleString('es', { maximumFractionDigits: 1 });
 
-/** Embudo de avance: registrados → iniciaron sesión → completaron el curso */
 /** true en pantallas de al menos 640px: ahí hay lugar para poner nombres al costado del embudo */
 function useWideScreen() {
   const query = '(min-width: 640px)';
@@ -28,8 +40,11 @@ function useWideScreen() {
   return wide;
 }
 
+/** Embudo de avance: registrados → iniciaron sesión → completaron el curso */
 const InfoView: React.FC<InfoViewProps> = ({ data }) => {
   const wide = useWideScreen();
+  const fontSize = wide ? 14 : 12;
+  const charWidth = wide ? 8.5 : 7.3;
   const registered = data.length;
   const loggedIn = data.filter((item) => item.login === 'SI').length;
   const completed = data.filter((item) => item.stateOfCompleteness === 'Completado').length;
@@ -61,7 +76,10 @@ const InfoView: React.FC<InfoViewProps> = ({ data }) => {
             <ResponsiveContainer width="100%" height="100%">
               <FunnelChart margin={{ top: 4, right: 8, bottom: 4, left: 8 }}>
                 <Tooltip content={<ChartTooltip formatter={(v) => `${v.toLocaleString('es')} participantes`} />} />
-                <Funnel dataKey="value" data={stages} isAnimationActive animationDuration={700} animationEasing="ease-out" stroke="#ffffff" strokeWidth={2}>
+                <Funnel
+                  dataKey="value"
+                  data={stages}
+                  isAnimationActive animationDuration={700} animationEasing="ease-out" stroke="#ffffff" strokeWidth={2}>
                   {stages.map((s) => (
                     <Cell key={s.name} fill={s.fill} />
                   ))}
@@ -73,29 +91,26 @@ const InfoView: React.FC<InfoViewProps> = ({ data }) => {
                       const cx = Number(x) + w / 2;
                       const cy = Number(y) + Number(height) / 2;
                       // Ancho útil a media altura del trapecio (~55 %) contra el ancho aproximado del texto
-                      const fitsInside = w * 0.55 > String(value).length * 8.5;
-                      // En celular no hay lugar al costado: las tarjetas de abajo nombran cada etapa con su color
-                      if (!fitsInside && !wide) return null;
-                      if (!fitsInside) {
-                        // Etapa angosta: el nombre va al costado, en texto oscuro
+                      const fitsInside = w * 0.55 > String(value).length * charWidth;
+                      if (fitsInside) {
                         return (
-                          <text x={cx + w * 0.3 + 14} y={cy} textAnchor="start" dominantBaseline="central" fontSize={14} fontWeight={600} fill="#111c2d">
+                          <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fontSize={fontSize} fontWeight={600} fill={LABEL_COLORS[Number(index)] ?? '#ffffff'}>
                             {value}
                           </text>
                         );
                       }
+                      // Etapa angosta: el nombre va al costado de la forma, en texto oscuro.
+                      // En celular se parte en líneas cortas para no salirse de la pantalla.
+                      const labelX = cx + w * (wide ? 0.3 : 0.5) + (wide ? 14 : 10);
+                      const lines = wide ? [String(value)] : wrapWords(String(value), 12);
+                      const lineHeight = fontSize + 3;
                       return (
-                        <text
-                          x={cx}
-                          y={cy}
-                          textAnchor="middle"
-                          dominantBaseline="central"
-                          fontSize={14}
-                          fontWeight={600}
-                          // Sobre el ámbar, texto marino: el blanco no alcanza contraste
-                          fill={index === 1 ? '#0c1626' : '#ffffff'}
-                        >
-                          {value}
+                        <text x={labelX} y={cy - ((lines.length - 1) * lineHeight) / 2} textAnchor="start" dominantBaseline="central" fontSize={fontSize} fontWeight={600} fill="#111c2d">
+                          {lines.map((line, i) => (
+                            <tspan key={line} x={labelX} dy={i === 0 ? 0 : lineHeight}>
+                              {line}
+                            </tspan>
+                          ))}
                         </text>
                       );
                     }}

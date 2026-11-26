@@ -51,7 +51,7 @@ export default function History() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Selector segmentado: tres maneras de mirar los mismos datos */}
-        <div role="radiogroup" aria-label="Tipo de gráfico" className="inline-flex max-w-full overflow-x-auto rounded-lg bg-[#e9ecf1] p-1">
+        <div role="radiogroup" aria-label="Tipo de gráfico" className="inline-flex max-w-full overflow-x-auto overflow-y-hidden no-scrollbar rounded-lg bg-[#e9ecf1] p-1">
           {SUBVIEWS.map((v) => {
             const selected = current === v.id;
             return (
