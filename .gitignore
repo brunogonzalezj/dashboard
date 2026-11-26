@@ -24,3 +24,4 @@ tsconfig.node.tsbuildinfo
 *.sln
 *.sw?
 .claude
+.impeccable
