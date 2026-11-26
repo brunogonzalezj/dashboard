@@ -1,55 +1,368 @@
 /* Inter, servida desde el proyecto (fuente variable: un archivo por subset cubre todos los pesos) */
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url("/fonts/inter-latin.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url("/fonts/inter-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
+@import 'tailwindcss';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@theme {
+  --color-primary-50: #eef3fa;
+  --color-primary-100: #d5e2f4;
+  --color-primary-200: #aac5e9;
+  --color-primary-300: #7fa8de;
+  --color-primary-400: #558bd3;
+  --color-primary-500: #3a69aa;
+  --color-primary-600: #2d5288;
+  --color-primary-700: #213d66;
+  --color-primary-800: #1b3152;
+  --color-primary-900: #13233b;
+  --color-primary-950: #0c1626;
+  --color-primary: #3a69aa;
+
+  --color-secondary-50: #fffbeb;
+  --color-secondary-100: #fef3c7;
+  --color-secondary-200: #fde68a;
+  --color-secondary-300: #fcd34d;
+  --color-secondary-400: #fbbf24;
+  --color-secondary-500: #f59e0b;
+  --color-secondary-600: #d97706;
+  --color-secondary-700: #b45309;
+  --color-secondary-800: #92400e;
+  --color-secondary-900: #78350f;
+  --color-secondary: #fbbf24;
+
+  --font-sans:
+    Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+  --breakpoint-xs: 420px;
+}
 
 /*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--border, currentcolor);
+  }
+}
+
+@utility dashboard-card {
+  /* ── Superficies ─────────────────────────── */
+  @apply bg-white rounded-xl border p-5;
+  border-color: var(--border);
+  box-shadow: 0 1px 2px rgba(16, 28, 45, 0.04);
+}
+
+@utility card-title {
+  @apply text-base font-semibold;
+  color: var(--text-strong);
+}
+
+@utility card-subtitle {
+  @apply text-[13px] mt-0.5;
+  color: var(--text-muted);
+}
+
+@utility page-title {
+  /* ── Tipografía de página ────────────────── */
+  @apply text-[22px] sm:text-2xl font-semibold leading-tight;
+  color: var(--text-strong);
+  letter-spacing: -0.018em;
+}
+
+@utility page-subtitle {
+  @apply text-sm mt-1;
+  color: var(--text-muted);
+}
+
+@utility section-title {
+  @apply text-lg font-semibold;
+  color: var(--text-strong);
+}
+
+@utility btn {
+  /* ── Botones ─────────────────────────────── */
+  @apply inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg text-sm font-semibold
+           whitespace-nowrap select-none transition-[background-color,border-color,color,box-shadow,transform] duration-150
+           disabled:cursor-not-allowed disabled:opacity-60 active:translate-y-px;
+}
+
+@utility btn-sm {
+  @apply h-9 px-3 text-[13px];
+}
+
+@utility btn-primary {
+  /* Acción principal: ámbar SOY con texto marino (contraste 10:1) */
+  @apply btn;
+  background: var(--amber-400);
+  color: var(--navy-950);
+  box-shadow:
+    0 1px 2px rgba(180, 83, 9, 0.18),
+    inset 0 -1px 0 rgba(180, 83, 9, 0.18);
+  &:hover:not(:disabled) {
+    background: var(--amber-500);
+  }
+  /* Deshabilitado en gris: un ámbar pálido se confundía con un botón activo */
+  &:disabled {
+    background: #e7eaef;
+    color: #6b7685;
+    box-shadow: none;
+    opacity: 1;
+  }
+}
+
+@utility btn-secondary {
+  /* Acción secundaria: neutra con borde */
+  @apply btn bg-white;
+  color: var(--text-strong);
+  border: 1px solid #cfd5dd;
+  box-shadow: 0 1px 2px rgba(16, 28, 45, 0.05);
+  &:hover:not(:disabled) {
+    background: #f3f5f8;
+    border-color: #b9c1cc;
+  }
+}
+
+@utility btn-danger {
+  /* Acción destructiva */
+  @apply btn bg-red-600 text-white;
+  box-shadow: 0 1px 2px rgba(153, 27, 27, 0.2);
+  &:hover:not(:disabled) {
+    @apply bg-red-700;
+  }
+}
+
+@utility btn-danger-outline {
+  @apply btn bg-white text-red-700 border border-red-200;
+  &:hover:not(:disabled) {
+    @apply bg-red-50 border-red-300;
+  }
+}
+
+@utility btn-ghost {
+  @apply btn bg-transparent;
+  color: var(--text);
+  &:hover:not(:disabled) {
+    background: #eceff3;
+  }
+}
+
+@utility icon-btn {
+  /* Botón de icono: 40px de área táctil aunque el icono sea chico */
+  @apply inline-flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-150;
+  color: var(--text-muted);
+  &:hover {
+    background: #eceff3;
+    color: var(--text-strong);
+  }
+}
+
+@utility form-label {
+  /* ── Campos ──────────────────────────────── */
+  @apply block text-[13px] font-medium mb-1.5;
+  color: var(--text);
+}
+
+@utility form-hint {
+  @apply text-xs mt-1.5;
+  color: var(--text-muted);
+}
+
+@utility input-field {
+  @apply w-full h-10 px-3 rounded-lg text-sm bg-white outline-hidden
+           transition-[border-color,box-shadow] duration-150;
+  color: var(--text-strong);
+  border: 1px solid #cfd5dd;
+  &::placeholder {
+    color: #8591a0;
+  }
+  &:hover {
+    border-color: #b4bdc9;
+  }
+  &:focus {
+    border-color: var(--navy-500);
+    box-shadow: 0 0 0 3px rgba(58, 105, 170, 0.18);
+  }
+}
+
+@utility input-field-sm {
+  @apply input-field h-9 text-[13px] pl-2.5;
+}
+
+@utility data-table {
+  /* ── Tabla ───────────────────────────────── */
+  @apply min-w-full text-sm;
+  border-collapse: separate;
+  border-spacing: 0;
+  & thead th {
+    @apply sticky top-0 z-1 px-4 h-11 text-left text-xs font-semibold whitespace-nowrap;
+    color: var(--text-muted);
+    background: #f7f8fa;
+    border-bottom: 1px solid var(--border);
+  }
+  & tbody td {
+    @apply px-4 py-3 whitespace-nowrap;
+    color: var(--text);
+    border-bottom: 1px solid #edf0f3;
+  }
+  & tbody tr {
+    @apply transition-colors duration-100;
+  }
+  & tbody tr:hover td {
+    background: #f9fafb;
+  }
+  & tbody tr:last-child td {
+    border-bottom: 0;
+  }
+}
+
+@utility th-sort {
+  @apply inline-flex items-center gap-1 -mx-1.5 px-1.5 py-1 rounded-md transition-colors;
+  &:hover {
+    background: #eceff3;
+    color: var(--text-strong);
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility no-scrollbar {
+  /* Desplazamiento horizontal sin barra visible (pestañas en celular) */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility badge {
+  /* ── Insignias ───────────────────────────── */
+  @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap;
+}
+
+@utility badge-dot {
+  &::before {
+    content: '';
+    @apply w-1.5 h-1.5 rounded-full bg-current;
+  }
+}
+
+@utility badge-success {
+  @apply badge bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-600/20;
+}
+
+@utility badge-danger {
+  @apply badge bg-red-50 text-red-800 ring-1 ring-inset ring-red-600/15;
+}
+
+@utility badge-neutral {
+  @apply badge bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-500/15;
+}
+
+@utility badge-admin {
+  @apply badge ring-1 ring-inset;
+  background: #eaf0f8;
+  color: var(--navy-700);
+  --tw-ring-color: rgba(58, 105, 170, 0.25);
+}
+
+@utility badge-client {
+  @apply badge bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/25;
+}
+
+@utility notice {
+  /* ── Avisos en línea ─────────────────────── */
+  @apply flex items-start gap-2.5 rounded-lg px-3.5 py-3 text-sm;
+}
+
+@utility notice-success {
+  @apply notice bg-emerald-50 text-emerald-900 border border-emerald-200;
+}
+
+@utility notice-error {
+  @apply notice bg-red-50 text-red-900 border border-red-200;
+}
+
+@utility notice-info {
+  @apply notice border;
+  background: #eef3fa;
+  color: var(--navy-800);
+  border-color: #d3deee;
+}
+
+@utility meter {
+  /* ── Medidor de progreso ─────────────────── */
+  @apply relative h-1.5 w-full rounded-full overflow-hidden;
+  background: #e7eaef;
+  & > span {
+    @apply absolute inset-y-0 left-0 rounded-full;
+  }
+}
+
+@layer base {
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/inter-latin.woff2') format('woff2');
+    unicode-range:
+      U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+      U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+      U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/inter-latin-ext.woff2') format('woff2');
+    unicode-range:
+      U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+      U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+      U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+}
+
+@layer utilities {
+  /*
   Sistema visual: Excelencia de la Soya
   - Ámbar SOY = acción principal y selección. Azul marino = estructura (barra lateral, títulos, datos).
   - Neutros fríos para superficies; semánticos (éxito, error, aviso) solo para estados.
 */
-:root {
-  --navy-950: #0c1626;
-  --navy-900: #13233b;
-  --navy-800: #1b3152;
-  --navy-700: #213d66;
-  --navy-600: #2d5288;
-  --navy-500: #3a69aa;
-  --amber-50:  #fffbeb;
-  --amber-100: #fef3c7;
-  --amber-300: #fcd34d;
-  --amber-400: #fbbf24;
-  --amber-500: #f59e0b;
-  --amber-600: #d97706;
-  --amber-700: #b45309;
+  :root {
+    --navy-950: #0c1626;
+    --navy-900: #13233b;
+    --navy-800: #1b3152;
+    --navy-700: #213d66;
+    --navy-600: #2d5288;
+    --navy-500: #3a69aa;
+    --amber-50: #fffbeb;
+    --amber-100: #fef3c7;
+    --amber-300: #fcd34d;
+    --amber-400: #fbbf24;
+    --amber-500: #f59e0b;
+    --amber-600: #d97706;
+    --amber-700: #b45309;
 
-  /* Alias que usan los gráficos */
-  --primary: var(--navy-600);
-  --secondary: var(--amber-400);
+    /* Alias que usan los gráficos */
+    --primary: var(--navy-600);
+    --secondary: var(--amber-400);
 
-  --surface-page: #f5f6f8;
-  --surface-card: #ffffff;
-  --border: #e3e6eb;
-  --text-strong: #111c2d;
-  --text: #2c3a4d;
-  --text-muted: #5b6878;
+    --surface-page: #f5f6f8;
+    --surface-card: #ffffff;
+    --border: #e3e6eb;
+    --text-strong: #111c2d;
+    --text: #2c3a4d;
+    --text-muted: #5b6878;
+  }
 }
 
 @layer base {
@@ -93,167 +406,32 @@
   }
 }
 
-@layer components {
-  /* ── Superficies ─────────────────────────── */
-  .dashboard-card {
-    @apply bg-white rounded-xl border p-5;
-    border-color: var(--border);
-    box-shadow: 0 1px 2px rgba(16, 28, 45, 0.04);
-  }
-  .card-title {
-    @apply text-base font-semibold;
-    color: var(--text-strong);
-  }
-  .card-subtitle {
-    @apply text-[13px] mt-0.5;
-    color: var(--text-muted);
-  }
+/* Desplegables con flecha propia. Sin capa a propósito: así ganan sobre el padding de las utilidades. */
+select.input-field,
+select.input-field-sm {
+  appearance: none;
+  padding-right: 2rem;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235b6878' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+}
+/* Filtro con valor elegido: se distingue de los que están en "Todos" */
+select.is-active {
+  border-color: var(--amber-500);
+  background-color: var(--amber-50);
+}
 
-  /* ── Tipografía de página ────────────────── */
-  .page-title {
-    @apply text-[22px] sm:text-2xl font-semibold leading-tight;
-    color: var(--text-strong);
-    letter-spacing: -0.018em;
-  }
-  .page-subtitle {
-    @apply text-sm mt-1;
-    color: var(--text-muted);
-  }
-  .section-title {
-    @apply text-lg font-semibold;
-    color: var(--text-strong);
-  }
-
-  /* ── Botones ─────────────────────────────── */
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg text-sm font-semibold
-           whitespace-nowrap select-none transition-[background-color,border-color,color,box-shadow,transform] duration-150
-           disabled:cursor-not-allowed disabled:opacity-60 active:translate-y-px;
-  }
-  .btn-sm { @apply h-9 px-3 text-[13px]; }
-
-  /* Acción principal: ámbar SOY con texto marino (contraste 10:1) */
-  .btn-primary {
-    @apply btn;
-    background: var(--amber-400);
-    color: var(--navy-950);
-    box-shadow: 0 1px 2px rgba(180, 83, 9, 0.18), inset 0 -1px 0 rgba(180, 83, 9, 0.18);
-  }
-  .btn-primary:hover:not(:disabled) { background: var(--amber-500); }
-  /* Deshabilitado en gris: un ámbar pálido se confundía con un botón activo */
-  .btn-primary:disabled { background: #e7eaef; color: #6b7685; box-shadow: none; opacity: 1; }
-
-  /* Acción secundaria: neutra con borde */
-  .btn-secondary {
-    @apply btn bg-white;
-    color: var(--text-strong);
-    border: 1px solid #cfd5dd;
-    box-shadow: 0 1px 2px rgba(16, 28, 45, 0.05);
-  }
-  .btn-secondary:hover:not(:disabled) { background: #f3f5f8; border-color: #b9c1cc; }
-
-  /* Acción destructiva */
-  .btn-danger {
-    @apply btn bg-red-600 text-white;
-    box-shadow: 0 1px 2px rgba(153, 27, 27, 0.2);
-  }
-  .btn-danger:hover:not(:disabled) { @apply bg-red-700; }
-  .btn-danger-outline {
-    @apply btn bg-white text-red-700 border border-red-200;
-  }
-  .btn-danger-outline:hover:not(:disabled) { @apply bg-red-50 border-red-300; }
-
-  .btn-ghost {
-    @apply btn bg-transparent;
-    color: var(--text);
-  }
-  .btn-ghost:hover:not(:disabled) { background: #eceff3; }
-
-  /* Botón de icono: 40px de área táctil aunque el icono sea chico */
-  .icon-btn {
-    @apply inline-flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-150;
-    color: var(--text-muted);
-  }
-  .icon-btn:hover { background: #eceff3; color: var(--text-strong); }
-
-  /* ── Campos ──────────────────────────────── */
-  .form-label {
-    @apply block text-[13px] font-medium mb-1.5;
-    color: var(--text);
-  }
-  .form-hint { @apply text-xs mt-1.5; color: var(--text-muted); }
-  .input-field {
-    @apply w-full h-10 px-3 rounded-lg text-sm bg-white outline-none
-           transition-[border-color,box-shadow] duration-150;
-    color: var(--text-strong);
-    border: 1px solid #cfd5dd;
-  }
-  .input-field::placeholder { color: #8591a0; }
-  .input-field:hover { border-color: #b4bdc9; }
-  .input-field:focus {
-    border-color: var(--navy-500);
-    box-shadow: 0 0 0 3px rgba(58, 105, 170, 0.18);
-  }
-  .input-field-sm { @apply input-field h-9 text-[13px] pl-2.5; }
-  select.input-field, select.input-field-sm {
-    @apply appearance-none pr-8 cursor-pointer truncate;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235b6878' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.6rem center;
-  }
-  /* Filtro con valor elegido: se distingue de los que están en "Todos" */
-  select.is-active {
-    border-color: var(--amber-500);
-    background-color: var(--amber-50);
-  }
-
-  /* ── Tabla ───────────────────────────────── */
-  .data-table { @apply min-w-full text-sm; border-collapse: separate; border-spacing: 0; }
-  .data-table thead th {
-    @apply sticky top-0 z-[1] px-4 h-11 text-left text-xs font-semibold whitespace-nowrap;
-    color: var(--text-muted);
-    background: #f7f8fa;
-    border-bottom: 1px solid var(--border);
-  }
-  .data-table tbody td {
-    @apply px-4 py-3 whitespace-nowrap;
-    color: var(--text);
-    border-bottom: 1px solid #edf0f3;
-  }
-  .data-table tbody tr { @apply transition-colors duration-100; }
-  .data-table tbody tr:hover td { background: #f9fafb; }
-  .data-table tbody tr:last-child td { border-bottom: 0; }
-  .th-sort {
-    @apply inline-flex items-center gap-1 -mx-1.5 px-1.5 py-1 rounded-md transition-colors;
-  }
-  .th-sort:hover { background: #eceff3; color: var(--text-strong); }
-
-  .tabular { font-variant-numeric: tabular-nums; }
-
-  /* Desplazamiento horizontal sin barra visible (pestañas en celular) */
-  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-
-  /* ── Insignias ───────────────────────────── */
-  .badge {
-    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap;
-  }
-  .badge-dot::before { content: ""; @apply w-1.5 h-1.5 rounded-full bg-current; }
-  .badge-success { @apply badge bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-600/20; }
-  .badge-danger  { @apply badge bg-red-50 text-red-800 ring-1 ring-inset ring-red-600/15; }
-  .badge-neutral { @apply badge bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-500/15; }
-  .badge-admin   { @apply badge ring-1 ring-inset; background: #eaf0f8; color: var(--navy-700); --tw-ring-color: rgba(58, 105, 170, 0.25); }
-  .badge-client  { @apply badge bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/25; }
-
-  /* ── Avisos en línea ─────────────────────── */
-  .notice { @apply flex items-start gap-2.5 rounded-lg px-3.5 py-3 text-sm; }
-  .notice-success { @apply notice bg-emerald-50 text-emerald-900 border border-emerald-200; }
-  .notice-error   { @apply notice bg-red-50 text-red-900 border border-red-200; }
-  .notice-info    { @apply notice border; background: #eef3fa; color: var(--navy-800); border-color: #d3deee; }
-
-  /* ── Medidor de progreso ─────────────────── */
-  .meter { @apply relative h-1.5 w-full rounded-full overflow-hidden; background: #e7eaef; }
-  .meter > span { @apply absolute inset-y-0 left-0 rounded-full; }
+/* Tailwind 4 ya no pone cursor de mano en los botones */
+button:not(:disabled),
+[role='button']:not(:disabled),
+[role='tab'],
+[role='radio'],
+[role='switch']:not(:disabled) {
+  cursor: pointer;
 }
 
 /* Alertas de SweetAlert2 con el sistema visual */

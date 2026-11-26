@@ -2,7 +2,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import { Cell, Funnel, FunnelChart, LabelList, ResponsiveContainer, Tooltip } from 'recharts';
 import type { DataItem } from '../../interfaces/IData';
-import { ChartTooltip } from '../ui/chartTheme';
+import { ChartTooltip } from '../ui/ChartTooltip';
 
 interface InfoViewProps {
   data: DataItem[];
@@ -68,14 +68,14 @@ const InfoView: React.FC<InfoViewProps> = ({ data }) => {
       </header>
 
       {registered === 0 ? (
-        <p className="py-16 text-center text-[13px] text-[color:var(--text-muted)]">Sin datos para mostrar</p>
+        <p className="py-16 text-center text-[13px] text-(--text-muted)">Sin datos para mostrar</p>
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Embudo */}
           <div className="h-[280px] sm:h-[360px] lg:col-span-2">
             <ResponsiveContainer width="100%" height="100%">
               <FunnelChart margin={{ top: 4, right: 8, bottom: 4, left: 8 }}>
-                <Tooltip content={<ChartTooltip formatter={(v) => `${v.toLocaleString('es')} participantes`} />} />
+                <Tooltip content={<ChartTooltip format={(v) => `${v.toLocaleString('es')} participantes`} />} />
                 <Funnel
                   dataKey="value"
                   data={stages}
@@ -123,14 +123,14 @@ const InfoView: React.FC<InfoViewProps> = ({ data }) => {
           {/* Etapas y conversiones */}
           <div className="flex flex-col justify-center gap-3">
             {stages.map((stage) => (
-              <div key={stage.name} className="rounded-lg border border-[color:var(--border)] px-4 py-3" style={{ backgroundColor: `${stage.fill}0f` }}>
-                <p className="flex items-center gap-2 text-[13px] font-medium text-[color:var(--text-muted)]">
+              <div key={stage.name} className="rounded-lg border border-(--border) px-4 py-3" style={{ backgroundColor: `${stage.fill}0f` }}>
+                <p className="flex items-center gap-2 text-[13px] font-medium text-(--text-muted)">
                   <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: stage.fill }} />
                   {stage.name}
                 </p>
                 <p className="mt-1 tabular">
-                  <span className="text-2xl font-semibold tracking-tight text-[color:var(--text-strong)]">{stage.value.toLocaleString('es')}</span>
-                  <span className="ml-2 text-[13px] text-[color:var(--text-muted)]">{fmt(pct(stage.value, registered))}% del total</span>
+                  <span className="text-2xl font-semibold tracking-tight text-(--text-strong)">{stage.value.toLocaleString('es')}</span>
+                  <span className="ml-2 text-[13px] text-(--text-muted)">{fmt(pct(stage.value, registered))}% del total</span>
                 </p>
               </div>
             ))}
@@ -138,7 +138,7 @@ const InfoView: React.FC<InfoViewProps> = ({ data }) => {
             <ul className="mt-1 space-y-2">
               {conversions.map((c) => (
                 <li key={c.label} className="flex items-center justify-between gap-3 rounded-lg bg-[#f5f6f8] px-3.5 py-2.5 text-[13px]">
-                  <span className="text-[color:var(--text-muted)]">{c.label}</span>
+                  <span className="text-(--text-muted)">{c.label}</span>
                   <span className="tabular whitespace-nowrap">
                     <span className="font-semibold text-emerald-700">{fmt(c.rate)}%</span>
                     <span className="ml-2 text-red-700">−{fmt(100 - c.rate)}%</span>

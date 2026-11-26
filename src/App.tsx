@@ -5,7 +5,7 @@ import {
   Outlet,
   Route,
   Routes,
-} from 'react-router-dom';
+} from 'react-router';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/LoginPage';
 import Layout from './components/Layout.tsx';

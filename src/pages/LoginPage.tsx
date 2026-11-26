@@ -1,6 +1,7 @@
 import type React from "react"
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router"
+import { isAxiosError } from "axios"
 import { useAuth } from "../contexts/AuthContext"
 import { Eye, EyeOff, Loader2, LogIn, TriangleAlert } from "lucide-react"
 
@@ -36,10 +37,12 @@ const LoginPage: React.FC = () => {
     try {
       await login(username, password)
       navigate("/")
-    } catch (error: any) {
+    } catch (error) {
       console.error("Login error:", error)
 
-      if (error.response) {
+      if (!isAxiosError(error)) {
+        setError("Ocurrió un error inesperado. Por favor, intente de nuevo.")
+      } else if (error.response) {
         if (error.response.status === 429) {
           const retryAfter = Number(error.response.headers?.["retry-after"])
           if (Number.isFinite(retryAfter) && retryAfter > 0) {
@@ -79,13 +82,13 @@ const LoginPage: React.FC = () => {
         <div className="flex flex-col items-center text-center">
           <img className="h-14 w-auto" src="/soy_header.webp" alt="SOY Excellence Center" />
           <h1 className="mt-6 text-2xl font-semibold tracking-tight">Iniciar sesión</h1>
-          <p className="mt-1 text-sm text-[color:var(--text-muted)]">Panel de cursos de Excelencia de la Soya</p>
+          <p className="mt-1 text-sm text-(--text-muted)">Panel de cursos de Excelencia de la Soya</p>
         </div>
 
         <form className="mt-7 space-y-4" onSubmit={handleSubmit} noValidate>
           {error && (
             <p className="notice-error" role="alert">
-              <TriangleAlert className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
               {error}
             </p>
           )}
@@ -134,7 +137,7 @@ const LoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading || blockedUntil !== null}
-            className="btn-primary w-full !h-11 !mt-6"
+            className="btn-primary w-full h-11! mt-6!"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
             {loading ? "Iniciando sesión…" : "Iniciar sesión"}

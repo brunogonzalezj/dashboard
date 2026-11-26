@@ -14,7 +14,7 @@ function FeedbackNotice({ feedback, className }: { feedback: Feedback; className
   const Icon = feedback.kind === 'success' ? Check : TriangleAlert;
   return (
     <p className={cn(feedback.kind === 'success' ? 'notice-success' : 'notice-error', className)} role={feedback.kind === 'error' ? 'alert' : 'status'}>
-      <Icon className="mt-0.5 h-4 w-4 flex-shrink-0" />
+      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
       {feedback.text}
     </p>
   );
@@ -31,11 +31,11 @@ function Switch({ checked, onChange, disabled, label }: { checked: boolean; onCh
       disabled={disabled}
       onClick={onChange}
       className={cn(
-        'relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60',
+        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60',
         checked ? 'bg-emerald-600' : 'bg-[#c3cad4]',
       )}
     >
-      <span className={cn('inline-block h-5 w-5 rounded-full bg-white shadow transition-transform duration-200', checked ? 'translate-x-[22px]' : 'translate-x-0.5')} />
+      <span className={cn('inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200', checked ? 'translate-x-[22px]' : 'translate-x-0.5')} />
     </button>
   );
 }
@@ -75,21 +75,21 @@ function CsvDropzone({ title, description, file, onFile, onUpload, uploading, fe
         }}
         className={cn(
           'flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed px-4 py-5 text-center transition-colors',
-          'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-500 has-[:focus-visible]:ring-offset-2',
+          'has-focus-visible:ring-2 has-focus-visible:ring-primary-500 has-focus-visible:ring-offset-2',
           dragging ? 'border-secondary-500 bg-secondary-50' : file ? 'border-emerald-300 bg-emerald-50/60' : 'border-[#cfd5dd] bg-[#f9fafb] hover:border-[#aeb7c3] hover:bg-[#f4f6f8]',
         )}
       >
         {file ? (
           <>
             <FileSpreadsheet className="h-6 w-6 text-emerald-700" />
-            <p className="max-w-full truncate text-sm font-semibold text-[color:var(--text-strong)]">{file.name}</p>
-            <p className="text-xs text-[color:var(--text-muted)]">{(file.size / 1024).toLocaleString('es', { maximumFractionDigits: 0 })} KB · toca para cambiarlo</p>
+            <p className="max-w-full truncate text-sm font-semibold text-(--text-strong)">{file.name}</p>
+            <p className="text-xs text-(--text-muted)">{(file.size / 1024).toLocaleString('es', { maximumFractionDigits: 0 })} KB · toca para cambiarlo</p>
           </>
         ) : (
           <>
-            <Upload className="h-6 w-6 text-[color:var(--text-muted)]" />
-            <p className="text-sm font-medium text-[color:var(--text-strong)]">Elige un archivo CSV o arrástralo aquí</p>
-            <p className="text-xs text-[color:var(--text-muted)]">Solo archivos .csv</p>
+            <Upload className="h-6 w-6 text-(--text-muted)" />
+            <p className="text-sm font-medium text-(--text-strong)">Elige un archivo CSV o arrástralo aquí</p>
+            <p className="text-xs text-(--text-muted)">Solo archivos .csv</p>
           </>
         )}
         <input
@@ -343,7 +343,7 @@ export default function CsvUpload() {
                 <p className="card-subtitle">Los cursos activados aparecen como opción para elegir.</p>
               </div>
               {!isLoadingCursos && (
-                <span className="text-[13px] text-[color:var(--text-muted)] tabular whitespace-nowrap">
+                <span className="text-[13px] text-(--text-muted) tabular whitespace-nowrap">
                   {activeCount} de {cursos.length} visibles
                 </span>
               )}
@@ -353,7 +353,7 @@ export default function CsvUpload() {
                 {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
               </div>
             ) : cursos.length === 0 ? (
-              <p className="py-6 text-center text-[13px] text-[color:var(--text-muted)]">No hay cursos configurados.</p>
+              <p className="py-6 text-center text-[13px] text-(--text-muted)">No hay cursos configurados.</p>
             ) : (
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {cursos.map((curso) => (
@@ -361,10 +361,10 @@ export default function CsvUpload() {
                     key={curso.id}
                     className={cn(
                       'flex items-center justify-between gap-3 rounded-lg border px-3.5 py-2.5 transition-colors',
-                      curso.activo ? 'border-emerald-200 bg-emerald-50/50' : 'border-[color:var(--border)]',
+                      curso.activo ? 'border-emerald-200 bg-emerald-50/50' : 'border-(--border)',
                     )}
                   >
-                    <span className={cn('text-sm font-medium', curso.activo ? 'text-[color:var(--text-strong)]' : 'text-[color:var(--text-muted)]')}>
+                    <span className={cn('text-sm font-medium', curso.activo ? 'text-(--text-strong)' : 'text-(--text-muted)')}>
                       {curso.nombre}
                     </span>
                     <Switch
@@ -423,13 +423,13 @@ export default function CsvUpload() {
       {/* Acciones de cierre de ciclo */}
       <section className="space-y-3" aria-labelledby="sec-zona">
         <h2 id="sec-zona" className="section-title">Cierre de ciclo</h2>
-        <div className="dashboard-card divide-y divide-[color:var(--border)] !py-0">
+        <div className="dashboard-card divide-y divide-(--border) py-0!">
           <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="card-title">Pasar cursos activos al histórico</h3>
               <p className="card-subtitle">Al terminar un ciclo, mueve los participantes actuales a la tabla histórica.</p>
             </div>
-            <button onClick={handleMigrate} disabled={isMigrating} className="btn-secondary sm:flex-shrink-0">
+            <button onClick={handleMigrate} disabled={isMigrating} className="btn-secondary sm:shrink-0">
               {isMigrating ? <Spinner /> : <ArchiveRestore className="h-4 w-4" />}
               {isMigrating ? 'Pasando…' : 'Pasar al histórico'}
             </button>
@@ -440,7 +440,7 @@ export default function CsvUpload() {
               <h3 className="card-title text-red-800">Eliminar respuestas del formulario</h3>
               <p className="card-subtitle">Borra todas las respuestas recibidas. No se puede deshacer.</p>
             </div>
-            <button onClick={wipeFormData} className="btn-danger-outline sm:flex-shrink-0">
+            <button onClick={wipeFormData} className="btn-danger-outline sm:shrink-0">
               <Trash2 className="h-4 w-4" />
               Eliminar respuestas
             </button>

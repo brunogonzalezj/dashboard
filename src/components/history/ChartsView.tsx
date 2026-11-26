@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
+import type { GeoJsonObject } from 'geojson';
 import { MapPin, X } from 'lucide-react';
 import type { DataItem } from '../../interfaces/IData';
 import { useAuth } from '../../contexts/AuthContext.tsx';
@@ -67,7 +68,7 @@ const progressOf = (item: DataItem) => {
 
 const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCountrySelect }) => {
   const countries = useMemo(() => Array.from(new Set(data.map((d) => d.country))).filter(Boolean).sort(), [data]);
-  const [countriesData, setCountriesData] = useState<unknown>(null);
+  const [countriesData, setCountriesData] = useState<GeoJsonObject | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hovered, setHovered] = useState<{ name: string; x: number; y: number } | null>(null);
 
@@ -89,7 +90,7 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
   return (
     <div className="flex h-full flex-col gap-3">
       <div>
-        <label htmlFor="map-country" className="block text-xs font-medium text-[color:var(--text-muted)] mb-1">
+        <label htmlFor="map-country" className="block text-xs font-medium text-(--text-muted) mb-1">
           País
         </label>
         <select
@@ -113,11 +114,17 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
             <g transform="translate(-80, -400) scale(2.7)">
               <Geographies geography={countriesData}>
                 {({ geographies }) =>
-                  geographies.map((geo: { rsmKey: string; properties: { name: string } }) => {
-                    const name = geo.properties.name;
+                  geographies.map((geo) => {
+                    const name = String(geo.properties?.name ?? '');
                     const hasData = countries.includes(name);
                     const isSelected = selectedCountry === name;
-                    const fill = isSelected ? '#f59e0b' : hasData ? '#7fa8de' : name === 'Bermuda' ? '#f3f6fa' : '#dfe4eb';
+                    const isHovered = hovered?.name === name;
+                    // El resaltado al pasar el mouse se maneja con estado: en v5 `style` es CSS común, sin estados
+                    const fill = isSelected
+                      ? isHovered ? '#d97706' : '#f59e0b'
+                      : hasData
+                        ? isHovered ? '#fbbf24' : '#7fa8de'
+                        : name === 'Bermuda' ? '#f3f6fa' : '#dfe4eb';
                     return (
                       <Geography
                         key={geo.rsmKey}
@@ -125,11 +132,7 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
                         fill={fill}
                         stroke="#ffffff"
                         strokeWidth={0.4}
-                        style={{
-                          default: { outline: 'none' },
-                          hover: { outline: 'none', fill: hasData ? (isSelected ? '#d97706' : '#fbbf24') : fill, cursor: hasData ? 'pointer' : 'default' },
-                          pressed: { outline: 'none' },
-                        }}
+                        style={{ outline: 'none', cursor: hasData ? 'pointer' : 'default' }}
                         onMouseEnter={(e) => hasData && setHovered({ name, x: e.clientX, y: e.clientY })}
                         onMouseMove={(e) => hasData && setHovered({ name, x: e.clientX, y: e.clientY })}
                         onMouseLeave={() => setHovered(null)}
@@ -145,18 +148,18 @@ const ChoroplethMap: React.FC<ChartsViewProps> = ({ data, selectedCountry, onCou
         {selectedCountry !== 'all' && (
           <button
             onClick={() => onCountrySelect('all')}
-            className="absolute left-2 top-2 inline-flex h-8 items-center gap-1.5 rounded-full bg-white pl-2.5 pr-2 text-xs font-semibold text-[color:var(--text-strong)] shadow-sm ring-1 ring-black/5 hover:bg-[#f3f5f8]"
+            className="absolute left-2 top-2 inline-flex h-8 items-center gap-1.5 rounded-full bg-white pl-2.5 pr-2 text-xs font-semibold text-(--text-strong) shadow-xs ring-1 ring-black/5 hover:bg-[#f3f5f8]"
           >
             <MapPin className="h-3.5 w-3.5 text-secondary-600" />
             {selectedCountry}
-            <X className="h-3.5 w-3.5 text-[color:var(--text-muted)]" aria-label="Quitar país" />
+            <X className="h-3.5 w-3.5 text-(--text-muted)" aria-label="Quitar país" />
           </button>
         )}
       </div>
 
-      <p className="flex items-center gap-4 text-xs text-[color:var(--text-muted)]">
-        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-[#7fa8de]" />Con participantes</span>
-        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-secondary-500" />Seleccionado</span>
+      <p className="flex items-center gap-4 text-xs text-(--text-muted)">
+        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-xs bg-primary-300" />Con participantes</span>
+        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-xs bg-secondary-500" />Seleccionado</span>
       </p>
 
       {hovered && (
@@ -191,21 +194,21 @@ function PercentBars({ title, subtitle, slices, colorFor }: PercentBarsProps) {
           <h3 className="card-title">{title}</h3>
           {subtitle && <p className="card-subtitle">{subtitle}</p>}
         </div>
-        <span className="text-xs text-[color:var(--text-muted)] tabular whitespace-nowrap">
+        <span className="text-xs text-(--text-muted) tabular whitespace-nowrap">
           {total.toLocaleString('es')} con dato
         </span>
       </header>
       {slices.length === 0 ? (
-        <p className="py-6 text-center text-[13px] text-[color:var(--text-muted)]">Sin datos para estos filtros</p>
+        <p className="py-6 text-center text-[13px] text-(--text-muted)">Sin datos para estos filtros</p>
       ) : (
         <ul className="space-y-3">
           {slices.map((s, i) => (
             <li key={s.name}>
               <div className="mb-1 flex items-baseline justify-between gap-3 text-[13px]">
-                <span className="truncate text-[color:var(--text-strong)]">{s.name}</span>
+                <span className="truncate text-(--text-strong)">{s.name}</span>
                 <span className="whitespace-nowrap tabular">
-                  <span className="font-semibold text-[color:var(--text-strong)]">{s.pct.toLocaleString('es')}%</span>
-                  <span className="ml-1.5 text-xs text-[color:var(--text-muted)]">{s.count.toLocaleString('es')}</span>
+                  <span className="font-semibold text-(--text-strong)">{s.pct.toLocaleString('es')}%</span>
+                  <span className="ml-1.5 text-xs text-(--text-muted)">{s.count.toLocaleString('es')}</span>
                 </span>
               </div>
               <div className="h-2 rounded-full bg-[#eef1f5]" aria-hidden="true">
@@ -228,7 +231,7 @@ function SplitBar({ title, slices, colorFor }: PercentBarsProps) {
     <section className="dashboard-card">
       <h3 className="card-title mb-4">{title}</h3>
       {slices.length === 0 ? (
-        <p className="py-6 text-center text-[13px] text-[color:var(--text-muted)]">Sin datos para estos filtros</p>
+        <p className="py-6 text-center text-[13px] text-(--text-muted)">Sin datos para estos filtros</p>
       ) : (
         <>
           <div className="flex h-3 overflow-hidden rounded-full bg-[#eef1f5]" aria-hidden="true">
@@ -239,13 +242,13 @@ function SplitBar({ title, slices, colorFor }: PercentBarsProps) {
           <ul className="mt-4 grid grid-cols-2 gap-3">
             {slices.map((s, i) => (
               <li key={s.name}>
-                <p className="flex items-center gap-2 text-[13px] text-[color:var(--text-muted)]">
+                <p className="flex items-center gap-2 text-[13px] text-(--text-muted)">
                   <span className="h-2.5 w-2.5 rounded-full" style={{ background: colorFor(s.name, i) }} />
                   {s.name}
                 </p>
-                <p className="mt-0.5 text-2xl font-semibold tracking-tight tabular text-[color:var(--text-strong)]">
+                <p className="mt-0.5 text-2xl font-semibold tracking-tight tabular text-(--text-strong)">
                   {s.pct.toLocaleString('es')}%
-                  <span className="ml-1.5 text-sm font-normal text-[color:var(--text-muted)]">{s.count.toLocaleString('es')}</span>
+                  <span className="ml-1.5 text-sm font-normal text-(--text-muted)">{s.count.toLocaleString('es')}</span>
                 </p>
               </li>
             ))}

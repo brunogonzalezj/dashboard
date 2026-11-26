@@ -7,7 +7,8 @@ import { DataItem } from '../../interfaces/IData';
 import { FilterBar } from '../ui/FilterBar';
 import { Skeleton, StatCardSkeleton, TableSkeleton } from '../ui/Skeleton';
 import { Spinner } from '../ui/Spinner';
-import { ChartTooltip, CHART_AXIS, CHART_GRID } from '../ui/chartTheme';
+import { CHART_AXIS, CHART_GRID } from '../ui/chartTheme';
+import { ChartTooltip } from '../ui/ChartTooltip';
 
 const TableCurrent = React.lazy(() => import('../TableCurrent'));
 
@@ -226,7 +227,7 @@ const ParticipantsView: React.FC<ParticipantsViewProps> = ({ data, isLoading, va
               <h2 className="card-title">Distribución del progreso</h2>
               <p className="card-subtitle">Cantidad de participantes por tramo de avance</p>
             </div>
-            <p className="inline-flex items-center gap-1.5 text-[13px] text-[color:var(--text-muted)]">
+            <p className="inline-flex items-center gap-1.5 text-[13px] text-(--text-muted)">
               <CalendarClock className="h-4 w-4" />
               {formattedUpload ? <>Datos del {formattedUpload}</> : 'Todavía no se cargaron datos'}
             </p>
@@ -239,7 +240,7 @@ const ParticipantsView: React.FC<ParticipantsViewProps> = ({ data, isLoading, va
                 <YAxis {...CHART_AXIS} allowDecimals={false} width={44} />
                 <Tooltip
                   cursor={{ fill: 'rgba(58,105,170,0.06)' }}
-                  content={<ChartTooltip formatter={(v) => `${v} participantes`} />}
+                  content={<ChartTooltip format={(v) => `${v} participantes`} />}
                 />
                 <Bar dataKey="count" name="Participantes" fill="var(--navy-500)" radius={[4, 4, 0, 0]} maxBarSize={48} />
               </BarChart>
@@ -292,7 +293,7 @@ const ParticipantsView: React.FC<ParticipantsViewProps> = ({ data, isLoading, va
 
         {filteredData.length > 0 && (
           <div className="flex flex-col items-center gap-3 pt-1">
-            <p className="text-[13px] text-[color:var(--text-muted)] tabular">
+            <p className="text-[13px] text-(--text-muted) tabular">
               Mostrando {displayed.length.toLocaleString('es')} de {filteredData.length.toLocaleString('es')}
             </p>
             {displayed.length < filteredData.length && (
@@ -317,14 +318,14 @@ interface StatCardProps {
 
 function StatCard({ label, value, total, rate, tone }: StatCardProps) {
   return (
-    <div className="dashboard-card !p-4 sm:!p-5">
+    <div className="dashboard-card p-4! sm:p-5!">
       <div className="flex items-baseline justify-between gap-2">
-        <p className="text-[13px] font-medium leading-snug text-[color:var(--text-muted)]">{label}</p>
-        <p className="text-sm font-semibold tabular text-[color:var(--text-strong)]">{rate}%</p>
+        <p className="text-[13px] font-medium leading-snug text-(--text-muted)">{label}</p>
+        <p className="text-sm font-semibold tabular text-(--text-strong)">{rate}%</p>
       </div>
-      <p className="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight tabular text-[color:var(--text-strong)]">
+      <p className="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight tabular text-(--text-strong)">
         {value.toLocaleString('es')}
-        <span className="ml-1 sm:ml-1.5 text-sm sm:text-base font-normal text-[color:var(--text-muted)]">
+        <span className="ml-1 sm:ml-1.5 text-sm sm:text-base font-normal text-(--text-muted)">
           de {total.toLocaleString('es')}
         </span>
       </p>

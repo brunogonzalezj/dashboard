@@ -28,11 +28,11 @@ export function FilterBar({ fields, onChange, onReset, summary }: FilterBarProps
   const active = fields.filter((f) => f.value !== 'all').length;
 
   return (
-    <section className="dashboard-card !p-0" aria-label="Filtros">
-      <div className="flex items-center justify-between gap-3 px-4 py-3 md:py-2.5 md:border-b md:border-[color:var(--border)]">
+    <section className="dashboard-card p-0!" aria-label="Filtros">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 md:py-2.5 md:border-b md:border-(--border)">
         <button
           type="button"
-          className="md:hidden inline-flex items-center gap-2 h-9 -ml-1 px-1 text-sm font-semibold text-[color:var(--text-strong)]"
+          className="md:hidden inline-flex items-center gap-2 h-9 -ml-1 px-1 text-sm font-semibold text-(--text-strong)"
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => setOpen((o) => !o)}
@@ -46,15 +46,15 @@ export function FilterBar({ fields, onChange, onReset, summary }: FilterBarProps
           )}
           <ChevronDown className={cn('h-4 w-4 transition-transform', open && 'rotate-180')} />
         </button>
-        <p className="hidden md:flex items-center gap-2 text-[13px] font-semibold text-[color:var(--text-strong)]">
-          <SlidersHorizontal className="h-4 w-4 text-[color:var(--text-muted)]" />
+        <p className="hidden md:flex items-center gap-2 text-[13px] font-semibold text-(--text-strong)">
+          <SlidersHorizontal className="h-4 w-4 text-(--text-muted)" />
           Filtros
-          {active > 0 && <span className="font-normal text-[color:var(--text-muted)]">· {active} activos</span>}
+          {active > 0 && <span className="font-normal text-(--text-muted)">· {active} activos</span>}
         </p>
         <div className="flex items-center gap-3">
-          {summary && <span className="text-[13px] text-[color:var(--text-muted)] tabular">{summary}</span>}
+          {summary && <span className="text-[13px] text-(--text-muted) tabular">{summary}</span>}
           {onReset && active > 0 && (
-            <button type="button" onClick={onReset} className="btn-ghost btn-sm !h-8 !px-2.5 text-[color:var(--text-muted)]">
+            <button type="button" onClick={onReset} className="btn-ghost btn-sm h-8! px-2.5! text-(--text-muted)">
               <RotateCcw className="h-3.5 w-3.5" />
               Limpiar
             </button>
@@ -71,7 +71,7 @@ export function FilterBar({ fields, onChange, onReset, summary }: FilterBarProps
       >
         {fields.map((f) => (
           <div key={f.key} className="min-w-0">
-            <label htmlFor={`${panelId}-${f.key}`} className="block text-xs font-medium text-[color:var(--text-muted)] mb-1">
+            <label htmlFor={`${panelId}-${f.key}`} className="block text-xs font-medium text-(--text-muted) mb-1">
               {f.label}
             </label>
             <select

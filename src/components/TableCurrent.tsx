@@ -36,7 +36,7 @@ function Progress({ item }: { item: DataItem }) {
       <div className="meter flex-1" aria-hidden="true">
         <span style={{ width: `${value}%`, background: value >= 90 ? '#1f9e89' : 'var(--amber-500)' }} />
       </div>
-      <span className="w-10 text-right text-xs font-medium tabular text-[color:var(--text)]">{Math.round(value)}%</span>
+      <span className="w-10 text-right text-xs font-medium tabular text-(--text)">{Math.round(value)}%</span>
     </div>
   );
 }
@@ -51,7 +51,7 @@ function ContactActions({ item }: { item: DataItem }) {
           href={`https://api.whatsapp.com/send?phone=${phone}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="icon-btn hover:!text-emerald-700 hover:!bg-emerald-50"
+          className="icon-btn hover:text-emerald-700! hover:bg-emerald-50!"
           aria-label={`Escribir por WhatsApp a ${fullName}`}
           title="WhatsApp"
         >
@@ -83,9 +83,9 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig, isHistor
   if (data.length === 0) {
     return (
       <div className="dashboard-card flex flex-col items-center justify-center gap-2 py-14 text-center">
-        <SearchX className="h-8 w-8 text-[color:var(--text-muted)]" />
-        <p className="font-semibold text-[color:var(--text-strong)]">No hay participantes con estos filtros</p>
-        <p className="text-[13px] text-[color:var(--text-muted)]">Prueba quitar algún filtro o elegir “Todos”.</p>
+        <SearchX className="h-8 w-8 text-(--text-muted)" />
+        <p className="font-semibold text-(--text-strong)">No hay participantes con estos filtros</p>
+        <p className="text-[13px] text-(--text-muted)">Prueba quitar algún filtro o elegir “Todos”.</p>
       </div>
     );
   }
@@ -93,7 +93,7 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig, isHistor
   return (
     <>
       {/* Computadora: tabla */}
-      <div className="dashboard-card !p-0 hidden xl:block overflow-hidden">
+      <div className="dashboard-card p-0! hidden xl:block overflow-hidden">
         <div className="max-h-[70vh] overflow-auto">
           <table className="data-table">
             <thead>
@@ -106,7 +106,7 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig, isHistor
                       {key === 'contact' ? (
                         label
                       ) : (
-                        <button type="button" className={cn('th-sort', sorted && 'text-[color:var(--text-strong)]')} onClick={() => onSort(key)}>
+                        <button type="button" className={cn('th-sort', sorted && 'text-(--text-strong)')} onClick={() => onSort(key)}>
                           {label}
                           {sorted ? (
                             sortConfig?.direction === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />
@@ -124,19 +124,19 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig, isHistor
               {data.map((item) => (
                 <tr key={item.id}>
                   <td>
-                    <p className="font-medium text-[color:var(--text-strong)]">{item.name} {item.lastName}</p>
-                    <p className="text-xs text-[color:var(--text-muted)]">{item.email}</p>
+                    <p className="font-medium text-(--text-strong)">{item.name} {item.lastName}</p>
+                    <p className="text-xs text-(--text-muted)">{item.email}</p>
                   </td>
                   <td>{item.course}</td>
                   <td className="max-w-[220px] truncate" title={item.business}>{item.business}</td>
                   <td><StatusBadge state={item.stateOfCompleteness} /></td>
                   <td><Progress item={item} /></td>
                   {isHistoric && (
-                    <td className="text-right font-semibold tabular text-[color:var(--text-strong)]">
-                      {item.finalScore || <span className="font-normal text-[color:var(--text-muted)]">—</span>}
+                    <td className="text-right font-semibold tabular text-(--text-strong)">
+                      {item.finalScore || <span className="font-normal text-(--text-muted)">—</span>}
                     </td>
                   )}
-                  <td className="!py-1.5"><ContactActions item={item} /></td>
+                  <td className="py-1.5!"><ContactActions item={item} /></td>
                 </tr>
               ))}
             </tbody>
@@ -147,27 +147,27 @@ const TableCurrent: React.FC<TableProps> = ({ data, onSort, sortConfig, isHistor
       {/* Celular y tablet: tarjetas */}
       <ul className="xl:hidden grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         {data.map((item) => (
-          <li key={item.id} className="dashboard-card !p-4">
+          <li key={item.id} className="dashboard-card p-4!">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="font-semibold text-[color:var(--text-strong)] truncate">{item.name} {item.lastName}</p>
-                <p className="text-xs text-[color:var(--text-muted)] truncate">{item.email}</p>
+                <p className="font-semibold text-(--text-strong) truncate">{item.name} {item.lastName}</p>
+                <p className="text-xs text-(--text-muted) truncate">{item.email}</p>
               </div>
               <StatusBadge state={item.stateOfCompleteness} />
             </div>
             <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-[13px]">
               <div className="min-w-0">
-                <dt className="text-xs text-[color:var(--text-muted)]">Curso</dt>
-                <dd className="truncate text-[color:var(--text-strong)]">{item.course}</dd>
+                <dt className="text-xs text-(--text-muted)">Curso</dt>
+                <dd className="truncate text-(--text-strong)">{item.course}</dd>
               </div>
               <div className="min-w-0">
-                <dt className="text-xs text-[color:var(--text-muted)]">Empresa</dt>
-                <dd className="truncate text-[color:var(--text-strong)]">{item.business || '—'}</dd>
+                <dt className="text-xs text-(--text-muted)">Empresa</dt>
+                <dd className="truncate text-(--text-strong)">{item.business || '—'}</dd>
               </div>
               {isHistoric && (
                 <div>
-                  <dt className="text-xs text-[color:var(--text-muted)]">Nota final</dt>
-                  <dd className="font-semibold tabular text-[color:var(--text-strong)]">{item.finalScore || '—'}</dd>
+                  <dt className="text-xs text-(--text-muted)">Nota final</dt>
+                  <dd className="font-semibold tabular text-(--text-strong)">{item.finalScore || '—'}</dd>
                 </div>
               )}
             </dl>

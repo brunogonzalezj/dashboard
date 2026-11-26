@@ -36,7 +36,7 @@ export function ChartSkeleton({ height = 'h-[300px]' }: { height?: string }) {
 
 export function TableSkeleton({ rows = 5, cols = 6 }: { rows?: number; cols?: number }) {
   return (
-    <div className="dashboard-card !p-0 overflow-hidden">
+    <div className="dashboard-card p-0! overflow-hidden">
       <div className="overflow-x-auto">
         <table className="data-table">
           <thead>

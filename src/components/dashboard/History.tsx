@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { useHistoryData } from '../../hooks/queries';
 import { DataItem } from '../../interfaces/IData';
 import ChartsView from '../history/ChartsView';
@@ -63,8 +63,8 @@ export default function History() {
                 className={cn(
                   'h-9 whitespace-nowrap rounded-md px-3.5 text-[13px] font-semibold transition-[background-color,color,box-shadow] duration-150',
                   selected
-                    ? 'bg-white text-[color:var(--text-strong)] shadow-[0_1px_2px_rgba(16,28,45,0.12)]'
-                    : 'text-[color:var(--text-muted)] hover:text-[color:var(--text-strong)]',
+                    ? 'bg-white text-(--text-strong) shadow-[0_1px_2px_rgba(16,28,45,0.12)]'
+                    : 'text-(--text-muted) hover:text-(--text-strong)',
                 )}
               >
                 {v.label}
@@ -73,8 +73,8 @@ export default function History() {
           })}
         </div>
         {selectedCountry !== 'all' && current !== 'perfil' && (
-          <p className="text-[13px] text-[color:var(--text-muted)]">
-            Mostrando solo <span className="font-semibold text-[color:var(--text-strong)]">{selectedCountry}</span> ·{' '}
+          <p className="text-[13px] text-(--text-muted)">
+            Mostrando solo <span className="font-semibold text-(--text-strong)">{selectedCountry}</span> ·{' '}
             <button className="font-semibold text-primary-600 underline hover:text-primary-700" onClick={() => setSelectedCountry('all')}>
               ver todos
             </button>

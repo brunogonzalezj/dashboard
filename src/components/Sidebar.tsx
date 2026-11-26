@@ -1,19 +1,14 @@
-import { NavLink } from 'react-router-dom';
-import { FileSpreadsheet, LayoutDashboard, LogOut, Users, X } from 'lucide-react';
+import { NavLink } from 'react-router';
+import { LogOut, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import React from 'react';
 import { cn } from '../lib/utils';
+import { NAV } from './nav';
 
 interface SidebarProps {
   onNavigate?: () => void;
   onClose?: () => void;
 }
-
-export const NAV = [
-  { to: '/',           icon: LayoutDashboard, label: 'Panel de cursos' },
-  { to: '/users',      icon: Users,           label: 'Usuarios',          adminOnly: true },
-  { to: '/csv-upload', icon: FileSpreadsheet, label: 'Datos y formulario', adminOnly: true },
-];
 
 const ROLE_LABEL: Record<string, string> = { admin: 'Administrador', client: 'Cliente' };
 
@@ -55,8 +50,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, onClose }) => {
                   cn(
                     'group flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150',
                     isActive
-                      ? 'bg-white/[0.08] text-white'
-                      : 'text-primary-200 hover:bg-white/[0.06] hover:text-white',
+                      ? 'bg-white/8 text-white'
+                      : 'text-primary-200 hover:bg-white/6 hover:text-white',
                   )
                 }
               >
@@ -64,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, onClose }) => {
                   <>
                     <Icon
                       className={cn(
-                        'h-[18px] w-[18px] flex-shrink-0 transition-colors',
+                        'h-[18px] w-[18px] shrink-0 transition-colors',
                         isActive ? 'text-secondary-400' : 'text-primary-300 group-hover:text-primary-100',
                       )}
                     />
@@ -81,7 +76,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, onClose }) => {
       {/* Usuario */}
       <div className="border-t border-white/10 p-3">
         <div className="flex items-center gap-3 px-2 py-2">
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-secondary-400 text-sm font-bold uppercase text-primary-950">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary-400 text-sm font-bold uppercase text-primary-950">
             {username?.[0] ?? '?'}
           </div>
           <div className="min-w-0 leading-tight">
@@ -94,9 +89,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, onClose }) => {
             onNavigate?.();
             logout();
           }}
-          className="mt-1 flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-primary-200 transition-colors hover:bg-white/[0.06] hover:text-white"
+          className="mt-1 flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-primary-200 transition-colors hover:bg-white/6 hover:text-white"
         >
-          <LogOut className="h-[18px] w-[18px] flex-shrink-0" />
+          <LogOut className="h-[18px] w-[18px] shrink-0" />
           Cerrar sesión
         </button>
       </div>

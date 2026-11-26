@@ -200,9 +200,9 @@ const Users: React.FC = () => {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="dashboard-card max-w-sm text-center">
-          <ShieldAlert className="mx-auto mb-3 h-8 w-8 text-[color:var(--text-muted)]" />
+          <ShieldAlert className="mx-auto mb-3 h-8 w-8 text-(--text-muted)" />
           <h1 className="section-title mb-1">Acceso restringido</h1>
-          <p className="text-[color:var(--text-muted)]">Solo un administrador puede gestionar usuarios.</p>
+          <p className="text-(--text-muted)">Solo un administrador puede gestionar usuarios.</p>
         </div>
       </div>
     );
@@ -228,7 +228,7 @@ const Users: React.FC = () => {
 
   const RowActions = ({ user }: { user: User }) =>
     user.username === PROTECTED_USERNAME ? (
-      <span className="text-xs text-[color:var(--text-muted)]">Protegido</span>
+      <span className="text-xs text-(--text-muted)">Protegido</span>
     ) : (
       <div className="flex items-center gap-0.5">
         <button onClick={() => handleEditUser(user)} className="icon-btn" aria-label={`Editar a ${user.username}`} title="Editar">
@@ -236,7 +236,7 @@ const Users: React.FC = () => {
         </button>
         <button
           onClick={() => handleDeleteUser(user)}
-          className="icon-btn hover:!bg-red-50 hover:!text-red-700"
+          className="icon-btn hover:bg-red-50! hover:text-red-700!"
           aria-label={`Eliminar a ${user.username}`}
           title="Eliminar"
         >
@@ -278,14 +278,14 @@ const Users: React.FC = () => {
 
       {error && (
         <p className="notice-error" role="alert">
-          <TriangleAlert className="mt-0.5 h-4 w-4 flex-shrink-0" />
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
           {error}
         </p>
       )}
 
       {created && (
         <div className="notice-success flex-col sm:flex-row sm:items-center" role="status">
-          <Check className="mt-0.5 h-4 w-4 flex-shrink-0 hidden sm:block" />
+          <Check className="mt-0.5 h-4 w-4 shrink-0 hidden sm:block" />
           <div className="flex-1">
             <p className="font-semibold">Usuario creado. Estos son sus datos de acceso:</p>
             <p className="mt-1 font-mono text-[13px]">
@@ -297,7 +297,7 @@ const Users: React.FC = () => {
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               {copied ? 'Copiado' : 'Copiar'}
             </button>
-            <button onClick={() => setCreated(null)} className="icon-btn !h-9 !w-9" aria-label="Cerrar aviso">
+            <button onClick={() => setCreated(null)} className="icon-btn h-9! w-9!" aria-label="Cerrar aviso">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -309,7 +309,7 @@ const Users: React.FC = () => {
       ) : (
         <>
           {/* Computadora: tabla */}
-          <div className="dashboard-card !p-0 hidden lg:block overflow-hidden">
+          <div className="dashboard-card p-0! hidden lg:block overflow-hidden">
             <div className="overflow-x-auto">
               <table className="data-table">
                 <thead>
@@ -318,7 +318,7 @@ const Users: React.FC = () => {
                       const sorted = sortConfig?.key === key;
                       return (
                         <th key={key} aria-sort={sorted ? (sortConfig?.direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                          <button type="button" className={cn('th-sort', sorted && 'text-[color:var(--text-strong)]')} onClick={() => handleSort(key)}>
+                          <button type="button" className={cn('th-sort', sorted && 'text-(--text-strong)')} onClick={() => handleSort(key)}>
                             {label}
                             {sorted ? (
                               sortConfig?.direction === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />
@@ -336,19 +336,19 @@ const Users: React.FC = () => {
                   {sortedUsers.map((user) => (
                     <tr key={user.id}>
                       <td>
-                        <p className="font-medium text-[color:var(--text-strong)]">{user.username}</p>
-                        <p className="text-xs text-[color:var(--text-muted)]">{user.fullName}</p>
+                        <p className="font-medium text-(--text-strong)">{user.username}</p>
+                        <p className="text-xs text-(--text-muted)">{user.fullName}</p>
                       </td>
-                      <td className="text-[color:var(--text-muted)]">{user.email}</td>
-                      <td className="tabular text-[color:var(--text-muted)]">{user.phone}</td>
+                      <td className="text-(--text-muted)">{user.email}</td>
+                      <td className="tabular text-(--text-muted)">{user.phone}</td>
                       <td className="font-mono text-[13px]">{user.password}</td>
                       <td>
                         <span className={user.role === 'admin' ? 'badge-admin' : 'badge-client'}>{ROLE_LABEL[user.role] ?? user.role}</span>
                       </td>
                       <td className="max-w-[220px] truncate" title={user.company ?? ''}>
-                        {user.company || <span className="text-[color:var(--text-muted)]">—</span>}
+                        {user.company || <span className="text-(--text-muted)">—</span>}
                       </td>
-                      <td className="!py-1.5 text-right"><RowActions user={user} /></td>
+                      <td className="py-1.5! text-right"><RowActions user={user} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -359,19 +359,19 @@ const Users: React.FC = () => {
           {/* Celular y tablet: tarjetas */}
           <ul className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {sortedUsers.map((user) => (
-              <li key={user.id} className="dashboard-card !p-4">
+              <li key={user.id} className="dashboard-card p-4!">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate font-semibold text-[color:var(--text-strong)]">{user.username}</p>
-                    <p className="truncate text-[13px] text-[color:var(--text-muted)]">{user.fullName}</p>
+                    <p className="truncate font-semibold text-(--text-strong)">{user.username}</p>
+                    <p className="truncate text-[13px] text-(--text-muted)">{user.fullName}</p>
                   </div>
                   <span className={user.role === 'admin' ? 'badge-admin' : 'badge-client'}>{ROLE_LABEL[user.role] ?? user.role}</span>
                 </div>
                 <dl className="mt-3 space-y-1.5 text-[13px]">
-                  <div className="flex gap-2"><dt className="w-24 flex-shrink-0 text-[color:var(--text-muted)]">Correo</dt><dd className="min-w-0 truncate">{user.email}</dd></div>
-                  <div className="flex gap-2"><dt className="w-24 flex-shrink-0 text-[color:var(--text-muted)]">Teléfono</dt><dd className="tabular">{user.phone || '—'}</dd></div>
-                  <div className="flex gap-2"><dt className="w-24 flex-shrink-0 text-[color:var(--text-muted)]">Contraseña</dt><dd className="font-mono">{user.password}</dd></div>
-                  <div className="flex gap-2"><dt className="w-24 flex-shrink-0 text-[color:var(--text-muted)]">Empresa</dt><dd className="min-w-0 truncate">{user.company || '—'}</dd></div>
+                  <div className="flex gap-2"><dt className="w-24 shrink-0 text-(--text-muted)">Correo</dt><dd className="min-w-0 truncate">{user.email}</dd></div>
+                  <div className="flex gap-2"><dt className="w-24 shrink-0 text-(--text-muted)">Teléfono</dt><dd className="tabular">{user.phone || '—'}</dd></div>
+                  <div className="flex gap-2"><dt className="w-24 shrink-0 text-(--text-muted)">Contraseña</dt><dd className="font-mono">{user.password}</dd></div>
+                  <div className="flex gap-2"><dt className="w-24 shrink-0 text-(--text-muted)">Empresa</dt><dd className="min-w-0 truncate">{user.company || '—'}</dd></div>
                 </dl>
                 <div className="mt-2 -mb-1 flex justify-end -mr-2"><RowActions user={user} /></div>
               </li>
@@ -412,13 +412,13 @@ const Users: React.FC = () => {
                 <label
                   key={r.value}
                   className={cn(
-                    'cursor-pointer rounded-lg border px-3 py-2.5 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-500',
+                    'cursor-pointer rounded-lg border px-3 py-2.5 transition-colors has-focus-visible:ring-2 has-focus-visible:ring-primary-500',
                     newUser.role === r.value ? 'border-secondary-500 bg-secondary-50' : 'border-[#cfd5dd] hover:bg-[#f7f8fa]',
                   )}
                 >
                   <input type="radio" name="role" value={r.value} checked={newUser.role === r.value} onChange={(e) => setNewUser({ ...newUser, role: e.target.value })} className="sr-only" required />
-                  <span className="block text-sm font-semibold text-[color:var(--text-strong)]">{r.label}</span>
-                  <span className="block text-xs text-[color:var(--text-muted)]">{r.hint}</span>
+                  <span className="block text-sm font-semibold text-(--text-strong)">{r.label}</span>
+                  <span className="block text-xs text-(--text-muted)">{r.hint}</span>
                 </label>
               ))}
             </div>
@@ -431,10 +431,10 @@ const Users: React.FC = () => {
                 <label
                   key={option.value}
                   className={cn(
-                    'inline-flex h-9 cursor-pointer items-center rounded-full border px-3.5 text-[13px] font-medium transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-500',
+                    'inline-flex h-9 cursor-pointer items-center rounded-full border px-3.5 text-[13px] font-medium transition-colors has-focus-visible:ring-2 has-focus-visible:ring-primary-500',
                     newUser.companyType === option.value
-                      ? 'border-secondary-500 bg-secondary-50 text-[color:var(--text-strong)]'
-                      : 'border-[#cfd5dd] text-[color:var(--text)] hover:bg-[#f7f8fa]',
+                      ? 'border-secondary-500 bg-secondary-50 text-(--text-strong)'
+                      : 'border-[#cfd5dd] text-(--text) hover:bg-[#f7f8fa]',
                   )}
                 >
                   <input
@@ -467,7 +467,7 @@ const Users: React.FC = () => {
 
           {createError && (
             <p className="notice-error" role="alert">
-              <TriangleAlert className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
               {createError}
             </p>
           )}

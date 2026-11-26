@@ -2,7 +2,8 @@ import type React from 'react';
 import { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import type { DataItem } from '../../interfaces/IData';
-import { CHART_AXIS, CHART_GRID, ChartTooltip, courseColor } from '../ui/chartTheme';
+import { CHART_AXIS, CHART_GRID, courseColor } from '../ui/chartTheme';
+import { ChartTooltip } from '../ui/ChartTooltip';
 
 interface YearInfoViewProps {
   data: DataItem[];
@@ -38,7 +39,7 @@ const YearInfoView: React.FC<YearInfoViewProps> = ({ data }) => {
           <p className="card-subtitle">Cantidad de participantes de cada curso, año por año.</p>
         </div>
         <div className="w-full sm:w-60">
-          <label className="block text-xs font-medium text-[color:var(--text-muted)] mb-1" htmlFor="course-filter">Curso</label>
+          <label className="block text-xs font-medium text-(--text-muted) mb-1" htmlFor="course-filter">Curso</label>
           <select
             id="course-filter"
             value={selectedCourse}
@@ -54,7 +55,7 @@ const YearInfoView: React.FC<YearInfoViewProps> = ({ data }) => {
       </header>
 
       {chartData.length === 0 ? (
-        <p className="py-16 text-center text-[13px] text-[color:var(--text-muted)]">Sin datos para mostrar</p>
+        <p className="py-16 text-center text-[13px] text-(--text-muted)">Sin datos para mostrar</p>
       ) : (
         <div className="h-[300px] sm:h-[380px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -62,12 +63,12 @@ const YearInfoView: React.FC<YearInfoViewProps> = ({ data }) => {
               <CartesianGrid {...CHART_GRID} />
               <XAxis dataKey="year" {...CHART_AXIS} />
               <YAxis {...CHART_AXIS} allowDecimals={false} width={44} />
-              <Tooltip cursor={{ fill: 'rgba(58,105,170,0.06)' }} content={<ChartTooltip formatter={(v) => `${v}`} />} />
+              <Tooltip cursor={{ fill: 'rgba(58,105,170,0.06)' }} content={<ChartTooltip format={(v) => `${v}`} />} />
               <Legend
                 iconType="circle"
                 iconSize={8}
                 wrapperStyle={{ paddingTop: 12 }}
-                formatter={(value) => <span className="text-[13px] text-[color:var(--text)]">{value}</span>}
+                formatter={(value) => <span className="text-[13px] text-(--text)">{value}</span>}
               />
               {visibleCourses.map((course, i) => (
                 <Bar key={course} dataKey={course} fill={courseColor(course, i)} radius={[3, 3, 0, 0]} maxBarSize={36} />

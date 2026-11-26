@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { BarChart3, ClipboardList, History as HistoryIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Skeleton } from '../components/ui/Skeleton';
@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
         <p className="page-subtitle">{view.description}</p>
       </header>
 
-      <div className="-mx-4 sm:mx-0 overflow-x-auto overflow-y-hidden no-scrollbar px-4 sm:px-0 border-b border-[color:var(--border)]">
+      <div className="-mx-4 sm:mx-0 overflow-x-auto overflow-y-hidden no-scrollbar px-4 sm:px-0 border-b border-(--border)">
         <div role="tablist" aria-label="Vistas del panel" className="flex min-w-max gap-1">
           {VIEWS.map((v, i) => {
             const selected = v.id === view.id;
@@ -91,8 +91,8 @@ const Dashboard: React.FC = () => {
                   'relative inline-flex h-11 items-center gap-2 rounded-t-lg px-3 sm:px-4 text-sm font-medium transition-colors',
                   'after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full',
                   selected
-                    ? 'text-[color:var(--text-strong)] after:bg-secondary-500'
-                    : 'text-[color:var(--text-muted)] hover:text-[color:var(--text-strong)] hover:bg-black/[0.03]',
+                    ? 'text-(--text-strong) after:bg-secondary-500'
+                    : 'text-(--text-muted) hover:text-(--text-strong) hover:bg-black/3',
                 )}
               >
                 <Icon className={cn('h-4 w-4', selected ? 'text-secondary-600' : 'text-current')} />
