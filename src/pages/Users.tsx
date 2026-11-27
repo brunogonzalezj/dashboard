@@ -313,7 +313,7 @@ const Users: React.FC = () => {
         <>
           {/* Computadora: tabla */}
           <div className="dashboard-card p-0! hidden lg:block overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="max-h-[70vh] overflow-auto">
               <table className="data-table">
                 <thead>
                   <tr>
